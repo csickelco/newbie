@@ -78,8 +78,10 @@ Utils.formatDuration = function(duration) {
 };
 
 Utils.getTime = function(dateTime) {
+	var am = true;
 	var hours = dateTime.getHours() - 4; //EST ofsset TODO: Make timezone configurable
 	if( hours > 12 ) {
+		am = false;
 		hours = hours - 12;
 	}
 	var minutes = dateTime.getMinutes();
@@ -88,7 +90,7 @@ Utils.getTime = function(dateTime) {
 		retval += " oh ";
 	}
 	retval += minutes;
-	if( hours < 12 ) {
+	if( am ) {
 		retval += " AM";
 	} else {
 		retval += " PM";
