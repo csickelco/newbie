@@ -128,10 +128,11 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			//Calculate feeding averages
 			var totalNumFeedings = 0;
 			var totalFeedAmount = 0;
-			for (var value of feedMap.values()) {
+			feedMap.forEach(function(value, key) 
+			{
 				totalNumFeedings += value.numFeedings;
 				totalFeedAmount += value.totalFeedAmount;
-			}
+			}, feedMap);
 			var numDaysWithFeedsRecorded = feedMap.size;
 			weeklySummary.totalFeedAmount = Math.round(totalFeedAmount/numDaysWithFeedsRecorded);
 			weeklySummary.numFeedings = Math.round(totalNumFeedings/numDaysWithFeedsRecorded);
@@ -139,19 +140,21 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			//Calculate diaper averages
 			var totalNumWetDiapers = 0;
 			var totalNumDirtyDiapers = 0;
-			for (var value of diaperMap.values()) {
+			diaperMap.forEach(function(value, key) 
+			{
 				totalNumWetDiapers += value.numWetDiapers;
 				totalNumDirtyDiapers += value.numDirtyDiapers;
-			}
+			}, diaperMap);
 			var numDaysWithDiapersRecorded = diaperMap.size;
 			weeklySummary.numWetDiapers = Math.round(totalNumWetDiapers/numDaysWithDiapersRecorded);
 			weeklySummary.numDirtyDiapers = Math.round(totalNumDirtyDiapers/numDaysWithDiapersRecorded);
 			
 			//Calculate sleep averages
 			var totalSleep = 0;
-			for (var value of sleepMap.values()) {
+			sleepMap.forEach(function(value, key) 
+			{
 				totalSleep += value;
-			}
+			}, sleepMap);
 			var numDaysWithSleepRecorded = sleepMap.size;
 			weeklySummary.sleep = Utils.formatDuration(Math.round(totalSleep/numDaysWithSleepRecorded));
 			
