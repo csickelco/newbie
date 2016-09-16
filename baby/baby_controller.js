@@ -30,7 +30,7 @@ function BabyController () {
 
 BabyController.prototype.initBabyData = function() {
 	logger.info("initBabyData: Starting initialization...");
-	return babyDao.setupBabyTable();
+	return babyDao.createTable();
 };
 
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {

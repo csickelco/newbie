@@ -12,7 +12,7 @@ if (typeof Promise === 'undefined') {
 	AWS.config.setPromisesDependency(require('bluebird'));
 }
 
-var ACTIVITY_TABLE_NAME = 'activity'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
+var TABLE_NAME = 'activity'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
 
 var logger = new (Winston.Logger)({
     transports: [
@@ -41,16 +41,16 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 
 function ActivityAWSDao() {}
 
-ActivityAWSDao.prototype.setupActivityTable = function() {
-	logger.info("setupActivityTable: Starting table setup...");
+ActivityAWSDao.prototype.createTable = function() {
+	logger.info("createTable: Starting table setup...");
 	var describeParams = {
-			TableName: ACTIVITY_TABLE_NAME,
+			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("setupActivityTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
-			    TableName : ACTIVITY_TABLE_NAME,
+			    TableName : TABLE_NAME,
 			    KeySchema: [       
 			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "dateTime", KeyType: "RANGE" }  //Sort key
@@ -68,12 +68,20 @@ ActivityAWSDao.prototype.setupActivityTable = function() {
 	});
 };
 
+ActivityAWSDao.prototype.deleteTable = function() {
+	logger.info("deleteTable: Starting table delete");
+	var params = {
+	    TableName : TABLE_NAME
+	};
+	return dynamodb.deleteTable(params).promise();
+};
+
 //TODO: Activity table should really be specific to a baby
 ActivityAWSDao.prototype.createActivity = function(userId, dateTime, activity) {
 	var dateTimeString = dateTime.toISOString();
 	logger.info("createActivity: Starting activity creation for user %s, dateTimeString %s, activity %s...", userId, dateTimeString, activity);
 	var params = {
-	    TableName: ACTIVITY_TABLE_NAME,
+	    TableName: TABLE_NAME,
 	    Item:{
 	    	userId: userId,
 	    	dateTime: dateTimeString,
@@ -87,7 +95,7 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 	//TODO: probably need to take into account timezones
 	logger.info("getActivitiesForDay: Starting get activities for day %s", date.toString());
 	var params = {
-			TableName : ACTIVITY_TABLE_NAME,
+			TableName : TABLE_NAME,
 			//TODO: use begins_with instead?
 			KeyConditionExpression: "userId = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {

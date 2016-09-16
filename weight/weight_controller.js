@@ -45,7 +45,7 @@ function WeightController () {
 
 WeightController.prototype.initWeightData = function() {
 	logger.info("initWeightData: Starting initialization...");
-	return weightDao.setupWeightTable();
+	return weightDao.createTable();
 };
 
 WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
