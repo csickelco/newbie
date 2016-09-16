@@ -80,5 +80,5 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 			return responseMsg;
 		});
 };
-
+//Test
 module.exports = DiaperController;
