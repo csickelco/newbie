@@ -104,7 +104,7 @@ Utils.pluralizeIfNeeded = function(num) {
 	} else {
 		return "s";
 	}
-}
+};
 
 //TODO: Not sure if this is right
 module.exports = Utils;
