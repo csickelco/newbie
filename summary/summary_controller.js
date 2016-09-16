@@ -313,10 +313,10 @@ SummaryController.prototype.getDailySummary = function(userId) {
 				responseMsg += " and weighs " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces);
 				responseCard += "Weight: " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces) + "\n";
 			}
-			responseMsg += ". She ate " + dailySummary.numFeedings + " times for a total of " +
-				dailySummary.totalFeedAmount + " ounces " +
-				"and had " + dailySummary.numWetDiapers + " wet diapers and " +
-				dailySummary.numDirtyDiapers + " dirty diapers. ";
+			responseMsg += ". She ate " + dailySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(dailySummary.numFeedings) + " for a total of " +
+				dailySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(dailySummary.totalFeedAmount) + " " +
+				"and had " + dailySummary.numWetDiapers + " wet diaper" + Utils.pluralizeIfNeeded(dailySummary.numWetDiapers) + " and " +
+				dailySummary.numDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(dailySummary.numDirtyDiapers) + ". ";
 			responseCard += "Number of feedings: " + dailySummary.numFeedings + "\n";
 			responseCard += "Total feeding amount: " + dailySummary.totalFeedAmount + "\n";
 			responseCard += "Number of wet diapers: " + dailySummary.numWetDiapers + "\n";

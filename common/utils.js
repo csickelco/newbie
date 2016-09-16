@@ -98,5 +98,13 @@ Utils.getTime = function(dateTime) {
 	return retval;
 };
 
+Utils.pluralizeIfNeeded = function(num) {
+	if( num === 1 ) {
+		return "";
+	} else {
+		return "s";
+	}
+}
+
 //TODO: Not sure if this is right
 module.exports = Utils;
