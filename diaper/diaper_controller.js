@@ -6,6 +6,7 @@ module.change_code = 1;
 var _ = require('lodash');
 var DiaperDao = require('./diaper_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
+var Utils = require('../common/utils');
 var Winston = require('winston');
 var rp = require('request-promise');
 
@@ -74,7 +75,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 			}
 			//TODO: Plural diapers only if more than one
 			responseMsg += "diaper for " + babyName + ". Today, she's had " + 
-				totalWetDiapers + " wet and " + totalDirtyDiapers + " dirty diapers"; //TODO: replace she with proper prononun
+				totalWetDiapers + " wet and " + totalDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(totalDirtyDiapers); //TODO: replace she with proper prononun
 			logger.info("addDiaper: Response %s", responseMsg);
 			return responseMsg;
 		});
