@@ -30,7 +30,7 @@ function DiaperController () {
 
 DiaperController.prototype.initDiaperData = function() {
 	logger.info("initDiaperData: Starting initialization...");
-	return diaperDao.setupDiaperTable();
+	return diaperDao.createTable();
 };
 
 DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty) {

@@ -11,7 +11,7 @@ if (typeof Promise === 'undefined') {
 	AWS.config.setPromisesDependency(require('bluebird'));
 }
 
-var BABY_TABLE_NAME = 'baby'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
+var TABLE_NAME = 'baby'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
 
 var logger = new (Winston.Logger)({
     transports: [
@@ -40,34 +40,17 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 
 function BabyAWSDao() {}
 
-BabyAWSDao.prototype.setupBabyTable = function() {
-	logger.info("setupBabyTable: Starting table setup...");
-	/*
-	var params = {
-		    TableName : BABY_TABLE_NAME,
-		    KeySchema: [       
-		        { AttributeName: "userId", KeyType: "HASH"}
-		    ],
-		    AttributeDefinitions: [       
-		        { AttributeName: "userId", AttributeType: "S" }
-		    ],
-		    ProvisionedThroughput: {       
-		        ReadCapacityUnits: 5, 
-		        WriteCapacityUnits: 5
-		    }
-		};
-	return dynamodb.createTable(params).send();
-	*/
-	
+BabyAWSDao.prototype.createTable = function() {
+	logger.info("createTable: Starting table setup...");
 	var describeParams = {
-			TableName: BABY_TABLE_NAME,
+			TableName: TABLE_NAME,
 	};
 	var request = dynamodb.describeTable(describeParams);
 	return request.promise()
     	.catch(function(error) {
-    		logger.info("setupBabyTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+    		logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
     		var params = {
-			    TableName : BABY_TABLE_NAME,
+			    TableName : TABLE_NAME,
 			    KeySchema: [       
 			        { AttributeName: "userId", KeyType: "HASH"}
 			    ],
@@ -84,10 +67,18 @@ BabyAWSDao.prototype.setupBabyTable = function() {
     	
 };
 
+BabyAWSDao.prototype.deleteTable = function() {
+	logger.info("deleteTable: Starting table delete");
+	var params = {
+	    TableName : TABLE_NAME
+	};
+	return dynamodb.deleteTable(params).promise();
+};
+
 BabyAWSDao.prototype.createBaby = function(userId, baby) {
 	logger.log('info', "createBaby: Starting baby creation for user %s, baby %s...", userId, JSON.stringify(baby));
 	var params = {
-	    TableName: BABY_TABLE_NAME,
+	    TableName: TABLE_NAME,
 	    Item:{
 	    	userId: userId,
 	    	data: baby
@@ -99,7 +90,7 @@ BabyAWSDao.prototype.createBaby = function(userId, baby) {
 BabyAWSDao.prototype.readBaby = function(userId) {
 	logger.info("readBaby: Starting for user %s...", userId);
 	var params = {
-	    TableName: BABY_TABLE_NAME,
+	    TableName: TABLE_NAME,
 	    Key:{
 	        "userId": userId
 	    }

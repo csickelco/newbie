@@ -29,7 +29,7 @@ function ActivityController () {
 
 ActivityController.prototype.initActivityData = function() {
 	logger.info("initActivityData: Starting initialization...");
-	return activityDao.setupActivityTable();
+	return activityDao.createTable();
 };
 
 ActivityController.prototype.addActivity = function(userId, dateTime, activity) {

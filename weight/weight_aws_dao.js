@@ -12,7 +12,7 @@ if (typeof Promise === 'undefined') {
 	AWS.config.setPromisesDependency(require('bluebird'));
 }
 
-var WEIGHT_TABLE_NAME = 'weight'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
+var TABLE_NAME = 'weight'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
 
 var logger = new (Winston.Logger)({
     transports: [
@@ -41,16 +41,16 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 
 function WeightAWSDao() {}
 
-WeightAWSDao.prototype.setupWeightTable = function() {
-	logger.info("setupWeightTable: Starting table setup...");
+WeightAWSDao.prototype.createTable = function() {
+	logger.info("createTable: Starting table setup...");
 	var describeParams = {
-			TableName: WEIGHT_TABLE_NAME,
+			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("setupWeightTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
-			    TableName : WEIGHT_TABLE_NAME,
+			    TableName : TABLE_NAME,
 			    KeySchema: [       
 			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "date", KeyType: "RANGE" }  //Sort key
@@ -69,12 +69,20 @@ WeightAWSDao.prototype.setupWeightTable = function() {
 		
 };
 
+WeightAWSDao.prototype.deleteTable = function() {
+	logger.info("deleteTable: Starting table delete");
+	var params = {
+	    TableName : TABLE_NAME
+	};
+	return dynamodb.deleteTable(params).promise();
+};
+
 //TODO: Weight table should really be specific to a baby
 WeightAWSDao.prototype.createWeight = function(userId, weight, date) {
 	var dateString = date.toISOString();
 	logger.info("createWeight: Starting weight creation for user %s, dateString %s, weight %s...", userId, dateString, weight);
 	var params = {
-	    TableName: WEIGHT_TABLE_NAME,
+	    TableName: TABLE_NAME,
 	    Item:{
 	    	userId: userId,
 			date: dateString,
@@ -88,7 +96,7 @@ WeightAWSDao.prototype.getWeight = function(userId, date) {
 	//TODO: probably need to take into account timezones
 	logger.info("getWeight: Starting get weight for day %s", date.toString());
 	var params = {
-			TableName : WEIGHT_TABLE_NAME,
+			TableName : TABLE_NAME,
 			//TODO: use begins_with instead?
 			KeyConditionExpression: "userId = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {

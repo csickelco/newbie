@@ -18,7 +18,6 @@ function Sleep (obj) {
 
 
 Sleep.prototype.toString = function sleepToString() {
-	console.log("here");
 	  var ret = "Sleep, userId: " + this.userId + ", sleepDateTime: " + this.sleepDateTime + ", wokeUpDateTime: " + this.wokeUpDateTime;
 	  return ret;
 };
