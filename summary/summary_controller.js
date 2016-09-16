@@ -346,5 +346,5 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			return response;
 		});
 };
-
+//Test
 module.exports = SummaryController;
