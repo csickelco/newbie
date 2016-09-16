@@ -97,7 +97,7 @@ app.pre = function(request, response, type) {
 
 app.launch(function(req, res) {
 	logger.info('launch: Starting...');
-    var prompt = 'You can ask Newbie, version 1.25, to track information about your baby. To begin, say Add baby';
+    var prompt = 'You can ask Newbie to track information about your baby. To begin, say Add baby';
     res.say(prompt).shouldEndSession(false);
     logger.info('launch: Successfully completed');
 });

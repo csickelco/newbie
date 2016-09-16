@@ -199,13 +199,13 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 				responseCard += "Weight: " + Utils.getPoundsAndOuncesString(weeklySummary.weightInOunces) + "\n";
 			}
 			if( weightDifferenceInOunces && weightDifferenceNumDays ) {
-				responseMsg += ". She gained " + weightDifferenceInOunces + " ounces in " + weightDifferenceNumDays + " days";
+				responseMsg += ". She gained " + weightDifferenceInOunces + " ounce" + Utils.pluralizeIfNeeded(weightDifferenceInOunces) + " in " + weightDifferenceNumDays + " day" + Utils.pluralizeIfNeeded(weightDifferenceNumDays);
 				responseCard += "Weight gain: " + weightDifferenceInOunces + " ounces over " + weightDifferenceNumDays + " days\n";
 			}
-			responseMsg += ". On average, she ate " + weeklySummary.numFeedings + " times for a total of " +
-				weeklySummary.totalFeedAmount + " ounces " +
-				"and had " + weeklySummary.numWetDiapers + " wet diapers and " +
-				weeklySummary.numDirtyDiapers + " dirty diapers per day. ";
+			responseMsg += ". On average, she ate " + weeklySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(weeklySummary.numFeedings) + " for a total of " +
+				weeklySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(weeklySummary.totalFeedAmount) +
+				" and had " + weeklySummary.numWetDiapers + " wet and " +
+				weeklySummary.numDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(weeklySummary.numDirtyDiapers) + " per day. ";
 			responseCard += "Average number of feedings per day: " + weeklySummary.numFeedings + "\n";
 			responseCard += "Average feeding amount per day: " + weeklySummary.totalFeedAmount + " ounces\n";
 			responseCard += "Average number of wet diapers per day: " + weeklySummary.numWetDiapers + "\n";
