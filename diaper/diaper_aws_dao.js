@@ -12,7 +12,7 @@ if (typeof Promise === 'undefined') {
 	AWS.config.setPromisesDependency(require('bluebird'));
 }
 
-var DIAPER_TABLE_NAME = 'diaper'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
+var TABLE_NAME = 'diaper'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
 
 var logger = new (Winston.Logger)({
     transports: [
@@ -41,16 +41,16 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 
 function DiaperAWSDao() {}
 
-DiaperAWSDao.prototype.setupDiaperTable = function() {
-	logger.info("setupFeedTable: Starting diaper setup...");
+DiaperAWSDao.prototype.createTable = function() {
+	logger.info("createTable: Starting diaper setup...");
 	var describeParams = {
-			TableName: DIAPER_TABLE_NAME,
+			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("setupDiaperTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
-			    TableName : DIAPER_TABLE_NAME,
+			    TableName : TABLE_NAME,
 			    KeySchema: [       
 			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "dateTime", KeyType: "RANGE" }  //Sort key
@@ -68,13 +68,21 @@ DiaperAWSDao.prototype.setupDiaperTable = function() {
 	});
 };
 
+DiaperAWSDao.prototype.deleteTable = function() {
+	logger.info("deleteTable: Starting table delete");
+	var params = {
+	    TableName : TABLE_NAME
+	};
+	return dynamodb.deleteTable(params).promise();
+};
+
 //TODO: Diaper table should really be specific to a baby
 //TODO: Make a diaper object?
 DiaperAWSDao.prototype.createDiaper = function(userId, dateTime, isWet, isDirty) {
 	var dateTimeString = dateTime.toISOString();
 	logger.info("createDiaper: Starting diaper creation for user %s, dateTimeString %s, isWet %s, isDirty %s...", userId, dateTimeString, isWet, isDirty);
 	var params = {
-	    TableName: DIAPER_TABLE_NAME,
+	    TableName: TABLE_NAME,
 	    Item:{
 	    	userId: userId,
 	    	dateTime: dateTimeString,
@@ -89,7 +97,7 @@ DiaperAWSDao.prototype.getDiapers = function(userId, date) {
 	//TODO: probably need to take into account timezones
 	logger.info("getDiapers: Starting get diapers for day %s", date.toString());
 	var params = {
-			TableName : DIAPER_TABLE_NAME,
+			TableName : TABLE_NAME,
 			//TODO: use begins_with instead?
 			KeyConditionExpression: "userId = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {

@@ -33,7 +33,7 @@ function SleepController () {
 
 SleepController.prototype.initSleepData = function() {
 	logger.info("initSleepData: Starting initialization...");
-	return sleepDao.setupSleepTable();
+	return sleepDao.createTable();
 };
 
 //TODO: lots of error checking - what if they start a sleep without ending a previous one? indeterminate nap?

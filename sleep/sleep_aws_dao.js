@@ -12,7 +12,7 @@ if (typeof Promise === 'undefined') {
 	AWS.config.setPromisesDependency(require('bluebird'));
 }
 
-var SLEEP_TABLE_NAME = 'sleep'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
+var TABLE_NAME = 'sleep'; //TODO: Is there an equivalent of a schema name? e.g. NEWBIE.baby
 
 var logger = new (Winston.Logger)({
     transports: [
@@ -41,16 +41,16 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 
 function SleepAWSDao() {}
 
-SleepAWSDao.prototype.setupSleepTable = function() {
-	logger.info("setupSleepTable: Starting table setup...");
+SleepAWSDao.prototype.createTable = function() {
+	logger.info("createTable: Starting table setup...");
 	var describeParams = {
-			TableName: SLEEP_TABLE_NAME,
+			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("setupSleepTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
-			    TableName : SLEEP_TABLE_NAME,
+			    TableName : TABLE_NAME,
 			    KeySchema: [       
 			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "sleepDateTime", KeyType: "RANGE" }  //Sort key
@@ -68,13 +68,21 @@ SleepAWSDao.prototype.setupSleepTable = function() {
 	});
 };
 
+SleepAWSDao.prototype.deleteTable = function() {
+	logger.info("deleteTable: Starting table delete");
+	var params = {
+	    TableName : TABLE_NAME
+	};
+	return dynamodb.deleteTable(params).promise();
+};
+
 //TODO: sleep table should really be specific to a baby
 SleepAWSDao.prototype.createSleep = function(sleep) {
 	logger.info("createSleep: Starting sleep creation for %s...", sleep.toString());
 	var sleepDateTimeString = sleep.sleepDateTime ? sleep.sleepDateTime.toISOString() : undefined;
 	var wokeUpDateTimeString = sleep.wokeUpDateTime ? sleep.wokeUpDateTime.toISOString() : undefined;
 	var params = {
-	    TableName: SLEEP_TABLE_NAME,
+	    TableName: TABLE_NAME,
 	    Item:{
 	    	userId: sleep.userId,
 	    	sleepDateTime: sleepDateTimeString,
@@ -88,7 +96,7 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
 SleepAWSDao.prototype.getLastSleep = function(userId) {
 	logger.info("getLastSleep: Starting get last sleep for user %s", userId);
 	var params = {
-			TableName : SLEEP_TABLE_NAME,
+			TableName : TABLE_NAME,
 			//TODO: use begins_with instead? so we only get that day (in case not doing today)
 			KeyConditionExpression: "userId = :val1",
 		    ExpressionAttributeValues: {
@@ -104,7 +112,7 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
 	logger.info("updateLastSleep: Updating last sleep %s", sleep);
 	
 	var params = {
-		    TableName:SLEEP_TABLE_NAME,
+		    TableName:TABLE_NAME,
 		    Key:{
 		    	userId: sleep.userId,
 		    	sleepDateTime: sleep.sleepDateTime.toISOString()
@@ -123,7 +131,7 @@ SleepAWSDao.prototype.getSleep = function(userId, date) {
 	//TODO: probably need to take into account timezones
 	logger.info("getSleep: Starting get sleeps for day %s", date.toString());
 	var params = {
-			TableName : SLEEP_TABLE_NAME,
+			TableName : TABLE_NAME,
 			//TODO: use begins_with instead? so we only get that day (in case not doing today)
 			KeyConditionExpression: "userId = :val1 and sleepDateTime > :val2",
 		    ExpressionAttributeValues: {

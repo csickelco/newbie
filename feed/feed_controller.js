@@ -32,7 +32,7 @@ function FeedController () {
 
 FeedController.prototype.initFeedData = function() {
 	logger.info("initFeedData: Starting initialization...");
-	return feedDao.setupFeedTable();
+	return feedDao.createTable();
 };
 
 FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
