@@ -322,7 +322,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			responseCard += "Number of wet diapers: " + dailySummary.numWetDiapers + "\n";
 			responseCard += "Number of dirty diapers: " + dailySummary.numDirtyDiapers + "\n";
 			if( dailySummary.sleep ) {
-				responseMsg += "She slept " + dailySummary.sleep; //TODO: replace she with proper prononun
+				responseMsg += "She slept " + dailySummary.sleep + ". "; //TODO: replace she with proper prononun
 				responseCard += "Sleep: " + dailySummary.sleep + "\n";
 			}
 			if(activities.size > 0 ) {
