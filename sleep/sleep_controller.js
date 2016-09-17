@@ -32,7 +32,7 @@ function SleepController () {
 }
 
 SleepController.prototype.initSleepData = function() {
-	logger.info("initSleepData: Starting initialization...");
+	logger.debug("initSleepData: Starting initialization...");
 	return sleepDao.createTable();
 };
 
@@ -40,7 +40,7 @@ SleepController.prototype.initSleepData = function() {
 SleepController.prototype.startSleep = function(userId, dateTime) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
 	//TODO: Provide option to use different units
-	logger.info("addSleep: Adding sleep for %s, dateTime: %s,", userId, dateTime);
+	logger.debug("addSleep: Adding sleep for %s, dateTime: %s,", userId, dateTime);
 	var template = _.template("Recording sleep for ${babyName}.");
 	var loadedBaby;
 	
@@ -60,7 +60,7 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 			{
 				babyName: loadedBaby.name
 			});
-			logger.info("startSleep: Response %s", responseMsg);
+			logger.debug("startSleep: Response %s", responseMsg);
 			return new Response(responseMsg, "Started sleep", responseMsg);
 		});
 };
@@ -68,12 +68,12 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 SleepController.prototype.endSleep = function(userId, dateTime) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
 	//TODO: Provide option to use different units
-	logger.info("endSleep: Ending sleep for %s, dateTime: %s,", userId, dateTime);
+	logger.debug("endSleep: Ending sleep for %s, dateTime: %s,", userId, dateTime);
 	var lastSleep;
 	return sleepDao.getLastSleep(userId)
 		.then( function(getLastSleepResult) {
 			getLastSleepResult.Items.forEach(function(item) {
-	            logger.info("endSleep: lastSleep %s", item.sleepDateTime);
+	            logger.debug("endSleep: lastSleep %s", item.sleepDateTime);
 	            lastSleep = item;
 	            lastSleep.sleepDateTime = new Date(lastSleep.sleepDateTime); //TODO: this is a bit kludgy. Should DAO do this?
 	        });
@@ -96,7 +96,7 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 				sleepDateTime: Utils.getTime(lastSleep.sleepDateTime),
 				wokeUpDateTime: Utils.getTime(lastSleep.wokeUpDateTime)
 			});
-			logger.info("endSleep: Response %s", responseMsg);
+			logger.debug("endSleep: Response %s", responseMsg);
 			return new Response(responseMsg, "End Sleep", responseMsg);
 		});
 };
@@ -110,7 +110,7 @@ SleepController.prototype.getAwakeTime = function(userId) {
 		.then( function(result) {
 			//TODO: make a sleep object
 			result.Items.forEach(function(item) {
-	            logger.info("getAwakeTime: lastSleep %s %s", item.sleepDateTime, item.wokeUpDateTime);
+	            logger.debug("getAwakeTime: lastSleep %s %s", item.sleepDateTime, item.wokeUpDateTime);
 	            if(item.sleepDateTime) {
 	            	lastSleepDate = new Date(item.sleepDateTime);
 	            }
@@ -130,7 +130,7 @@ SleepController.prototype.getAwakeTime = function(userId) {
 			} else {
 				var today = new Date();
 				var diffMs = (today - lastWakeDate); 
-				logger.info("getLastSleep: diffMs %d", diffMs);
+				logger.debug("getLastSleep: diffMs %d", diffMs);
 				//TODO: Move this to a utility method
 				var diffDays = Math.round(diffMs / 86400000); // days
 				var diffHrs = Math.round((diffMs % 86400000) / 3600000); // hours

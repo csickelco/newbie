@@ -42,13 +42,13 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 function DiaperAWSDao() {}
 
 DiaperAWSDao.prototype.createTable = function() {
-	logger.info("createTable: Starting diaper setup...");
+	logger.debug("createTable: Starting diaper setup...");
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
@@ -69,7 +69,7 @@ DiaperAWSDao.prototype.createTable = function() {
 };
 
 DiaperAWSDao.prototype.deleteTable = function() {
-	logger.info("deleteTable: Starting table delete");
+	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
@@ -80,7 +80,7 @@ DiaperAWSDao.prototype.deleteTable = function() {
 //TODO: Make a diaper object?
 DiaperAWSDao.prototype.createDiaper = function(diaper) {
 	var dateTimeString = diaper.dateTime.toISOString();
-	logger.info("createDiaper: Starting diaper creation for %s...", diaper.toString());
+	logger.debug("createDiaper: Starting diaper creation for %s...", diaper.toString());
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
@@ -95,7 +95,7 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
 
 DiaperAWSDao.prototype.getDiapers = function(userId, date) {
 	//TODO: probably need to take into account timezones
-	logger.info("getDiapers: Starting get diapers for day %s", date.toString());
+	logger.debug("getDiapers: Starting get diapers for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
 			//TODO: use begins_with instead?

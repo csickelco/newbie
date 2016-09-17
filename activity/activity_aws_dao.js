@@ -42,13 +42,13 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 function ActivityAWSDao() {}
 
 ActivityAWSDao.prototype.createTable = function() {
-	logger.info("createTable: Starting table setup...");
+	logger.debug("createTable: Starting table setup...");
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
@@ -69,7 +69,7 @@ ActivityAWSDao.prototype.createTable = function() {
 };
 
 ActivityAWSDao.prototype.deleteTable = function() {
-	logger.info("deleteTable: Starting table delete");
+	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
@@ -79,7 +79,7 @@ ActivityAWSDao.prototype.deleteTable = function() {
 //TODO: Activity table should really be specific to a baby
 ActivityAWSDao.prototype.createActivity = function(activity) {
 	var dateTimeString = activity.dateTime.toISOString();
-	logger.info("createActivity: Starting activity creation for user %s, dateTimeString %s, activity %s...", activity.userId, dateTimeString, activity.activity);
+	logger.debug("createActivity: Starting activity creation for user %s, dateTimeString %s, activity %s...", activity.userId, dateTimeString, activity.activity);
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
@@ -93,7 +93,7 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
 
 ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 	//TODO: probably need to take into account timezones
-	logger.info("getActivitiesForDay: Starting get activities for day %s", date.toString());
+	logger.debug("getActivitiesForDay: Starting get activities for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
 			//TODO: use begins_with instead?

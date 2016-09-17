@@ -30,13 +30,13 @@ function BabyController () {
 }
 
 BabyController.prototype.initBabyData = function() {
-	logger.info("initBabyData: Starting initialization...");
+	logger.debug("initBabyData: Starting initialization...");
 	return babyDao.createTable();
 };
 
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
-	logger.info("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
+	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
 	//TODO: substitute proper pronoun
 	var template = _.template('Added baby ${sex} ${name}. She is ${age} old');
 	
@@ -51,21 +51,21 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	return babyDao.createBaby(baby)
 		.then( function(result) 
 		{
-			logger.info("addBaby: Successfully created baby %s", JSON.stringify(baby));
+			logger.debug("addBaby: Successfully created baby %s", JSON.stringify(baby));
 			return babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{
-			logger.info("addBaby: Successfully read baby %s", JSON.stringify(readBabyResult));
+			logger.debug("addBaby: Successfully read baby %s", JSON.stringify(readBabyResult));
 			var loadedBaby = readBabyResult.Item;
-			logger.info("addBaby: loadedBaby %s", JSON.stringify(loadedBaby));
+			logger.debug("addBaby: loadedBaby %s", JSON.stringify(loadedBaby));
 			var responseMsg = template(
 			{
 				sex: loadedBaby.sex,
 				name: loadedBaby.name,
 				age: Utils.calculateAgeFromBirthdate(birthdate)
 			});
-			logger.info("addBaby: Response %s", responseMsg);
+			logger.debug("addBaby: Response %s", responseMsg);
 			return new Response(responseMsg, "Added Baby", responseMsg);
 		});
 };
