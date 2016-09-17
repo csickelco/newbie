@@ -76,7 +76,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 				numFeeds: numFeeds
 			});
 			logger.info("addFeed: Response %s", responseMsg);
-			return responseMsg;
+			return new Response(responseMsg, "Feed", responseMsg);
 		});
 };
 

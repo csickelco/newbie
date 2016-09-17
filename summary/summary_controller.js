@@ -216,7 +216,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			}
 			
 			response.message = responseMsg;
-			response.card = responseCard;
+			response.setCard("Weekly Summary", responseCard);
 			
 			//TODO: Add activities
 			logger.info("getWeeklySummary: Response %s", response.toString());
@@ -236,7 +236,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	return babyDao.readBaby(userId)
 		.then( function(readBabyResult) {
 			dailySummary.name = readBabyResult.Item.name;
-			dailySummary.age = Utils.calculateAgeFromBirthdate(readBabyResult.Item.birthdate);
+			dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
 			logger.info("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
 			return feedDao.getFeeds(userId, today);
 		})
@@ -341,7 +341,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 				}
 			}
 			response.message = responseMsg;
-			response.card = responseCard;
+			response.setCard("Daily Summary", responseCard);
 			logger.info("getDailySummary: Response %s", response.toString());
 			return response;
 		});
