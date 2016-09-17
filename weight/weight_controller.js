@@ -46,14 +46,14 @@ function WeightController () {
 }
 
 WeightController.prototype.initWeightData = function() {
-	logger.info("initWeightData: Starting initialization...");
+	logger.debug("initWeightData: Starting initialization...");
 	return weightDao.createTable();
 };
 
 WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
-	logger.info("pounds - " + pounds + ", ounces - " + ounces);
-	logger.info("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d", userId, date, pounds, ounces);
+	logger.debug("pounds - " + pounds + ", ounces - " + ounces);
+	logger.debug("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d", userId, date, pounds, ounces);
 	var template = _.template('Added weight ${pounds} pounds, ${ounces} ounces for ${babyName}. She is in the ${percentile} percentile');
 	var totalOunces = (pounds*16) + parseInt(ounces);
 	var loadedBaby;
@@ -74,7 +74,7 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 		loadedBaby = readBabyResult.Item;			
 		var dobValue = loadedBaby.birthdate.toString('yyyy-MM-dd');
 		var dateValue = date.toString('yyyy-MM-dd');
-		logger.info("addWeight: Percentile calculation for dob %s, date %s, weight in kg %d, weight in ounces %d", dobValue, dateValue, weightInKg, totalOunces);
+		logger.debug("addWeight: Percentile calculation for dob %s, date %s, weight in kg %d, weight in ounces %d", dobValue, dateValue, weightInKg, totalOunces);
 		var options = {
 		    method: 'POST',
 		    uri: 'http://peditools.org/growthinfant/index.php',
@@ -91,10 +91,10 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 		return rp(options);
 	});
 	return calculatePercentilePromise.then( function(body) {
-			// logger.info("POST: %s", body);
+			// logger.debug("POST: %s", body);
 	    	//TODO: This is pretty hacky
 	        var percentile = body.match(/oz<TD>(.*)%<TD>/)[1];
-	        logger.info("addWeight: Percentile-- %s, readBabyPromise %s", percentile, JSON.stringify(readBabyPromise));
+	        logger.debug("addWeight: Percentile-- %s, readBabyPromise %s", percentile, JSON.stringify(readBabyPromise));
 	        //TODO: Is there any way to have the daos return the Item.data part?
 			var responseMsg = template(
 			{
@@ -103,7 +103,7 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 				babyName: loadedBaby.name,
 				percentile: stringifyNumber(percentile)
 			});
-			logger.info("addWeight: Response %s", responseMsg);
+			logger.debug("addWeight: Response %s", responseMsg);
 			return new Response(responseMsg, "Weight", responseMsg);
 	});
 	//TODO: Investigate yields and generators

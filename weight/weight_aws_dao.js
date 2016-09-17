@@ -42,13 +42,13 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 function WeightAWSDao() {}
 
 WeightAWSDao.prototype.createTable = function() {
-	logger.info("createTable: Starting table setup...");
+	logger.debug("createTable: Starting table setup...");
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
@@ -70,7 +70,7 @@ WeightAWSDao.prototype.createTable = function() {
 };
 
 WeightAWSDao.prototype.deleteTable = function() {
-	logger.info("deleteTable: Starting table delete");
+	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
@@ -80,7 +80,7 @@ WeightAWSDao.prototype.deleteTable = function() {
 //TODO: Weight table should really be specific to a baby
 WeightAWSDao.prototype.createWeight = function(weight) {
 	var dateString = weight.date.toISOString();
-	logger.info("createWeight: Starting weight creation for %s...", weight.toString());
+	logger.debug("createWeight: Starting weight creation for %s...", weight.toString());
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
@@ -94,7 +94,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
 
 WeightAWSDao.prototype.getWeight = function(userId, date) {
 	//TODO: probably need to take into account timezones
-	logger.info("getWeight: Starting get weight for day %s", date.toString());
+	logger.debug("getWeight: Starting get weight for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
 			//TODO: use begins_with instead?

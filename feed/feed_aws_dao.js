@@ -42,13 +42,13 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 function FeedAWSDao() {}
 
 FeedAWSDao.prototype.createTable = function() {
-	logger.info("createTable: Starting table setup...");
+	logger.debug("createTable: Starting table setup...");
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
@@ -69,7 +69,7 @@ FeedAWSDao.prototype.createTable = function() {
 };
 
 FeedAWSDao.prototype.deleteTable = function() {
-	logger.info("deleteTable: Starting table delete");
+	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
@@ -79,7 +79,7 @@ FeedAWSDao.prototype.deleteTable = function() {
 //TODO: Feed table should really be specific to a baby
 FeedAWSDao.prototype.createFeed = function(feed) {
 	var dateTimeString = feed.dateTime.toISOString();
-	logger.info("createFeed: Starting feed creation for %s", feed.toString());
+	logger.debug("createFeed: Starting feed creation for %s", feed.toString());
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
@@ -93,7 +93,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
 
 FeedAWSDao.prototype.getFeeds = function(userId, date) {
 	//TODO: probably need to take into account timezones
-	logger.info("getFeeds: Starting get feeds for day %s", date.toString());
+	logger.debug("getFeeds: Starting get feeds for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
 			//TODO: use begins_with instead?
@@ -110,7 +110,7 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
 };
 
 FeedAWSDao.prototype.getLastFeed = function(userId) {
-	logger.info("getLastFeed: Starting get last feed for user %s", userId);
+	logger.debug("getLastFeed: Starting get last feed for user %s", userId);
 	var params = {
 			TableName : TABLE_NAME,
 			KeyConditionExpression: "userId = :val1",

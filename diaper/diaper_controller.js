@@ -32,14 +32,14 @@ function DiaperController () {
 }
 
 DiaperController.prototype.initDiaperData = function() {
-	logger.info("initDiaperData: Starting initialization...");
+	logger.debug("initDiaperData: Starting initialization...");
 	return diaperDao.createTable();
 };
 
 DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
 	//TODO: Provide option to use different units
-	logger.info("addDiaper: Adding diaper for %s, date: %s, isWet: %s, isDirty: %s", userId, dateTime, isWet, isDirty);
+	logger.debug("addDiaper: Adding diaper for %s, date: %s, isWet: %s, isDirty: %s", userId, dateTime, isWet, isDirty);
 	var loadedBaby;
 	var totalWetDiapers = 0;
 	var totalDirtyDiapers = 0;
@@ -83,7 +83,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 			//TODO: Plural diapers only if more than one
 			responseMsg += "diaper for " + babyName + ". Today, she's had " + 
 				totalWetDiapers + " wet and " + totalDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(totalDirtyDiapers); //TODO: replace she with proper prononun
-			logger.info("addDiaper: Response %s", responseMsg);
+			logger.debug("addDiaper: Response %s", responseMsg);
 			return new Response(responseMsg, "Diaper", responseMsg);
 		});
 };

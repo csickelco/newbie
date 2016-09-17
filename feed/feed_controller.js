@@ -32,14 +32,14 @@ function FeedController () {
 }
 
 FeedController.prototype.initFeedData = function() {
-	logger.info("initFeedData: Starting initialization...");
+	logger.debug("initFeedData: Starting initialization...");
 	return feedDao.createTable();
 };
 
 FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
 	//TODO: Provide option to use different units
-	logger.info("addFeed: Adding feed for %s, date: %s, amount: %d ounces", userId, dateTime, feedAmount);
+	logger.debug("addFeed: Adding feed for %s, date: %s, amount: %d ounces", userId, dateTime, feedAmount);
 	var template = _.template("Added ${feedAmount} ounce feed for ${babyName}. " +
 			"Today, she has eaten ${totalFeedAmt} ounces over ${numFeeds} feeds"); //TODO: replace she with proper prononun
 	var loadedBaby;
@@ -75,7 +75,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 				totalFeedAmt: totalFeedAmt,
 				numFeeds: numFeeds
 			});
-			logger.info("addFeed: Response %s", responseMsg);
+			logger.debug("addFeed: Response %s", responseMsg);
 			return new Response(responseMsg, "Feed", responseMsg);
 		});
 };
@@ -89,7 +89,7 @@ FeedController.prototype.getLastFeed = function(userId) {
 		.then( function(result) {
 			//TODO: make a feed object
 			result.Items.forEach(function(item) {
-	            logger.info("getLastFeed: lastFeed %s %s", item.dateTime, item.feedAmount);
+	            logger.debug("getLastFeed: lastFeed %s %s", item.dateTime, item.feedAmount);
 	            lastFeedDate = new Date(item.dateTime); //TODO: Can't the DAO do this?
 	            lastFeedAmt = item.feedAmount;
 	        });
@@ -101,7 +101,7 @@ FeedController.prototype.getLastFeed = function(userId) {
 			if(lastFeedDate) {
 				var today = new Date();
 				var diffMs = (today - lastFeedDate); 
-				logger.info("getLastFeed: diffMs %d", diffMs);
+				logger.debug("getLastFeed: diffMs %d", diffMs);
 				var diffDays = Math.round(diffMs / 86400000); // days
 				var diffHrs = Math.round((diffMs % 86400000) / 3600000); // hours
 				var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes

@@ -40,7 +40,7 @@ var logger = new (Winston.Logger)({
 //Winston.handleExceptions(new Winston.transports.Console());
 
 app.pre = function(request, response, type) {
-	logger.info('pre: Start initialization of newbie data...');
+	logger.debug('pre: Start initialization of newbie data...');
 	//babyController.initBabyData();
 	//weightController.initWeightData();
 	//feedController.initFeedData();
@@ -48,7 +48,7 @@ app.pre = function(request, response, type) {
 	
 	babyController.initBabyData()
 		.then(function(resp) {
-			logger.info("pre: Successfully initialized baby data");
+			logger.debug("pre: Successfully initialized baby data");
 		})
 		.catch(function(error) {
 			logger.error("pre: An error occurred initializing baby data: " + error.message + ", " + error.stack);
@@ -56,7 +56,7 @@ app.pre = function(request, response, type) {
 	
 	weightController.initWeightData()
 		.then(function(resp) {
-			logger.info("pre: Successfully initialized weight data");
+			logger.debug("pre: Successfully initialized weight data");
 		})
 		.catch(function(error) {
 			logger.error("pre: An error occurred initializing weight data: " + error.message + ", " + error.stack);
@@ -64,7 +64,7 @@ app.pre = function(request, response, type) {
 	
 	feedController.initFeedData()
 		.then(function(resp) {
-			logger.info("pre: Successfully initialized feed data");
+			logger.debug("pre: Successfully initialized feed data");
 		})
 		.catch(function(error) {
 			logger.error("pre: An error occurred initializing feed data: " + error.message + ", " + error.stack);
@@ -72,7 +72,7 @@ app.pre = function(request, response, type) {
 	
 	diaperController.initDiaperData()
 		.then(function(resp) {
-			logger.info("pre: Successfully initialized diaper data");
+			logger.debug("pre: Successfully initialized diaper data");
 		})
 		.catch(function(error) {
 			logger.error("pre: An error occurred initializing diaper data: " + error.message + ", " + error.stack);
@@ -80,7 +80,7 @@ app.pre = function(request, response, type) {
 	
 	activityController.initActivityData()
 		.then(function(resp) {
-			logger.info("pre: Successfully initialized activity data");
+			logger.debug("pre: Successfully initialized activity data");
 		})
 		.catch(function(error) {
 			logger.error("pre: An error occurred initializing activity data: " + error.message + ", " + error.stack);
@@ -88,7 +88,7 @@ app.pre = function(request, response, type) {
 	
 	sleepController.initSleepData()
 		.then(function(resp) {
-			logger.info("pre: Successfully initialized sleep data");
+			logger.debug("pre: Successfully initialized sleep data");
 		})
 		.catch(function(error) {
 			logger.error("pre: An error occurred initializing sleep data: " + error.message + ", " + error.stack);
@@ -96,23 +96,23 @@ app.pre = function(request, response, type) {
 };
 
 app.launch(function(req, res) {
-	logger.info('launch: Starting...');
+	logger.debug('launch: Starting...');
     var prompt = 'You can ask Newbie to track information about your baby. To begin, say Add baby';
     res.say(prompt).shouldEndSession(false);
-    logger.info('launch: Successfully completed');
+    logger.debug('launch: Successfully completed');
 });
 
 app.intent('dailySummaryIntent', {
 	'utterances': ['{daily summary}']
 }, function(request, response) {
-	logger.info('dailySummaryIntent: Getting summary for userId %s', request.userId);
+	logger.debug('dailySummaryIntent: Getting summary for userId %s', request.userId);
 	summaryController.getDailySummary(request.userId)
 		.then(function(responseRetval) {
 			logger.info('dailySummaryIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info('dailySummaryIntent: Completed successfully');
+			logger.debug('dailySummaryIntent: Completed successfully');
 		}, function (error) {
 			logger.error("An error occurred getting the daily summary: " + error.message + ", " + error.stack);
 		});
@@ -122,14 +122,14 @@ app.intent('dailySummaryIntent', {
 app.intent('weeklySummaryIntent', {
 	'utterances': ['{weekly summary}']
 }, function(request, response) {
-	logger.info('weeklySummaryIntent: Getting summary for userId %s', request.userId);
+	logger.debug('weeklySummaryIntent: Getting summary for userId %s', request.userId);
 	summaryController.getWeeklySummary(request.userId)
 		.then(function(responseRetval) {
 			logger.info('weeklySummaryIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info('weeklySummaryIntent: Completed successfully');
+			logger.debug('weeklySummaryIntent: Completed successfully');
 		}, function (error) {
 			logger.error("An error occurred getting the weekly summary: " + error.message + ", " + error.stack);
 		});
@@ -142,7 +142,7 @@ app.intent('startSleepIntent', {
 	},
 	'utterances': ['{|the baby} {-|NAME} {|is|started} {|sleeping|went to sleep|taking a nap|napping}']
 }, function(request, response) {
-	logger.info('startSleepIntent: started sleep');
+	logger.debug('startSleepIntent: started sleep');
 	var userId = request.userId;
 	var now = new Date();
 	sleepController.startSleep(userId, now)
@@ -162,7 +162,7 @@ app.intent('endSleepIntent', {
 	},
 	'utterances': ['{|the baby} {-|NAME} {|is awake|woke up|finished sleeping|finished napping}']
 }, function(request, response) {
-	logger.info('endSleepIntent: ended sleep');
+	logger.debug('endSleepIntent: ended sleep');
 	var userId = request.userId;
 	var now = new Date();
 	sleepController.endSleep(userId, now)
@@ -188,7 +188,7 @@ app.intent('getAwakeTimeIntent', {
 				logger.info('getAwakeTimeIntent: Response %s', responseRetval);
 				response.say(responseRetval.message).send();	
 				response.shouldEndSession(true);
-				logger.info("getAwakeTimeIntent: Successfully completed");
+				logger.debug("getAwakeTimeIntent: Successfully completed");
 			});
 		return false;
 	}
@@ -206,7 +206,7 @@ app.intent('getLastFeedIntent', {
 				logger.info('getLastFeedIntent: Response %s', responseRetval);
 				response.say(responseRetval.message).send();	
 				response.shouldEndSession(true);
-				logger.info("getLastFeedIntent: Successfully completed");
+				logger.debug("getLastFeedIntent: Successfully completed");
 			});
 		return false;
 	}
@@ -220,7 +220,7 @@ app.intent('addFeedIntent', {
 }, function(request, response) {
 	var feedAmount = request.slot('NUM_OUNCES');
 	var now = new Date();
-	logger.info('addFeedIntent: %d ounces for %s', feedAmount, now.toString());
+	logger.debug('addFeedIntent: %d ounces for %s', feedAmount, now.toString());
 	
 	feedController.addFeed(request.userId, now, feedAmount)
 		.then(function(responseRetval) {
@@ -228,7 +228,7 @@ app.intent('addFeedIntent', {
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info("Feed successfully added, response: %s", responseRetval.toString());
+			logger.debug("Feed successfully added, response: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding feed: " + error.message + ", " + error.stack);
 		});
@@ -243,7 +243,7 @@ app.intent('addActivityIntent', {
 }, function(request, response) {
 	var activity = request.slot('ACTIVITY');
 	var now = new Date();
-	logger.info('addActivityIntent: %s on %s', activity, now.toString());
+	logger.debug('addActivityIntent: %s on %s', activity, now.toString());
 	
 	activityController.addActivity(request.userId, now, activity)
 		.then(function(responseRetval) {
@@ -251,7 +251,7 @@ app.intent('addActivityIntent', {
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info("Activity successfully added: %s", responseRetval.toString());
+			logger.debug("Activity successfully added: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding activity: " + error.message + ", " + error.stack);
 		});
@@ -268,10 +268,10 @@ app.intent('addDiaperIntent', {
 function(request, response) {
 	var diaperType1 = request.slot('FIRST_DIAPER_TYPE');
 	var diaperType2 = request.slot('SECOND_DIAPER_TYPE');
-	logger.info("addDiaperIntent: %s diaper AND %s diaper", diaperType1, diaperType2);
+	logger.debug("addDiaperIntent: %s diaper AND %s diaper", diaperType1, diaperType2);
 	var isWet = diaperType1 === "wet" || diaperType2 === "wet";
 	var isDirty = diaperType1 === "dirty" || diaperType2 === "dirty"; //TODO: Add more flexible wording
-	logger.info("addDiaperIntent: wet -- %s, dirty -- %s", isWet, isDirty);
+	logger.debug("addDiaperIntent: wet -- %s, dirty -- %s", isWet, isDirty);
 	var now = new Date();
 	diaperController.addDiaper(request.userId, now, isWet, isDirty)
 		.then(function(responseRetval) {
@@ -279,7 +279,7 @@ function(request, response) {
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info("Diaper successfully added, response: %s", responseRetval.toString());
+			logger.debug("Diaper successfully added, response: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding diaper: " + error.message + ", " + error.stack);
 		});
@@ -298,7 +298,7 @@ app.intent('addWeightIntent', {
 	    // Get the slot
 	    var pounds = request.slot('NUM_POUNDS');
 	    var ounces = request.slot('NUM_OUNCES');
-	    logger.info("addWeightIntent: %d pounds, %d ounces, request %s", pounds, ounces, JSON.stringify(request));
+	    logger.debug("addWeightIntent: %d pounds, %d ounces, request %s", pounds, ounces, JSON.stringify(request));
 	    var now = new Date();
 	    
 	    if(pounds !== undefined && pounds !== "?" && ounces !== undefined && ounces !== "?") {
@@ -309,7 +309,7 @@ app.intent('addWeightIntent', {
 					ounces
 				);
 			addWeightPromise.then(function(responseRetval) {
-				logger.info('addWeightIntent: %s', responseRetval);
+				logger.debug('addWeightIntent: %s', responseRetval);
 				response.say(responseRetval.message).send();	
 				//TODO: ideally return the percentile and add that to the card as well
 				response.card(responseRetval.cardTitle, responseRetval.cardBody);
@@ -340,29 +340,29 @@ app.intent('addBabyIntent', {
 			var sexValue = request.slot("SEX");
 			var nameValue = request.slot("NAME");
 			var birthdateValue = request.slot("BIRTHDATE");
-			logger.info('addBabyIntent: Processing with sexValue: %s, nameValue: %s, birthdateValue: %s', sexValue, nameValue, birthdateValue);
+			logger.debug('addBabyIntent: Processing with sexValue: %s, nameValue: %s, birthdateValue: %s', sexValue, nameValue, birthdateValue);
 			
 			var babyData = request.session(NEWBIE_SESSION_KEY);
 			if(babyData === undefined) {
-				logger.info('addBabyIntent: babyData does not yet exist, creating...');
+				logger.debug('addBabyIntent: babyData does not yet exist, creating...');
 				babyData = {};
 			} else {
-				logger.info('addBabyIntent: babyData exists - %s', JSON.stringify(babyData));
+				logger.debug('addBabyIntent: babyData exists - %s', JSON.stringify(babyData));
 			}
 			if( sexValue ) {
-				logger.info('addBabyIntent: Adding sexValue %s', sexValue);
+				logger.debug('addBabyIntent: Adding sexValue %s', sexValue);
 				babyData.sex = sexValue;
 			}
 			if( nameValue ) {
-				logger.info('addBabyIntent: Adding nameValue %s', nameValue);
+				logger.debug('addBabyIntent: Adding nameValue %s', nameValue);
 				babyData.name = nameValue;
 			}
 			if( birthdateValue ) {
-				logger.info('addBabyIntent: Adding birthdateValue %s', birthdateValue);
+				logger.debug('addBabyIntent: Adding birthdateValue %s', birthdateValue);
 				babyData.birthdate = birthdateValue;
 			}
 			response.session(NEWBIE_SESSION_KEY, babyData);
-			logger.info('addBabyIntent: babyData - %s', JSON.stringify(babyData));
+			logger.debug('addBabyIntent: babyData - %s', JSON.stringify(babyData));
 			
 			if(!babyData.name) {
 				response.say("What is your baby's name?").send();
@@ -382,7 +382,7 @@ app.intent('addBabyIntent', {
 						new Date(babyData.birthdate)
 					);
 				addBabyPromise.then(function(responseRetval) {
-					logger.info('addBabyIntent: %s', responseRetval.toString());
+					logger.debug('addBabyIntent: %s', responseRetval.toString());
 					response.say(responseRetval.message).send();		
 					response.shouldEndSession(true);
 					logger.info("Baby successfully added, response: %s", responseRetval.toString());

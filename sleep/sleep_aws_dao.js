@@ -42,13 +42,13 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 function SleepAWSDao() {}
 
 SleepAWSDao.prototype.createTable = function() {
-	logger.info("createTable: Starting table setup...");
+	logger.debug("createTable: Starting table setup...");
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
 	return dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
-			logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
@@ -69,7 +69,7 @@ SleepAWSDao.prototype.createTable = function() {
 };
 
 SleepAWSDao.prototype.deleteTable = function() {
-	logger.info("deleteTable: Starting table delete");
+	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
@@ -78,7 +78,7 @@ SleepAWSDao.prototype.deleteTable = function() {
 
 //TODO: sleep table should really be specific to a baby
 SleepAWSDao.prototype.createSleep = function(sleep) {
-	logger.info("createSleep: Starting sleep creation for %s...", sleep.toString());
+	logger.debug("createSleep: Starting sleep creation for %s...", sleep.toString());
 	var sleepDateTimeString = sleep.sleepDateTime ? sleep.sleepDateTime.toISOString() : undefined;
 	var wokeUpDateTimeString = sleep.wokeUpDateTime ? sleep.wokeUpDateTime.toISOString() : undefined;
 	var params = {
@@ -89,12 +89,12 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
 			wokeUpDateTime: wokeUpDateTimeString
 	    }
 	};
-	logger.info("createSleep: Params -- %s", JSON.stringify(params));
+	logger.debug("createSleep: Params -- %s", JSON.stringify(params));
 	return docClient.put(params).promise();	
 };
 
 SleepAWSDao.prototype.getLastSleep = function(userId) {
-	logger.info("getLastSleep: Starting get last sleep for user %s", userId);
+	logger.debug("getLastSleep: Starting get last sleep for user %s", userId);
 	var params = {
 			TableName : TABLE_NAME,
 			//TODO: use begins_with instead? so we only get that day (in case not doing today)
@@ -109,7 +109,7 @@ SleepAWSDao.prototype.getLastSleep = function(userId) {
 };
 
 SleepAWSDao.prototype.updateSleep = function(sleep) {
-	logger.info("updateLastSleep: Updating last sleep %s", sleep);
+	logger.debug("updateLastSleep: Updating last sleep %s", sleep);
 	
 	var params = {
 		    TableName:TABLE_NAME,
@@ -129,7 +129,7 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
 
 SleepAWSDao.prototype.getSleep = function(userId, date) {
 	//TODO: probably need to take into account timezones
-	logger.info("getSleep: Starting get sleeps for day %s", date.toString());
+	logger.debug("getSleep: Starting get sleeps for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
 			//TODO: use begins_with instead? so we only get that day (in case not doing today)

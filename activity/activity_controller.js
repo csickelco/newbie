@@ -30,14 +30,14 @@ function ActivityController () {
 }
 
 ActivityController.prototype.initActivityData = function() {
-	logger.info("initActivityData: Starting initialization...");
+	logger.debug("initActivityData: Starting initialization...");
 	return activityDao.createTable();
 };
 
 ActivityController.prototype.addActivity = function(userId, dateTime, activity) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
 	//TODO: Provide option to use different units
-	logger.info("addActivity: Adding activity for %s, date: %s, activity: %s", userId, dateTime, activity);
+	logger.debug("addActivity: Adding activity for %s, date: %s, activity: %s", userId, dateTime, activity);
 	var template = _.template("Added activity ${activity} for ${babyName}");
 	var loadedBaby;
 	var activityObj = new Activity();
@@ -58,7 +58,7 @@ ActivityController.prototype.addActivity = function(userId, dateTime, activity) 
 				activity: activity,
 				babyName: loadedBaby.name
 			});
-			logger.info("addActivity: Response %s", responseMsg);
+			logger.debug("addActivity: Response %s", responseMsg);
 			return new Response(responseMsg, "Activity", responseMsg);
 		});
 };

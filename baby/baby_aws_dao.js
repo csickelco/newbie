@@ -41,14 +41,14 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 function BabyAWSDao() {}
 
 BabyAWSDao.prototype.createTable = function() {
-	logger.info("createTable: Starting table setup...");
+	logger.debug("createTable: Starting table setup...");
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
 	var request = dynamodb.describeTable(describeParams);
 	return request.promise()
     	.catch(function(error) {
-    		logger.info("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
+    		logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
     		var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
@@ -68,7 +68,7 @@ BabyAWSDao.prototype.createTable = function() {
 };
 
 BabyAWSDao.prototype.deleteTable = function() {
-	logger.info("deleteTable: Starting table delete");
+	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
@@ -90,7 +90,7 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 };
 
 BabyAWSDao.prototype.readBaby = function(userId) {
-	logger.info("readBaby: Starting for user %s...", userId);
+	logger.debug("readBaby: Starting for user %s...", userId);
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{

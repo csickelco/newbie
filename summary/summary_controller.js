@@ -42,7 +42,7 @@ function SummaryController () {
 }
 
 SummaryController.prototype.getWeeklySummary = function(userId) {
-	logger.info("getWeeklySummary: getting weekly summary for userId %s", userId);
+	logger.debug("getWeeklySummary: getting weekly summary for userId %s", userId);
 	var response = new Response();
 	var weeklySummary = new Summary();
 	var today = new Date();
@@ -62,7 +62,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 		.then( function(readBabyResult) {
 			weeklySummary.name = readBabyResult.Item.name;
 			weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
-			logger.info("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
+			logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
 			
 			//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
 			return feedDao.getFeeds(userId, aWeekAgo);
@@ -177,7 +177,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 					earliestWeightRecorded = value;
 				}
 			}, weightMap);
-			logger.info("Most recent weight of %d ounces recorded on %s", lastWeightRecorded, dateOfLastWeightRecorded);
+			logger.debug("Most recent weight of %d ounces recorded on %s", lastWeightRecorded, dateOfLastWeightRecorded);
 			if(dateOfEarliestWeightRecorded && dateOfLastWeightRecorded && dateOfEarliestWeightRecorded !== dateOfLastWeightRecorded) {
 				weightDifferenceInOunces = lastWeightRecorded - earliestWeightRecorded; //TODO: Handle negative weight difference
 				var dateOfEarliestWeightRecordedDate = new Date(dateOfEarliestWeightRecorded);
@@ -219,7 +219,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			response.setCard("Weekly Summary", responseCard);
 			
 			//TODO: Add activities
-			logger.info("getWeeklySummary: Response %s", response.toString());
+			logger.debug("getWeeklySummary: Response %s", response.toString());
 			return response;
 		});
 };
@@ -227,7 +227,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 SummaryController.prototype.getDailySummary = function(userId) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
 	//TODO: Provide option to use different units
-	logger.info("getDailySummary: getting daily summary for userId %s", userId);
+	logger.debug("getDailySummary: getting daily summary for userId %s", userId);
 	var dailySummary = new Summary();
 	var today = new Date();
 	var activities = new Set();
@@ -237,7 +237,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 		.then( function(readBabyResult) {
 			dailySummary.name = readBabyResult.Item.name;
 			dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
-			logger.info("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
+			logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
 			return feedDao.getFeeds(userId, today);
 		})
 		.then( function(feedsForDayResult) {
@@ -249,18 +249,18 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			return weightDao.getWeight(userId, today);
 		})
 		.then( function(weightForDayResult) {
-			logger.info("getDailySummary: weightForDayResult.Items %s", JSON.stringify(weightForDayResult));
+			logger.debug("getDailySummary: weightForDayResult.Items %s", JSON.stringify(weightForDayResult));
 			if( weightForDayResult.Items.length > 0 ) {
 				//TODO: I think this works because of sort key but not sure
-				logger.info("getDailySummary: weightInOunces %d", weightForDayResult.Items[weightForDayResult.Items.length-1].weight);
+				logger.debug("getDailySummary: weightInOunces %d", weightForDayResult.Items[weightForDayResult.Items.length-1].weight);
 				dailySummary.weightInOunces = weightForDayResult.Items[weightForDayResult.Items.length-1].weight;
 			} else {
-				logger.info("getDailySummary: no weight recorded today");
+				logger.debug("getDailySummary: no weight recorded today");
 			}
 			return diaperDao.getDiapers(userId, today);
 		})
 		.then( function(diapersForDayResult) {
-			logger.info("getDailySummary: diapersForDayResult.Items %s", JSON.stringify(diapersForDayResult));
+			logger.debug("getDailySummary: diapersForDayResult.Items %s", JSON.stringify(diapersForDayResult));
 			//todo: refactor this logic so we're not duplicating
 			diapersForDayResult.Items.forEach(function(item) {
 	            logger.debug(" -", item.dateTime + ": " + item.isWet + ", " + item.isDirty);
@@ -274,32 +274,32 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			return activityDao.getActivitiesForDay(userId, today);
 		})
 		.then( function(activitiesForDayResult) {
-			logger.info("getDailySummary: activitiesForDayResult.Items %s", JSON.stringify(activitiesForDayResult));
+			logger.debug("getDailySummary: activitiesForDayResult.Items %s", JSON.stringify(activitiesForDayResult));
 			//todo: refactor this logic so we're not duplicating
 			activitiesForDayResult.Items.forEach(function(item) {
-	            logger.info("getDailySummary: activity -- ", item.dateTime + ": " + item.activity);
+	            logger.debug("getDailySummary: activity -- ", item.dateTime + ": " + item.activity);
 	            activities.add(item.activity);
 	        });
-			logger.info("getDailySummary: activities size -- %s", activities.size);
+			logger.debug("getDailySummary: activities size -- %s", activities.size);
 			return sleepDao.getSleep(userId, today);
 		})
 		.then( function(sleepsForDayResult) {
-			logger.info("getDailySummary: sleepsForDayResult.Items %s", JSON.stringify(sleepsForDayResult));
+			logger.debug("getDailySummary: sleepsForDayResult.Items %s", JSON.stringify(sleepsForDayResult));
 			var totalMillisecondsOfSleep = 0;
 			//todo: refactor this logic so we're not duplicating
 			sleepsForDayResult.Items.forEach(function(item) {
-	            logger.info("getDailySummary: sleep -- ", item.sleepDateTime + " - " + item.wokeUpDateTime);
+	            logger.debug("getDailySummary: sleep -- ", item.sleepDateTime + " - " + item.wokeUpDateTime);
 	            if( item.sleepDateTime && item.wokeUpDateTime ) {
 	            	var sleepStart = new Date(item.sleepDateTime);
 	            	var sleepEnd = new Date(item.wokeUpDateTime);
 	            	totalMillisecondsOfSleep += (sleepEnd.getTime() - sleepStart.getTime());
 				}
 	        });
-			logger.info("getDailySummary: totalMillisecondsOfSleep -- %d", totalMillisecondsOfSleep);
+			logger.debug("getDailySummary: totalMillisecondsOfSleep -- %d", totalMillisecondsOfSleep);
 			if( totalMillisecondsOfSleep > 0 ) {
 				dailySummary.sleep = Utils.formatDuration(totalMillisecondsOfSleep);
 			}
-			logger.info("getDailySummary: dailySummary -- %s", dailySummary.toString());
+			logger.debug("getDailySummary: dailySummary -- %s", dailySummary.toString());
 		
 			//Format message and cards
 			//TODO: Does this belong in controller?
@@ -342,7 +342,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			}
 			response.message = responseMsg;
 			response.setCard("Daily Summary", responseCard);
-			logger.info("getDailySummary: Response %s", response.toString());
+			logger.debug("getDailySummary: Response %s", response.toString());
 			return response;
 		});
 };
