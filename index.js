@@ -110,7 +110,7 @@ app.intent('dailySummaryIntent', {
 		.then(function(responseRetval) {
 			logger.info('dailySummaryIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
-			response.card("DailySummary - " + new Date().toLocaleDateString("en-US"), responseRetval.card);
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
 			logger.info('dailySummaryIntent: Completed successfully');
 		}, function (error) {
@@ -127,7 +127,7 @@ app.intent('weeklySummaryIntent', {
 		.then(function(responseRetval) {
 			logger.info('weeklySummaryIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
-			response.card("Weekly Summary - " + new Date().toLocaleDateString("en-US"), responseRetval.card);
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
 			logger.info('weeklySummaryIntent: Completed successfully');
 		}, function (error) {
@@ -146,9 +146,9 @@ app.intent('startSleepIntent', {
 	var userId = request.userId;
 	var now = new Date();
 	sleepController.startSleep(userId, now)
-		.then(function(responseMsg) {
-			logger.info('startSleepIntent: Response message %s', responseMsg);
-			response.say(responseMsg).send();
+		.then(function(responseRetval) {
+			logger.info('startSleepIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();
 			response.shouldEndSession(true);
 		}, function (error) {
 			logger.error("startSleepIntent: An error occurred starting sleep: " + error.message + ", " + error.stack);
@@ -166,9 +166,9 @@ app.intent('endSleepIntent', {
 	var userId = request.userId;
 	var now = new Date();
 	sleepController.endSleep(userId, now)
-		.then(function(responseMsg) {
-			logger.info('endSleepIntent: Response message %s', responseMsg);
-			response.say(responseMsg).send();
+		.then(function(responseRetval) {
+			logger.info('endSleepIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();
 			response.shouldEndSession(true);
 		}, function (error) {
 			logger.error("endSleepIntent: An error occurred ending sleep: " + error.message + ", " + error.stack);
@@ -223,12 +223,12 @@ app.intent('addFeedIntent', {
 	logger.info('addFeedIntent: %d ounces for %s', feedAmount, now.toString());
 	
 	feedController.addFeed(request.userId, now, feedAmount)
-		.then(function(responseMsg) {
-			logger.info('addFeedIntent: Response message %s', responseMsg);
-			response.say(responseMsg).send();	
-			response.card("Feed - " + now.toLocaleDateString("en-US"), feedAmount + " ounces");
+		.then(function(responseRetval) {
+			logger.info('addFeedIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info("Feed successfully added, message: %s", responseMsg);
+			logger.info("Feed successfully added, response: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding feed: " + error.message + ", " + error.stack);
 		});
@@ -246,12 +246,12 @@ app.intent('addActivityIntent', {
 	logger.info('addActivityIntent: %s on %s', activity, now.toString());
 	
 	activityController.addActivity(request.userId, now, activity)
-		.then(function(responseMsg) {
-			logger.info('addActivityIntent: Response message %s', responseMsg);
-			response.say(responseMsg).send();	
-			response.card("Activity - " + now.toLocaleDateString("en-US"), responseMsg);
+		.then(function(responseRetval) {
+			logger.info('addActivityIntent: Response %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info("Activity successfully added, message: %s", responseMsg);
+			logger.info("Activity successfully added: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding activity: " + error.message + ", " + error.stack);
 		});
@@ -274,12 +274,12 @@ function(request, response) {
 	logger.info("addDiaperIntent: wet -- %s, dirty -- %s", isWet, isDirty);
 	var now = new Date();
 	diaperController.addDiaper(request.userId, now, isWet, isDirty)
-		.then(function(responseMsg) {
-			logger.info('addDiaperIntent: Response message %s', responseMsg);
-			response.say(responseMsg).send();	
-			response.card("Diaper - " + now.toLocaleDateString("en-US"), responseMsg);
+		.then(function(responseRetval) {
+			logger.info('addDiaperIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.info("Diaper successfully added, message: %s", responseMsg);
+			logger.info("Diaper successfully added, response: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding diaper: " + error.message + ", " + error.stack);
 		});
@@ -308,13 +308,13 @@ app.intent('addWeightIntent', {
 					pounds,
 					ounces
 				);
-			addWeightPromise.then(function(responseMsg) {
-				logger.info('addWeightIntent: Response message %s', responseMsg);
-				response.say(responseMsg).send();	
+			addWeightPromise.then(function(responseRetval) {
+				logger.info('addWeightIntent: %s', responseRetval);
+				response.say(responseRetval.message).send();	
 				//TODO: ideally return the percentile and add that to the card as well
-				response.card("Weight - " + now.toLocaleDateString("en-US"), pounds + " pounds, " + ounces + ", ounces");
+				response.card(responseRetval.cardTitle, responseRetval.cardBody);
 				response.shouldEndSession(true);
-				logger.info("Weight successfully added, message: %s", responseMsg);
+				logger.info("Weight successfully added, %s", responseRetval.toString());
 			}, function (error) {
 				logger.error("An error occurred adding weight: " + error.message + ", " + error.stack);
 			});
@@ -381,11 +381,11 @@ app.intent('addBabyIntent', {
 						babyData.name, 
 						new Date(babyData.birthdate)
 					);
-				addBabyPromise.then(function(responseMsg) {
-					logger.info('addBabyIntent: Response message %s', responseMsg);
-					response.say(responseMsg).send();		
+				addBabyPromise.then(function(responseRetval) {
+					logger.info('addBabyIntent: %s', responseRetval.toString());
+					response.say(responseRetval.message).send();		
 					response.shouldEndSession(true);
-					logger.info("Baby successfully added, message: %s", responseMsg);
+					logger.info("Baby successfully added, response: %s", responseRetval.toString());
 				}, function (error) {
 					logger.error("An error occurred adding baby: " + error.message + ", " + error.stack);
 				});

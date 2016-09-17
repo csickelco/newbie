@@ -7,6 +7,7 @@ var _ = require('lodash');
 //var BabyDao = require('./baby_dao');
 var BabyDao = require('./baby_aws_dao');
 var Baby = require('./baby');
+var Response = require('../common/response');
 var Utils = require('../common/utils');
 var Winston = require('winston');
 
@@ -65,7 +66,7 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 				age: Utils.calculateAgeFromBirthdate(birthdate)
 			});
 			logger.info("addBaby: Response %s", responseMsg);
-			return responseMsg;
+			return new Response(responseMsg, "Added Baby", responseMsg);
 		});
 };
 

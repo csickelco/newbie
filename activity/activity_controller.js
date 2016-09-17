@@ -7,6 +7,7 @@ var _ = require('lodash');
 var ActivityDao = require('./activity_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Activity = require('./activity');
+var Response = require('../common/response');
 var Winston = require('winston');
 
 var activityDao = new ActivityDao();
@@ -58,7 +59,7 @@ ActivityController.prototype.addActivity = function(userId, dateTime, activity) 
 				babyName: loadedBaby.name
 			});
 			logger.info("addActivity: Response %s", responseMsg);
-			return responseMsg;
+			return new Response(responseMsg, "Activity", responseMsg);
 		});
 };
 

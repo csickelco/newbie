@@ -7,6 +7,7 @@ var _ = require('lodash');
 //var WeightDao = require('./weight_dao');
 var WeightDao = require('./weight_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
+var Response = require('../common/response');
 var Weight = require('./weight');
 var Winston = require('winston');
 var rp = require('request-promise');
@@ -54,7 +55,6 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	logger.info("pounds - " + pounds + ", ounces - " + ounces);
 	logger.info("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d", userId, date, pounds, ounces);
 	var template = _.template('Added weight ${pounds} pounds, ${ounces} ounces for ${babyName}. She is in the ${percentile} percentile');
-	
 	var totalOunces = (pounds*16) + parseInt(ounces);
 	var loadedBaby;
 	
@@ -104,7 +104,7 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 				percentile: stringifyNumber(percentile)
 			});
 			logger.info("addWeight: Response %s", responseMsg);
-			return responseMsg;
+			return new Response(responseMsg, "Weight", responseMsg);
 	});
 	//TODO: Investigate yields and generators
 };

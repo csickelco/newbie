@@ -61,7 +61,7 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 				babyName: loadedBaby.name
 			});
 			logger.info("startSleep: Response %s", responseMsg);
-			return responseMsg;
+			return new Response(responseMsg, "Started sleep", responseMsg);
 		});
 };
 
@@ -69,7 +69,6 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 	//TODO: When productionizing, eliminate log stmt due to privacy concerns
 	//TODO: Provide option to use different units
 	logger.info("endSleep: Ending sleep for %s, dateTime: %s,", userId, dateTime);
-
 	var lastSleep;
 	return sleepDao.getLastSleep(userId)
 		.then( function(getLastSleepResult) {
@@ -97,8 +96,8 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 				sleepDateTime: Utils.getTime(lastSleep.sleepDateTime),
 				wokeUpDateTime: Utils.getTime(lastSleep.wokeUpDateTime)
 			});
-			logger.info("startSleep: Response %s", responseMsg);
-			return responseMsg;
+			logger.info("endSleep: Response %s", responseMsg);
+			return new Response(responseMsg, "End Sleep", responseMsg);
 		});
 };
 
