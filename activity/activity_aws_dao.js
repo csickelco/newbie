@@ -77,15 +77,15 @@ ActivityAWSDao.prototype.deleteTable = function() {
 };
 
 //TODO: Activity table should really be specific to a baby
-ActivityAWSDao.prototype.createActivity = function(userId, dateTime, activity) {
-	var dateTimeString = dateTime.toISOString();
-	logger.info("createActivity: Starting activity creation for user %s, dateTimeString %s, activity %s...", userId, dateTimeString, activity);
+ActivityAWSDao.prototype.createActivity = function(activity) {
+	var dateTimeString = activity.dateTime.toISOString();
+	logger.info("createActivity: Starting activity creation for user %s, dateTimeString %s, activity %s...", activity.userId, dateTimeString, activity.activity);
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: userId,
+	    	userId: activity.userId,
 	    	dateTime: dateTimeString,
-			activity: activity
+			activity: activity.activity
 	    }
 	};
 	return docClient.put(params).promise();	

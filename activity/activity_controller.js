@@ -6,6 +6,7 @@ module.change_code = 1;
 var _ = require('lodash');
 var ActivityDao = require('./activity_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
+var Activity = require('./activity');
 var Winston = require('winston');
 
 var activityDao = new ActivityDao();
@@ -38,15 +39,18 @@ ActivityController.prototype.addActivity = function(userId, dateTime, activity) 
 	logger.info("addActivity: Adding activity for %s, date: %s, activity: %s", userId, dateTime, activity);
 	var template = _.template("Added activity ${activity} for ${babyName}");
 	var loadedBaby;
-	
-	return activityDao.createActivity(userId, dateTime, activity )
+	var activityObj = new Activity();
+	activityObj.userId = userId;
+	activityObj.dateTime = dateTime;
+	activityObj.activity = activity;
+	return activityDao.createActivity(activityObj)
 		.then( function(result) 
 		{	
 			return babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{
-			loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);	
+			loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			var responseMsg = template(
 			{

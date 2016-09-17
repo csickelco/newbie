@@ -7,6 +7,7 @@ var _ = require('lodash');
 //var WeightDao = require('./weight_dao');
 var WeightDao = require('./weight_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
+var Weight = require('./weight');
 var Winston = require('winston');
 var rp = require('request-promise');
 
@@ -58,15 +59,19 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	var loadedBaby;
 	
 	var weightInKg = 0.02834952*totalOunces;
+	var weight = new Weight();
+	weight.userId = userId;
+	weight.weight = totalOunces;
+	weight.date = date;
 	//TODO: Support different weight units
-	var createWeightPromise = weightDao.createWeight(userId, totalOunces, date );
+	var createWeightPromise = weightDao.createWeight(weight);
 	var readBabyPromise = createWeightPromise.then( function(createWeightResult) 
 	{
 		return babyDao.readBaby(userId);
 	});
 	var calculatePercentilePromise = readBabyPromise.then( function(readBabyResult) 
 	{
-		loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);			
+		loadedBaby = readBabyResult.Item;			
 		var dobValue = loadedBaby.birthdate.toString('yyyy-MM-dd');
 		var dateValue = date.toString('yyyy-MM-dd');
 		logger.info("addWeight: Percentile calculation for dob %s, date %s, weight in kg %d, weight in ounces %d", dobValue, dateValue, weightInKg, totalOunces);

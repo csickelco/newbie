@@ -75,13 +75,15 @@ BabyAWSDao.prototype.deleteTable = function() {
 	return dynamodb.deleteTable(params).promise();
 };
 
-BabyAWSDao.prototype.createBaby = function(userId, baby) {
-	logger.log('info', "createBaby: Starting baby creation for user %s, baby %s...", userId, JSON.stringify(baby));
+BabyAWSDao.prototype.createBaby = function(baby) {
+	logger.log('info', "createBaby: Starting baby creation for user %s, baby %s...", baby.toString());
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: userId,
-	    	data: baby
+	    	userId: baby.userId,
+	    	sex: baby.sex,
+	    	name: baby.name,
+	    	birthdate: baby.birthdate.toISOString()
 	    }
 	};
 	return docClient.put(params).promise();

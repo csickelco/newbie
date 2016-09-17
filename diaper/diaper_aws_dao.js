@@ -78,16 +78,16 @@ DiaperAWSDao.prototype.deleteTable = function() {
 
 //TODO: Diaper table should really be specific to a baby
 //TODO: Make a diaper object?
-DiaperAWSDao.prototype.createDiaper = function(userId, dateTime, isWet, isDirty) {
-	var dateTimeString = dateTime.toISOString();
-	logger.info("createDiaper: Starting diaper creation for user %s, dateTimeString %s, isWet %s, isDirty %s...", userId, dateTimeString, isWet, isDirty);
+DiaperAWSDao.prototype.createDiaper = function(diaper) {
+	var dateTimeString = diaper.dateTime.toISOString();
+	logger.info("createDiaper: Starting diaper creation for %s...", diaper.toString());
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: userId,
+	    	userId: diaper.userId,
 	    	dateTime: dateTimeString,
-			isWet: isWet,
-			isDirty: isDirty
+			isWet: diaper.isWet,
+			isDirty: diaper.isDirty
 	    }
 	};
 	return docClient.put(params).promise();	

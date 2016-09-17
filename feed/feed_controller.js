@@ -8,6 +8,7 @@ var _ = require('lodash');
 var FeedDao = require('./feed_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
+var Feed = require('./feed');
 var Winston = require('winston');
 var rp = require('request-promise');
 
@@ -44,8 +45,12 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	var loadedBaby;
 	var totalFeedAmt = 0;
 	var numFeeds = 0;
+	var feed = new Feed();
+	feed.userId = userId;
+	feed.dateTime = dateTime;
+	feed.feedAmount = feedAmount;
 	
-	return feedDao.createFeed(userId, dateTime, feedAmount )
+	return feedDao.createFeed(feed)
 		.then( function(result) {
 			return feedDao.getFeeds(userId, dateTime);
 		})
@@ -61,7 +66,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 		})
 		.then( function(readBabyResult) 
 		{
-			loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);	
+			loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			var responseMsg = template(
 			{
@@ -90,7 +95,7 @@ FeedController.prototype.getLastFeed = function(userId) {
 	        });
 			return babyDao.readBaby(userId);
 		}).then( function(readBabyResult) {
-			var loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);	
+			var loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			
 			if(lastFeedDate) {
