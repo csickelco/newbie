@@ -60,8 +60,8 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	
 	return babyDao.readBaby(userId)
 		.then( function(readBabyResult) {
-			weeklySummary.name = JSON.parse(readBabyResult.Item.data).name;
-			weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(JSON.parse(readBabyResult.Item.data).birthdate));
+			weeklySummary.name = readBabyResult.Item.name;
+			weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
 			logger.info("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
 			
 			//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
@@ -235,8 +235,8 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	
 	return babyDao.readBaby(userId)
 		.then( function(readBabyResult) {
-			dailySummary.name = JSON.parse(readBabyResult.Item.data).name;
-			dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(JSON.parse(readBabyResult.Item.data).birthdate));
+			dailySummary.name = readBabyResult.Item.name;
+			dailySummary.age = Utils.calculateAgeFromBirthdate(readBabyResult.Item.birthdate);
 			logger.info("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
 			return feedDao.getFeeds(userId, today);
 		})

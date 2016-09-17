@@ -6,6 +6,7 @@ module.change_code = 1;
 var _ = require('lodash');
 var DiaperDao = require('./diaper_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
+var Diaper = require('./diaper');
 var Utils = require('../common/utils');
 var Winston = require('winston');
 var rp = require('request-promise');
@@ -41,8 +42,13 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 	var loadedBaby;
 	var totalWetDiapers = 0;
 	var totalDirtyDiapers = 0;
+	var diaper = new Diaper();
+	diaper.userId = userId;
+	diaper.dateTime = dateTime;
+	diaper.isWet = isWet;
+	diaper.isDirty = isDirty;
 	
-	return diaperDao.createDiaper(userId, dateTime, isWet, isDirty )
+	return diaperDao.createDiaper(diaper)
 		.then( function(result) {
 			return diaperDao.getDiapers(userId, dateTime);
 		})
@@ -61,7 +67,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 		})
 		.then( function(readBabyResult) 
 		{
-			loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);	
+			loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			var responseMsg = "Added ";
 			if(isWet) {

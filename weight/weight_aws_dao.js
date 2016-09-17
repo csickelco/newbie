@@ -78,15 +78,15 @@ WeightAWSDao.prototype.deleteTable = function() {
 };
 
 //TODO: Weight table should really be specific to a baby
-WeightAWSDao.prototype.createWeight = function(userId, weight, date) {
-	var dateString = date.toISOString();
-	logger.info("createWeight: Starting weight creation for user %s, dateString %s, weight %s...", userId, dateString, weight);
+WeightAWSDao.prototype.createWeight = function(weight) {
+	var dateString = weight.date.toISOString();
+	logger.info("createWeight: Starting weight creation for %s...", weight.toString());
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: userId,
+	    	userId: weight.userId,
 			date: dateString,
-			weight: weight
+			weight: weight.weight
 	    }
 	};
 	return docClient.put(params).promise();

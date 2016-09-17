@@ -77,15 +77,15 @@ FeedAWSDao.prototype.deleteTable = function() {
 };
 
 //TODO: Feed table should really be specific to a baby
-FeedAWSDao.prototype.createFeed = function(userId, dateTime, feedAmount) {
-	var dateTimeString = dateTime.toISOString();
-	logger.info("createFeed: Starting feed creation for user %s, dateTimeString %s, feedAmount %s...", userId, dateTimeString, feedAmount);
+FeedAWSDao.prototype.createFeed = function(feed) {
+	var dateTimeString = feed.dateTime.toISOString();
+	logger.info("createFeed: Starting feed creation for %s", feed.toString());
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: userId,
+	    	userId: feed.userId,
 	    	dateTime: dateTimeString,
-			feedAmount: feedAmount
+			feedAmount: feed.feedAmount
 	    }
 	};
 	return docClient.put(params).promise();	

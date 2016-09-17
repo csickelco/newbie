@@ -40,14 +40,14 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	var template = _.template('Added baby ${sex} ${name}. She is ${age} old');
 	
 	var baby = new Baby(); 
+	baby.userId = userId;
 	baby.sex = sex;
 	baby.name = name;
 	baby.birthdate = birthdate;
 	
 	//We will first create the baby in the data store, then read it back, 
 	//then format a message
-	return babyDao
-		.createBaby(userId, JSON.stringify(baby) )
+	return babyDao.createBaby(baby)
 		.then( function(result) 
 		{
 			logger.info("addBaby: Successfully created baby %s", JSON.stringify(baby));
@@ -56,7 +56,7 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 		.then( function(readBabyResult) 
 		{
 			logger.info("addBaby: Successfully read baby %s", JSON.stringify(readBabyResult));
-			var loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);
+			var loadedBaby = readBabyResult.Item;
 			logger.info("addBaby: loadedBaby %s", JSON.stringify(loadedBaby));
 			var responseMsg = template(
 			{

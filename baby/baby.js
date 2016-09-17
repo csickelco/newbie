@@ -5,6 +5,7 @@
 module.change_code = 1;
 
 function Baby (obj) {
+	this.userId = undefined;
 	this.sex = undefined;
 	this.name = undefined;
 	this.birthdate = undefined;
@@ -18,7 +19,7 @@ function Baby (obj) {
 
 
 Baby.prototype.toString = function babyToString() {
-	  var ret = 'Baby, sex: ' + this.sex + ", name: " + this.name + ", birthdate: " + this.birthdate;
+	  var ret = 'Baby, userId: ' + this.userId + ', sex: ' + this.sex + ", name: " + this.name + ", birthdate: " + this.birthdate;
 	  return ret;
 };
 

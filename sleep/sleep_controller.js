@@ -54,7 +54,7 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 		})
 		.then( function(readBabyResult) 
 		{
-			loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);	
+			loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			var responseMsg = template(
 			{
@@ -88,7 +88,7 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 		{
 			var template = _.template("Recorded ${sleepAmt} of sleep from ${sleepDateTime} to ${wokeUpDateTime} for ${babyName}."); 
 
-			var loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);	
+			var loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			var responseMsg = template(
 			{
@@ -121,7 +121,7 @@ SleepController.prototype.getAwakeTime = function(userId) {
 	        });
 			return babyDao.readBaby(userId);
 		}).then( function(readBabyResult) {
-			var loadedBaby = readBabyResult === undefined ? {} : JSON.parse(readBabyResult.Item.data);	
+			var loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			
 			if(!lastSleepDate && !lastWakeDate) {
