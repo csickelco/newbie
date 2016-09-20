@@ -1,10 +1,27 @@
 /**
- * http://usejsdoc.org/
+ * @copyright
+ * Copyright 2016 Christina Sickelco. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
+ * http://aws.amazon.com/apache2.0/
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+
+/**
+ * This class handles business logic for feed-related operations.
+ * 
+ * @author Christina Sickelco
+ */
+
+//Used to write more secure javascript. See http://www.w3schools.com/js/js_strict.asp.
 'use strict';
+
+//Alexa app server hotswap module will reload code changes to apps
+//if this is set to 1. Handy for local development and testing
+//See https://runkit.com/npm/alexa-app-server
 module.change_code = 1;
+
+//Dependencies
 var _ = require('lodash');
-//var FeedDao = require('./feed_dao');
 var FeedDao = require('./feed_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
@@ -12,8 +29,11 @@ var Feed = require('./feed');
 var Winston = require('winston');
 var rp = require('request-promise');
 
+//Properties
 var feedDao = new FeedDao();
 var babyDao = new BabyDao();
+
+//Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
     transports: [
       new (Winston.transports.Console)({
@@ -28,17 +48,43 @@ var logger = new (Winston.Logger)({
     ]
   });
 
+/**
+ * Represents business logic for feed-related operations.
+ * @constructor
+ */
 function FeedController () {
 }
 
+/**
+ * Asynchronous operation to setup any needed feed data in the data store.
+ * @throws {InternalServerError} An error occurred on the server side.
+ * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ */
 FeedController.prototype.initFeedData = function() {
 	logger.debug("initFeedData: Starting initialization...");
 	return feedDao.createTable();
 };
 
+/**
+ * Asynchronous operation to add (or overwrite) a new feed to the data store
+ * and return a response.
+ * 
+ * @param 	userId {string}		the userId who performed the feed. Non-nullable.
+ * @param	dateTime {Date}		the date/time the feed occurred. Non-nullable.
+ * @param	feedAmount {number}	feed amount (bottle size) in ounces. Non-nullable
+ * 
+ * @return 	promise containing a Response, with both a verbal message and written card,
+ *  		describing whether or not the feed was successfully added.
+ * 
+ * @throws 	{InternalServerError} An error occurred on the server side.
+ * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
+ * 										The resource might not be specified correctly, or its status 
+ * 										might not be ACTIVE.
+ */
 FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
-	//TODO: When productionizing, eliminate log stmt due to privacy concerns
-	//TODO: Provide option to use different units
 	logger.debug("addFeed: Adding feed for %s, date: %s, amount: %d ounces", userId, dateTime, feedAmount);
 	var template = _.template("Added ${feedAmount} ounce feed for ${babyName}. " +
 			"Today, she has eaten ${totalFeedAmt} ounces over ${numFeeds} feeds"); //TODO: replace she with proper prononun
@@ -80,6 +126,23 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 		});
 };
 
+/**
+ * Asynchronous operation to get the last time a feed was performed
+ * and return a response. If no feedings have been performed yet,
+ * a response saying as much is returned.
+ * 
+ * @param 	userId {string}		the userId whose feeds to return. Non-nullable.
+ * 
+ * @return 	promise containing a Response, with both a verbal message and written card,
+ *  		describing the last feed or the fact that no feeds have been performed yet.
+ * 
+ * @throws 	{InternalServerError} An error occurred on the server side.
+ * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws 	{ResourceNotFoundException} The operation tried to access a nonexistent table or index. 
+ * 										The resource might not be specified correctly, or its status 
+ * 										might not be ACTIVE.
+ */
 FeedController.prototype.getLastFeed = function(userId) {
 	var lastFeedAmt;
 	var lastFeedDate;
@@ -87,7 +150,6 @@ FeedController.prototype.getLastFeed = function(userId) {
 
 	return feedDao.getLastFeed(userId)
 		.then( function(result) {
-			//TODO: make a feed object
 			result.Items.forEach(function(item) {
 	            logger.debug("getLastFeed: lastFeed %s %s", item.dateTime, item.feedAmount);
 	            lastFeedDate = new Date(item.dateTime); //TODO: Can't the DAO do this?
