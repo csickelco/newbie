@@ -70,8 +70,8 @@ SleepController.prototype.initSleepData = function() {
  * Asynchronous operation to record the beginning of baby's sleep
  * and return a response.
  * 
- * @param 	userId		the userId whose baby is sleeping. Non-nullable.
- * @param	dateTime	the date/time the sleep started. Non-nullable.
+ * @param 	userId {string}		the userId whose baby is sleeping. Non-nullable.
+ * @param	dateTime {Date}		the date/time the sleep started. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing whether or not the sleep was successfully recorded.
@@ -114,8 +114,8 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
  * Asynchronous operation to record the end of baby's sleep
  * and return a response.
  * 
- * @param 	userId		the userId whose baby is sleeping. Non-nullable.
- * @param	dateTime	the date/time the sleep ended. Non-nullable.
+ * @param 	userId {string}		the userId whose baby is sleeping. Non-nullable.
+ * @param	dateTime {Date}		the date/time the sleep ended. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing whether or not the sleep was successfully ended.
@@ -166,7 +166,7 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
  * Returns a response describing how long the baby has been awake
  * or the fact that the baby is sleeping if they are still asleep.
  * 
- * @param 	userId		the userId whose baby to get awake time for. Non-nullable.
+ * @param 	userId {string}		the userId whose baby to get awake time for. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing how long the baby has been awake or the fact that they are 

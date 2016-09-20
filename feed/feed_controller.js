@@ -70,9 +70,9 @@ FeedController.prototype.initFeedData = function() {
  * Asynchronous operation to add (or overwrite) a new feed to the data store
  * and return a response.
  * 
- * @param 	userId		the userId who performed the feed. Non-nullable.
- * @param	dateTime	the date/time the feed occurred. Non-nullable.
- * @param	feedAmount	feed amount (bottle size) in ounces. Non-nullable
+ * @param 	userId {string}		the userId who performed the feed. Non-nullable.
+ * @param	dateTime {Date}		the date/time the feed occurred. Non-nullable.
+ * @param	feedAmount {number}	feed amount (bottle size) in ounces. Non-nullable
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing whether or not the feed was successfully added.
@@ -131,7 +131,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
  * and return a response. If no feedings have been performed yet,
  * a response saying as much is returned.
  * 
- * @param 	userId		the userId whose feeds to return. Non-nullable.
+ * @param 	userId {string}		the userId whose feeds to return. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing the last feed or the fact that no feeds have been performed yet.

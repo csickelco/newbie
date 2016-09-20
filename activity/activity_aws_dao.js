@@ -124,7 +124,7 @@ ActivityAWSDao.prototype.deleteTable = function() {
  * (or overwrite the existing activity if one exists for 
  * the same userId, dateTime).
  * 
- * @param 	activity the activity object to persist. Non-nullable. 
+ * @param 	{Activity} activity the activity object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -151,8 +151,8 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
  * Asynchronous operation to retrieve all activities created 
  * for the specified date or later for a given user.
  * 
- * @param userId 	AWS user ID whose activities to retrieve. Non-nullable.
- * @param date		Date/time after which to retrieve all activities. Non-nullable.
+ * @param {string} userId 	AWS user ID whose activities to retrieve. Non-nullable.
+ * @param {Date} date		Date/time after which to retrieve all activities. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.

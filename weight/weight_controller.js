@@ -55,8 +55,8 @@ var deca = ['twent', 'thirt', 'fourt', 'fift', 'sixt', 'sevent', 'eight', 'ninet
 /**
  * Helper method to return position text for the given number.
  * e.g. returns "first" if n === 0, "second" if n === 2, and so on.
- * @param n	the number to stringify. Non-nullable.
- * @returns position text for the given number.
+ * @param n {number}	the number to stringify. Non-nullable.
+ * @returns {string} position text for the given number.
  */
 function stringifyNumber(n) {
   if (n < 20) {
@@ -90,10 +90,10 @@ WeightController.prototype.initWeightData = function() {
  * Asynchronous operation to add (or overwrite) a new weight to the data store
  * and return a response.
  * 
- * @param 	userId		the userId whose baby's weight to add. Non-nullable.
- * @param	date		the date the weight measurement was taken. Non-nullable.
- * @param	pounds		the number of pounds the baby is. Non-nullable.
- * @param	ounces		number of ounces after pounds the baby is. Non-nullable.
+ * @param 	userId {string}		the userId whose baby's weight to add. Non-nullable.
+ * @param	date {Date}			the date the weight measurement was taken. Non-nullable.
+ * @param	pounds {number}		the number of pounds the baby is. Non-nullable.
+ * @param	ounces {number}		number of ounces after pounds the baby is. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing the baby's weight.

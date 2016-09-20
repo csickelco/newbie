@@ -124,7 +124,7 @@ SleepAWSDao.prototype.deleteTable = function() {
  * (or overwrite the existing sleep record if one exists for 
  * the same userId, dateTime).
  * 
- * @param 	sleep the sleep object to persist. Non-nullable. 
+ * @param 	sleep {Sleep} the sleep object to persist. Non-nullable. 
  * 			Must have at least userId and sleepDateTime populated.
  * 
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -153,7 +153,7 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
  * Asynchronous operation to retrieve the most recent sleep record for 
  * the given userId, or null if no sleep records exist.
  * 
- * @param userId 	AWS user ID whose most recent sleep record to retrieve. Non-nullable.
+ * @param userId {string}	AWS user ID whose most recent sleep record to retrieve. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -179,8 +179,8 @@ SleepAWSDao.prototype.getLastSleep = function(userId) {
  * Asynchronous operation to retrieve all sleep records created 
  * for the specified date or later for a given user.
  * 
- * @param userId 	AWS user ID whose sleep records to retrieve. Non-nullable.
- * @param date		Date/time after which to retrieve all sleep records. Non-nullable.
+ * @param userId {string} 	AWS user ID whose sleep records to retrieve. Non-nullable.
+ * @param date {Date}		Date/time after which to retrieve all sleep records. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -204,8 +204,8 @@ SleepAWSDao.prototype.getSleep = function(userId, date) {
 /**
  * Asynchronous operation to update a sleep record (with the wakeDateTime).
  * 
- * @param sleep 	the sleep record to update. non-nullable. must have 
- * 					at least userId and sleepDateTime specified.
+ * @param sleep {Sleep}	the sleep record to update. non-nullable. must have 
+ * 						at least userId and sleepDateTime specified.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.

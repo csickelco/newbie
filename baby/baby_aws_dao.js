@@ -121,7 +121,7 @@ BabyAWSDao.prototype.deleteTable = function() {
  * (or overwrite the existing baby if one exists for 
  * the same userId).
  * 
- * @param 	baby the baby object to persist. Non-nullable. 
+ * @param 	{Baby} baby the baby object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -147,7 +147,7 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 /**
  * Asynchronous operation to retrieve the baby for the given user.
  * 
- * @param userId 	AWS user ID whose baby to retrieve. Non-nullable.
+ * @param {string} userId 	AWS user ID whose baby to retrieve. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.

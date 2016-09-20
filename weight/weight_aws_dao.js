@@ -125,7 +125,7 @@ WeightAWSDao.prototype.deleteTable = function() {
  * (or overwrite the existing weight record if one exists for 
  * the same userId, date).
  * 
- * @param 	weight the weight object to persist. Non-nullable. 
+ * @param 	weight {Weight} the weight object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -152,8 +152,8 @@ WeightAWSDao.prototype.createWeight = function(weight) {
  * Asynchronous operation to retrieve all weight records created 
  * for the specified date or later for a given user.
  * 
- * @param userId 	AWS user ID whose weight records to retrieve. Non-nullable.
- * @param date		Date after which to retrieve all weight records. Non-nullable.
+ * @param userId {string}	AWS user ID whose weight records to retrieve. Non-nullable.
+ * @param date	{Date}		Date after which to retrieve all weight records. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.

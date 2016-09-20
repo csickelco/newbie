@@ -123,7 +123,7 @@ FeedAWSDao.prototype.deleteTable = function() {
  * (or overwrite the existing feed if one exists for 
  * the same userId, dateTime).
  * 
- * @param 	feed the feed object to persist. Non-nullable. 
+ * @param 	feed {Feed} the feed object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -150,8 +150,8 @@ FeedAWSDao.prototype.createFeed = function(feed) {
  * Asynchronous operation to retrieve all feeds created 
  * for the specified date or later for a given user.
  * 
- * @param userId 	AWS user ID whose feeds to retrieve. Non-nullable.
- * @param date		Date/time after which to retrieve all feeds. Non-nullable.
+ * @param userId {string}	AWS user ID whose feeds to retrieve. Non-nullable.
+ * @param date	{Date}		Date/time after which to retrieve all feeds. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -179,7 +179,7 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
  * Asynchronous operation to retrieve the most recent feed for 
  * the given userId, or null if no feeds exist.
  * 
- * @param userId 	AWS user ID whose most recent feed to retrieve. Non-nullable.
+ * @param userId {string} 	AWS user ID whose most recent feed to retrieve. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.

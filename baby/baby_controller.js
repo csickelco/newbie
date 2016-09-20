@@ -68,10 +68,10 @@ BabyController.prototype.initBabyData = function() {
  * Asynchronous operation to add (or overwrite) a new baby to the data store
  * and return a response.
  * 
- * @param 	userId		the userId whose baby it is. Non-nullable.
- * @param	sex			the baby's sex (girl/boy). Non-nullable.
- * @param 	name		the baby's name (it's ok to be just a first name). Non-nullable.
- * @param	birthdate	the baby's birthdate (as a Date object). Non-nullable.
+ * @param 	{string} userId		the userId whose baby it is. Non-nullable.
+ * @param	{string} sex		the baby's sex (girl/boy). Non-nullable.
+ * @param 	{string} name		the baby's name (it's ok to be just a first name). Non-nullable.
+ * @param	{Date} birthdate	the baby's birthdate (as a Date object). Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing whether or not the baby was successfully added.

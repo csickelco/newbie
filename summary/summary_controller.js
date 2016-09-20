@@ -68,7 +68,7 @@ function SummaryController () {
 /**
  * Asynchronous operation to get a summary of the baby for the week.
  * 
- * @param 	userId		the userId whose summary to return. Non-nullable.
+ * @param 	userId	{string}	the userId whose summary to return. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		containing the weekly summary.
@@ -265,7 +265,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 /**
  * Asynchronous operation to get a summary of the baby for the current day.
  * 
- * @param 	userId		the userId whose summary to return. Non-nullable.
+ * @param 	userId	{string}	the userId whose summary to return. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		containing the daily summary.

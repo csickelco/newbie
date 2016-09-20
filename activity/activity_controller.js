@@ -69,11 +69,11 @@ ActivityController.prototype.initActivityData = function() {
  * Asynchronous operation to add (or overwrite) a new activity to the data store
  * and return a response.
  * 
- * @param 	userId		the userId who owns the activities. Non-nullable.
- * @param	dateTime	the date/time the activity occurred. Non-nullable.
- * @param	activity	text describing the activity (e.g. "visiting grandma"). Non-nullable
+ * @param 	{string} userId		the userId who owns the activities. Non-nullable.
+ * @param	{Date } dateTime	the date/time the activity occurred. Non-nullable.
+ * @param	{Activity} activity	text describing the activity (e.g. "visiting grandma"). Non-nullable
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
+ * @return 	{Promise} promise containing a Response, with both a verbal message and written card,
  *  		describing whether or not the activity was successfully added.
  * 
  * @throws 	{InternalServerError} An error occurred on the server side.

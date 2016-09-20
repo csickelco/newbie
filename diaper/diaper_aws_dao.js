@@ -124,7 +124,7 @@ DiaperAWSDao.prototype.deleteTable = function() {
  * (or overwrite the existing diaper if one exists for 
  * the same userId, dateTime).
  * 
- * @param 	diaper the diaper object to persist. Non-nullable. 
+ * @param 	diaper {Diaper} the diaper object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.
@@ -152,8 +152,8 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
  * Asynchronous operation to retrieve all diapers created 
  * for the specified date or later for a given user.
  * 
- * @param userId 	AWS user ID whose diapers to retrieve. Non-nullable.
- * @param date		Date/time after which to retrieve all diapers. Non-nullable.
+ * @param userId {string}	AWS user ID whose diapers to retrieve. Non-nullable.
+ * @param date {Date}		Date/time after which to retrieve all diapers. Non-nullable.
  * 
  * @throws {InternalServerError} An error occurred on the server side.
  * @throws {ProvisionedThroughputExceededException} Request rate is too high.

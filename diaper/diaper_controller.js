@@ -71,10 +71,10 @@ DiaperController.prototype.initDiaperData = function() {
  * Asynchronous operation to add (or overwrite) a diaper change to the data store
  * and return a response.
  * 
- * @param 	userId		the userId whose diaper change this is. Non-nullable.
- * @param	dateTime	the date/time the diaper change occurred. Non-nullable.
- * @param	isWet		true/false if the diaper was wet. Non-nullable.
- * @param	isDirty		true/false if the diaper was dirty/soiled. Non-nullable.
+ * @param 	userId {string}		the userId whose diaper change this is. Non-nullable.
+ * @param	dateTime {Date}		the date/time the diaper change occurred. Non-nullable.
+ * @param	isWet {boolean}		true/false if the diaper was wet. Non-nullable.
+ * @param	isDirty	{boolean}	true/false if the diaper was dirty/soiled. Non-nullable.
  * 
  * @return 	promise containing a Response, with both a verbal message and written card,
  *  		describing whether or not the diaper was successfully added.
