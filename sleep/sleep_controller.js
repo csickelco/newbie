@@ -1,10 +1,27 @@
 /**
- * http://usejsdoc.org/
+ * @copyright
+ * Copyright 2016 Christina Sickelco. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
+ * http://aws.amazon.com/apache2.0/
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+
+/**
+ * This class handles business logic for sleep-related operations.
+ * 
+ * @author Christina Sickelco
+ */
+
+//Used to write more secure javascript. See http://www.w3schools.com/js/js_strict.asp.
 'use strict';
+
+//Alexa app server hotswap module will reload code changes to apps
+//if this is set to 1. Handy for local development and testing
+//See https://runkit.com/npm/alexa-app-server
 module.change_code = 1;
+
+//Dependencies
 var _ = require('lodash');
-//var SleepDao = require('./sleep_dao');
 var SleepDao = require('./sleep_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Sleep = require('./sleep');
@@ -12,8 +29,11 @@ var Utils = require('../common/utils');
 var Response = require('../common/response');
 var Winston = require('winston');
 
+//Properties
 var sleepDao = new SleepDao();
 var babyDao = new BabyDao();
+
+//Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
     transports: [
       new (Winston.transports.Console)({
@@ -28,18 +48,43 @@ var logger = new (Winston.Logger)({
     ]
   });
 
+/**
+ * Represents business logic for feed-related operations.
+ * @constructor
+ */
 function SleepController () {
 }
 
+/**
+ * Asynchronous operation to setup any needed sleep data in the data store.
+ * @throws {InternalServerError} An error occurred on the server side.
+ * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ */
 SleepController.prototype.initSleepData = function() {
 	logger.debug("initSleepData: Starting initialization...");
 	return sleepDao.createTable();
 };
 
+/**
+ * Asynchronous operation to record the beginning of baby's sleep
+ * and return a response.
+ * 
+ * @param 	userId		the userId whose baby is sleeping. Non-nullable.
+ * @param	dateTime	the date/time the sleep started. Non-nullable.
+ * 
+ * @return 	promise containing a Response, with both a verbal message and written card,
+ *  		describing whether or not the sleep was successfully recorded.
+ * 
+ * @throws 	{InternalServerError} An error occurred on the server side.
+ * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
+ * 										The resource might not be specified correctly, or its status 
+ * 										might not be ACTIVE.
+ */
 //TODO: lots of error checking - what if they start a sleep without ending a previous one? indeterminate nap?
 SleepController.prototype.startSleep = function(userId, dateTime) {
-	//TODO: When productionizing, eliminate log stmt due to privacy concerns
-	//TODO: Provide option to use different units
 	logger.debug("addSleep: Adding sleep for %s, dateTime: %s,", userId, dateTime);
 	var template = _.template("Recording sleep for ${babyName}.");
 	var loadedBaby;
@@ -65,9 +110,24 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 		});
 };
 
+/**
+ * Asynchronous operation to record the end of baby's sleep
+ * and return a response.
+ * 
+ * @param 	userId		the userId whose baby is sleeping. Non-nullable.
+ * @param	dateTime	the date/time the sleep ended. Non-nullable.
+ * 
+ * @return 	promise containing a Response, with both a verbal message and written card,
+ *  		describing whether or not the sleep was successfully ended.
+ * 
+ * @throws 	{InternalServerError} An error occurred on the server side.
+ * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
+ * 										The resource might not be specified correctly, or its status 
+ * 										might not be ACTIVE.
+ */
 SleepController.prototype.endSleep = function(userId, dateTime) {
-	//TODO: When productionizing, eliminate log stmt due to privacy concerns
-	//TODO: Provide option to use different units
 	logger.debug("endSleep: Ending sleep for %s, dateTime: %s,", userId, dateTime);
 	var lastSleep;
 	return sleepDao.getLastSleep(userId)
@@ -101,6 +161,24 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 		});
 };
 
+/**
+ * Asynchronous operation to determine how long baby has been awake.
+ * Returns a response describing how long the baby has been awake
+ * or the fact that the baby is sleeping if they are still asleep.
+ * 
+ * @param 	userId		the userId whose baby to get awake time for. Non-nullable.
+ * 
+ * @return 	promise containing a Response, with both a verbal message and written card,
+ *  		describing how long the baby has been awake or the fact that they are 
+ *  		still sleeping.
+ * 
+ * @throws 	{InternalServerError} An error occurred on the server side.
+ * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
+ * 										The resource might not be specified correctly, or its status 
+ * 										might not be ACTIVE.
+ */
 SleepController.prototype.getAwakeTime = function(userId) {
 	var lastSleepDate;
 	var lastWakeDate;

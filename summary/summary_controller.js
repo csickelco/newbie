@@ -1,8 +1,26 @@
 /**
- * http://usejsdoc.org/
+ * @copyright
+ * Copyright 2016 Christina Sickelco. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
+ * http://aws.amazon.com/apache2.0/
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+
+/**
+ * This class handles business logic for summary-related operations.
+ * 
+ * @author Christina Sickelco
+ */
+
+//Used to write more secure javascript. See http://www.w3schools.com/js/js_strict.asp.
 'use strict';
+
+//Alexa app server hotswap module will reload code changes to apps
+//if this is set to 1. Handy for local development and testing
+//See https://runkit.com/npm/alexa-app-server
 module.change_code = 1;
+
+//Dependencies
 var _ = require('lodash');
 var FeedDao = require('../feed/feed_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
@@ -17,6 +35,7 @@ var Utils = require('../common/utils');
 var Response = require('../common/response');
 var Winston = require('winston');
 
+//Properties
 var feedDao = new FeedDao();
 var babyDao = new BabyDao();
 var weightDao = new WeightDao();
@@ -24,6 +43,7 @@ var diaperDao = new DiaperDao();
 var activityDao = new ActivityDao();
 var sleepDao = new SleepDao();
 
+//Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
     transports: [
       new (Winston.transports.Console)({
@@ -38,9 +58,28 @@ var logger = new (Winston.Logger)({
     ]
   });
 
+/**
+ * Represents business logic for feed-related operations.
+ * @constructor
+ */
 function SummaryController () {
 }
 
+/**
+ * Asynchronous operation to get a summary of the baby for the week.
+ * 
+ * @param 	userId		the userId whose summary to return. Non-nullable.
+ * 
+ * @return 	promise containing a Response, with both a verbal message and written card,
+ *  		containing the weekly summary.
+ * 
+ * @throws 	{InternalServerError} An error occurred on the server side.
+ * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws 	{ResourceNotFoundException} The operation tried to access a nonexistent table or index. 
+ * 										The resource might not be specified correctly, or its status 
+ * 										might not be ACTIVE.
+ */
 SummaryController.prototype.getWeeklySummary = function(userId) {
 	logger.debug("getWeeklySummary: getting weekly summary for userId %s", userId);
 	var response = new Response();
@@ -188,7 +227,6 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			weeklySummary.weightInOunces = lastWeightRecorded;
 			
 			//TODO: Does this belong in controller?
-			//TODO: replace hardcoded values
 			//TODO: This could probably be a method in summary
 			var responseMsg = 
 				weeklySummary.name +
@@ -224,9 +262,22 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 		});
 };
 
+/**
+ * Asynchronous operation to get a summary of the baby for the current day.
+ * 
+ * @param 	userId		the userId whose summary to return. Non-nullable.
+ * 
+ * @return 	promise containing a Response, with both a verbal message and written card,
+ *  		containing the daily summary.
+ * 
+ * @throws 	{InternalServerError} An error occurred on the server side.
+ * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
+ * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws 	{ResourceNotFoundException} The operation tried to access a nonexistent table or index. 
+ * 										The resource might not be specified correctly, or its status 
+ * 										might not be ACTIVE.
+ */
 SummaryController.prototype.getDailySummary = function(userId) {
-	//TODO: When productionizing, eliminate log stmt due to privacy concerns
-	//TODO: Provide option to use different units
 	logger.debug("getDailySummary: getting daily summary for userId %s", userId);
 	var dailySummary = new Summary();
 	var today = new Date();
@@ -251,7 +302,6 @@ SummaryController.prototype.getDailySummary = function(userId) {
 		.then( function(weightForDayResult) {
 			logger.debug("getDailySummary: weightForDayResult.Items %s", JSON.stringify(weightForDayResult));
 			if( weightForDayResult.Items.length > 0 ) {
-				//TODO: I think this works because of sort key but not sure
 				logger.debug("getDailySummary: weightInOunces %d", weightForDayResult.Items[weightForDayResult.Items.length-1].weight);
 				dailySummary.weightInOunces = weightForDayResult.Items[weightForDayResult.Items.length-1].weight;
 			} else {
@@ -303,7 +353,6 @@ SummaryController.prototype.getDailySummary = function(userId) {
 		
 			//Format message and cards
 			//TODO: Does this belong in controller?
-			//TODO: replace hardcoded values
 			//TODO: This could probably be a method in summary or a helper method
 			var responseCard = "Age: " + dailySummary.age + "\n";
 			var responseMsg = 
@@ -346,5 +395,5 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			return response;
 		});
 };
-//Test
+
 module.exports = SummaryController;
