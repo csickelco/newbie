@@ -10,7 +10,11 @@ The rest of the newbie code is organized by feature and generally contains a "mo
 
 ## Installation
 
-To install locally, you can run with the Alexa app server as follows:
+### Local 
+
+To install locally, you can run newbie inside a [Alexa app server](https://www.npmjs.com/package/alexa-app-server) instance. The alexa-app-server gives you a stand-alone web server/container to host and easily test Alexa apps locally.
+
+**Get the alexa-app-server**
 1. Pull down the alexa-app-server GitHub repo with the following command:
 ```
 git clone https://github.com/matt-kruse/alexa-app-server.git
@@ -19,14 +23,39 @@ git clone https://github.com/matt-kruse/alexa-app-server.git
 ```
 npm install
 ```
-3. Move the folder with the newbie code into the alexa-app-server repository's './examples/apps' directory (e.g. ./examples/apps/newbie). The index.js should be at the root of the newbie folder.
-4. Change to the examples directory and run:
+
+**Install newbie in the alexa-app-server**
+1. Navigate to the alexa-app-server/examples/apps directory inside the alexa-app-server code you just installed.
+2. Run the following command to pull down the newbie code into that directory:
+```
+git clone https://github.com/csickelco/newbie.git
+``` 
+3. Navigate to the alexa-app-server/examples directory.
+4. Start the alexa-app-server by running the command:
 ```
 node server
 ```
-5. Visit http://localhost:8080/newbie to test out the application.
+You should see output like:
+Serving static content from: public_html
+Loading server-side modules from: server
+   Loaded ~/alexa-app-server/examples/server/login.js
+Loading apps from: apps
+   Loaded app [hello_world] at endpoint: /alexa/helloworld
+   Loaded app [newbie] at endpoint: /alexa/newbie
+   Loaded app [number_guessing_game] at endpoint: /alexa/guessinggame
+5. Visit http://localhost:8080/alexa/newbie to test out the application.
+You should see a page that looks like ![this](./alexa-app-server.png?raw=true "Newbie in Alexa App Server")
+6. You can simulate different commands by selecting them from the intents dropdown. For example, the
+addBabyIntent is the intent called when you say "Add Baby" to Alexa. The slots shown are the different
+variables/placeholders the alexa command will accept. Once you select the intent and populate any
+needed slot values, click Send request. You will see the response Alexa generates under the response section:
+![response](./alexa-app-server-response.png?raw=true "Newbie Response in Alexa App Server")
 
 For more details, see the [Big Nerd Ranch Series: Developing Alexa Skills Locally with Node.js](https://developer.amazon.com/public/community/post/Tx1BIPOTYRL82PV/Big-Nerd-Ranch-Series-Developing-Alexa-Skills-Locally-with-Node-js-Implementing)
+
+### Deploy to staging
+
+Detailed instructions on deploying the application to AWS and testing on your Amazon Echo device coming soon. For now, see [Big Nerd Ranch's Tutorial](https://developer.amazon.com/public/community/post/Tx2LL8LQWN9T33O/Big-Nerd-Ranch-Series-Developing-Alexa-Skills-Locally-with-Node-js-Deploying-You)
 
 ## Contributors
 
