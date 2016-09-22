@@ -168,4 +168,27 @@ Utils.pluralizeIfNeeded = function(num) {
 	}
 };
 
+/**
+ * Determines which prononun to use (he/she) given the baby's sex.
+ * @param {String} sex The baby's sex (girl/boy). Non-nullable.
+ * @param {Boolean} capitalize True if he/she should be capitalized (He/She), 
+ * 					false otherwise. Nullable.
+ * @returns {String} "he" if baby's sex is boy, else "girl"
+ */
+Utils.heShe = function(sex, capitalize) {
+	if( sex === "boy" ) {
+		if( capitalize ) {
+			return "He";
+		} else {
+			return "he";
+		}
+	} else {
+		if( capitalize ) {
+			return "She";
+		} else {
+			return "she";
+		}
+	}
+};
+
 module.exports = Utils;

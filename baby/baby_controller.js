@@ -85,8 +85,7 @@ BabyController.prototype.initBabyData = function() {
  */
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
-	//TODO: substitute proper pronoun
-	var template = _.template('Added baby ${sex} ${name}. She is ${age} old');
+	var template = _.template('Added baby ${sex} ${name}. ${pronoun} is ${age} old');
 	
 	var baby = new Baby(); 
 	baby.userId = userId;
@@ -111,7 +110,8 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 			{
 				sex: loadedBaby.sex,
 				name: loadedBaby.name,
-				age: Utils.calculateAgeFromBirthdate(birthdate)
+				age: Utils.calculateAgeFromBirthdate(birthdate),
+				pronoun: Utils.heShe(loadedBaby.sex, true)
 			});
 			logger.debug("addBaby: Response %s", responseMsg);
 			return new Response(responseMsg, "Added Baby", responseMsg);
