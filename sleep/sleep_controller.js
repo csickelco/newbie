@@ -207,22 +207,8 @@ SleepController.prototype.getAwakeTime = function(userId) {
 				response.message = babyName + " is still sleeping";
 			} else {
 				var today = new Date();
-				var diffMs = (today - lastWakeDate); 
-				logger.debug("getLastSleep: diffMs %d", diffMs);
-				//TODO: Move this to a utility method
-				var diffDays = Math.round(diffMs / 86400000); // days
-				var diffHrs = Math.round((diffMs % 86400000) / 3600000); // hours
-				var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
 				response.message = babyName + " has been awake for ";
-				if( diffDays > 0 ) {
-					response.message += diffDays + " days ";
-				}
-				if( diffHrs > 0 ) {
-					response.message += diffHrs + " hours and ";
-				}
-				if( diffMins > 0 ) {
-					response.message += diffMins + " minutes ";
-				}
+				response.message += Utils.calculateDuration(lastWakeDate, today);
 			}
 			return response;
 		});

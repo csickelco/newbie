@@ -26,6 +26,7 @@ var FeedDao = require('./feed_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
 var Feed = require('./feed');
+var Utils = require('../common/utils');
 var Winston = require('winston');
 var rp = require('request-promise');
 
@@ -87,7 +88,7 @@ FeedController.prototype.initFeedData = function() {
 FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	logger.debug("addFeed: Adding feed for %s, date: %s, amount: %d ounces", userId, dateTime, feedAmount);
 	var template = _.template("Added ${feedAmount} ounce feed for ${babyName}. " +
-			"Today, she has eaten ${totalFeedAmt} ounces over ${numFeeds} feeds"); //TODO: replace she with proper prononun
+			"Today, ${pronoun} has eaten ${totalFeedAmt} ounces over ${numFeeds} feeds"); 
 	var loadedBaby;
 	var totalFeedAmt = 0;
 	var numFeeds = 0;
@@ -119,7 +120,8 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 				feedAmount: feedAmount,
 				babyName: loadedBaby.name,
 				totalFeedAmt: totalFeedAmt,
-				numFeeds: numFeeds
+				numFeeds: numFeeds,
+				pronoun: Utils.heShe(loadedBaby.sex)
 			});
 			logger.debug("addFeed: Response %s", responseMsg);
 			return new Response(responseMsg, "Feed", responseMsg);
