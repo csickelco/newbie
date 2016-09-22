@@ -30,8 +30,12 @@ npm install
 ```
 git clone https://github.com/csickelco/newbie.git
 ``` 
-3. Navigate to the alexa-app-server/examples directory.
-4. Start the alexa-app-server by running the command:
+3. Inside the newbie directory, install all required dependencies by running:
+```
+npm install
+``` 
+4. Navigate to the alexa-app-server/examples directory.
+5. Start the alexa-app-server by running the command:
 ```
 node server
 ```
