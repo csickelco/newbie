@@ -38,6 +38,7 @@ module.change_code = 1;
 function Summary (obj) {
 	this.name = undefined;
 	this.age = undefined;
+	this.sex = undefined;
 	this.numWetDiapers = 0;
 	this.numDirtyDiapers = 0;
 	this.totalFeedAmount = 0;
@@ -60,6 +61,7 @@ function Summary (obj) {
 function Summary () {
 	this.name = undefined;
 	this.age = undefined;
+	this.sex = undefined;
 	this.numWetDiapers = 0;
 	this.numDirtyDiapers = 0;
 	this.totalFeedAmount = 0;
@@ -74,7 +76,8 @@ function Summary () {
  */
 Summary.prototype.toString = function summaryToString() {
 	  var ret = "Summary, " +
-		  "name: " + this.name + 
+		  "name: " + this.name +
+		  ", sex: " + this.sex + 
 		  ", ageInDays: " + this.ageInDays +
 		  ", numWetDiapers: " + this.numWetDiapers + 
 		  ", numDirtyDiapers: " + this.numDirtyDiapers +

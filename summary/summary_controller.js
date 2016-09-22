@@ -100,6 +100,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	return babyDao.readBaby(userId)
 		.then( function(readBabyResult) {
 			weeklySummary.name = readBabyResult.Item.name;
+			weeklySummary.sex = readBabyResult.Item.sex;
 			weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
 			logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
 			
@@ -237,10 +238,10 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 				responseCard += "Weight: " + Utils.getPoundsAndOuncesString(weeklySummary.weightInOunces) + "\n";
 			}
 			if( weightDifferenceInOunces && weightDifferenceNumDays ) {
-				responseMsg += ". She gained " + weightDifferenceInOunces + " ounce" + Utils.pluralizeIfNeeded(weightDifferenceInOunces) + " in " + weightDifferenceNumDays + " day" + Utils.pluralizeIfNeeded(weightDifferenceNumDays);
+				responseMsg += ". " + Utils.heShe(weeklySummary.sex, true) + " gained " + weightDifferenceInOunces + " ounce" + Utils.pluralizeIfNeeded(weightDifferenceInOunces) + " in " + weightDifferenceNumDays + " day" + Utils.pluralizeIfNeeded(weightDifferenceNumDays);
 				responseCard += "Weight gain: " + weightDifferenceInOunces + " ounces over " + weightDifferenceNumDays + " days\n";
 			}
-			responseMsg += ". On average, she ate " + weeklySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(weeklySummary.numFeedings) + " for a total of " +
+			responseMsg += ". On average, " + Utils.heShe(weeklySummary.sex) + " ate " + weeklySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(weeklySummary.numFeedings) + " for a total of " +
 				weeklySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(weeklySummary.totalFeedAmount) +
 				" and had " + weeklySummary.numWetDiapers + " wet and " +
 				weeklySummary.numDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(weeklySummary.numDirtyDiapers) + " per day. ";
@@ -249,7 +250,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			responseCard += "Average number of wet diapers per day: " + weeklySummary.numWetDiapers + "\n";
 			responseCard += "Average number of dirty diapers per day: " + weeklySummary.numDirtyDiapers + "\n";
 			if( weeklySummary.sleep ) {
-				responseMsg += "Each day, she generally slept about " + weeklySummary.sleep; //TODO: replace she with proper prononun
+				responseMsg += "Each day, " + Utils.heShe(loadedBaby.sex) + " generally slept about " + weeklySummary.sleep; //TODO: replace she with proper prononun
 				responseCard += "Average amount of sleep per day: " + weeklySummary.sleep + "\n";
 			}
 			
@@ -288,6 +289,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 		.then( function(readBabyResult) {
 			dailySummary.name = readBabyResult.Item.name;
 			dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
+			dailySummary.sex = readBabyResult.Item.sex;
 			logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
 			return feedDao.getFeeds(userId, today);
 		})
@@ -362,7 +364,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 				responseMsg += " and weighs " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces);
 				responseCard += "Weight: " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces) + "\n";
 			}
-			responseMsg += ". She ate " + dailySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(dailySummary.numFeedings) + " for a total of " +
+			responseMsg += ". " + Utils.heShe(dailySummary.sex, true) + " ate " + dailySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(dailySummary.numFeedings) + " for a total of " +
 				dailySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(dailySummary.totalFeedAmount) + " " +
 				"and had " + dailySummary.numWetDiapers + " wet diaper" + Utils.pluralizeIfNeeded(dailySummary.numWetDiapers) + " and " +
 				dailySummary.numDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(dailySummary.numDirtyDiapers) + ". ";
@@ -371,7 +373,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			responseCard += "Number of wet diapers: " + dailySummary.numWetDiapers + "\n";
 			responseCard += "Number of dirty diapers: " + dailySummary.numDirtyDiapers + "\n";
 			if( dailySummary.sleep ) {
-				responseMsg += "She slept " + dailySummary.sleep + ". "; //TODO: replace she with proper prononun
+				responseMsg += Utils.heShe(dailySummary.sex, true) + " slept " + dailySummary.sleep + ". "; 
 				responseCard += "Sleep: " + dailySummary.sleep + "\n";
 			}
 			if(activities.size > 0 ) {

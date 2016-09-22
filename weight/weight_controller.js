@@ -26,6 +26,7 @@ var WeightDao = require('./weight_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
 var Weight = require('./weight');
+var Utils = require('../common/utils');
 var Winston = require('winston');
 var rp = require('request-promise');
 
@@ -108,7 +109,7 @@ WeightController.prototype.initWeightData = function() {
 WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	logger.debug("pounds - " + pounds + ", ounces - " + ounces);
 	logger.debug("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d", userId, date, pounds, ounces);
-	var template = _.template('Added weight ${pounds} pounds, ${ounces} ounces for ${babyName}. She is in the ${percentile} percentile');
+	var template = _.template('Added weight ${pounds} pounds, ${ounces} ounces for ${babyName}. ${pronoun} is in the ${percentile} percentile');
 	var totalOunces = (pounds*16) + parseInt(ounces);
 	var loadedBaby;
 	
@@ -155,7 +156,8 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 				pounds: pounds,
 				ounces: ounces,
 				babyName: loadedBaby.name,
-				percentile: stringifyNumber(percentile)
+				percentile: stringifyNumber(percentile),
+				pronoun: Utils.heShe(loadedBaby.sex, true)
 			});
 			logger.debug("addWeight: Response %s", responseMsg);
 			return new Response(responseMsg, "Weight", responseMsg);

@@ -102,24 +102,22 @@ Utils.calculateDuration = function(startDateTime, endDateTime) {
  * @returns a string describing the duration. e.g. "5 hours and 3 minutes"
  */
 Utils.formatDuration = function(duration) {
+	var days = parseInt(duration / 86400000);
     var minutes = parseInt((duration/(1000*60))%60);
     var hours = parseInt((duration/(1000*60*60))%24);
     var retval = "";
 
+    if( days > 0 ) {
+    	retval += days + " day" + Utils.pluralizeIfNeeded(days) +  ", ";
+    }
     if( hours > 0 ) {
-    	retval += hours + " hour";
-    	if( hours > 1 ) {
-    		retval += "s";
-    	}
+    	retval += hours + " hour" + Utils.pluralizeIfNeeded(hours);
     	if( minutes > 0 ) {
     		retval += " and ";
     	}
     }
     if( minutes > 0 ) {
-    	retval += minutes + " minute";
-    	if( minutes > 1 ) {
-    		retval += "s";
-    	}
+    	retval += minutes + " minute" + Utils.pluralizeIfNeeded(minutes);
     }
     
     return retval;
@@ -165,6 +163,29 @@ Utils.pluralizeIfNeeded = function(num) {
 		return "";
 	} else {
 		return "s";
+	}
+};
+
+/**
+ * Determines which prononun to use (he/she) given the baby's sex.
+ * @param {String} sex The baby's sex (girl/boy). Non-nullable.
+ * @param {Boolean} capitalize True if he/she should be capitalized (He/She), 
+ * 					false otherwise. Nullable.
+ * @returns {String} "he" if baby's sex is boy, else "girl"
+ */
+Utils.heShe = function(sex, capitalize) {
+	if( sex === "boy" ) {
+		if( capitalize ) {
+			return "He";
+		} else {
+			return "he";
+		}
+	} else {
+		if( capitalize ) {
+			return "She";
+		} else {
+			return "she";
+		}
 	}
 };
 

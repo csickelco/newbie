@@ -128,8 +128,8 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 			if(isDirty) {
 				responseMsg += "dirty ";
 			}
-			responseMsg += "diaper for " + babyName + ". Today, she's had " + 
-				totalWetDiapers + " wet and " + totalDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(totalDirtyDiapers); //TODO: replace she with proper prononun
+			responseMsg += "diaper for " + babyName + ". Today, " + Utils.heShe(loadedBaby.sex) + "'s had " + 
+				totalWetDiapers + " wet and " + totalDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(totalDirtyDiapers); 
 			logger.debug("addDiaper: Response %s", responseMsg);
 			return new Response(responseMsg, "Diaper", responseMsg);
 		});
