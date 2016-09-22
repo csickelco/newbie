@@ -15,6 +15,7 @@ The rest of the newbie code is organized by feature and generally contains a "mo
 To install locally, you can run newbie inside a [Alexa app server](https://www.npmjs.com/package/alexa-app-server) instance. The alexa-app-server gives you a stand-alone web server/container to host and easily test Alexa apps locally.
 
 **Get the alexa-app-server**
+
 1. Pull down the alexa-app-server GitHub repo with the following command:
 ```
 git clone https://github.com/matt-kruse/alexa-app-server.git
@@ -25,13 +26,18 @@ npm install
 ```
 
 **Install newbie in the alexa-app-server**
+
 1. Navigate to the alexa-app-server/examples/apps directory inside the alexa-app-server code you just installed.
 2. Run the following command to pull down the newbie code into that directory:
 ```
 git clone https://github.com/csickelco/newbie.git
 ``` 
-3. Navigate to the alexa-app-server/examples directory.
-4. Start the alexa-app-server by running the command:
+3. Inside the newbie directory, install all required dependencies by running:
+```
+npm install
+``` 
+4. Navigate to the alexa-app-server/examples directory.
+5. Start the alexa-app-server by running the command:
 ```
 node server
 ```
@@ -43,9 +49,9 @@ Loading apps from: apps
    Loaded app [hello_world] at endpoint: /alexa/helloworld
    Loaded app [newbie] at endpoint: /alexa/newbie
    Loaded app [number_guessing_game] at endpoint: /alexa/guessinggame
-5. Visit http://localhost:8080/alexa/newbie to test out the application.
+6. Visit http://localhost:8080/alexa/newbie to test out the application.
 You should see a page that looks like ![this](./alexa-app-server.png?raw=true "Newbie in Alexa App Server")
-6. You can simulate different commands by selecting them from the intents dropdown. For example, the
+7. You can simulate different commands by selecting them from the intents dropdown. For example, the
 addBabyIntent is the intent called when you say "Add Baby" to Alexa. The slots shown are the different
 variables/placeholders the alexa command will accept. Once you select the intent and populate any
 needed slot values, click Send request. You will see the response Alexa generates under the response section:
