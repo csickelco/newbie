@@ -202,6 +202,7 @@ Utils.formatDuration = function(duration) {
     		retval += " and ";
     	}
     }
+    
     if( minutes > 0 ) {
     	retval += minutes + " minute" + Utils.pluralizeIfNeeded(minutes);
     }
