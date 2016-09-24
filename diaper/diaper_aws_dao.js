@@ -23,6 +23,7 @@ module.change_code = 1;
 
 //Dependencies
 var Utils = require('../common/utils');
+var DaoError = require('../common/dao_error');
 var Winston = require('winston');
 var AWS = require("aws-sdk");
 
@@ -71,9 +72,8 @@ function DiaperAWSDao() {}
 /**
  * Asynchronous operation to create the diaper table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, or ResourceInUseException.
  */
 DiaperAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting diaper setup...");
@@ -98,25 +98,28 @@ DiaperAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
 			};
-			return dynamodb.createTable(params).promise();
+			return dynamodb.createTable(params).promise()
+			.catch(function(error) {
+				throw new DaoError("create diaper table", error);
+			});
 	});
 };
 
 /**
  * Asynchronous operation to delete the diaper table
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, 
+ * 						ResourceInUseException or ResourceNotFoundException. 
  */
 DiaperAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise();
+	return dynamodb.deleteTable(params).promise()
+	.catch(function(error) {
+		throw new DaoError("delete diaper table", error);
+	});
 };
 
 /**
@@ -127,11 +130,9 @@ DiaperAWSDao.prototype.deleteTable = function() {
  * @param 	diaper {Diaper} the diaper object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceInUseException. 
  */
 DiaperAWSDao.prototype.createDiaper = function(diaper) {
 	var dateTimeString = diaper.dateTime.toISOString();
@@ -145,7 +146,10 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
 			isDirty: diaper.isDirty
 	    }
 	};
-	return docClient.put(params).promise();	
+	return docClient.put(params).promise()
+	.catch(function(error) {
+		throw new DaoError("create diaper", error);
+	});
 };
 
 /**
@@ -155,11 +159,9 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
  * @param userId {string}	AWS user ID whose diapers to retrieve. Non-nullable.
  * @param date {Date}		Date/time after which to retrieve all diapers. Non-nullable.
  * 
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.   
  */
 DiaperAWSDao.prototype.getDiapers = function(userId, date) {
 	logger.debug("getDiapers: Starting get diapers for day %s", date.toString());
@@ -174,7 +176,10 @@ DiaperAWSDao.prototype.getDiapers = function(userId, date) {
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
-	return docClient.query(params).promise();
+	return docClient.query(params).promise()
+	.catch(function(error) {
+		throw new DaoError("get diapers", error);
+	});
 };
 
 module.exports = DiaperAWSDao;

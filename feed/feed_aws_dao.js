@@ -23,6 +23,7 @@ module.change_code = 1;
 
 //Dependencies
 var Utils = require('../common/utils');
+var DaoError = require('../common/dao_error');
 var Winston = require('winston');
 var AWS = require("aws-sdk");
 
@@ -70,9 +71,9 @@ function FeedAWSDao() {}
 /**
  * Asynchronous operation to create the feed table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, 
+ * 						or ResourceInUseException. 
  */
 FeedAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
@@ -97,25 +98,28 @@ FeedAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
 			};
-			return dynamodb.createTable(params).promise();
+			return dynamodb.createTable(params).promise()
+			.catch(function(error) {
+				throw new DaoError("create feed table", error);
+			});
 	});
 };
 
 /**
  * Asynchronous operation to delete the feed table
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, 
+ * 						ResourceInUseException, or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise();
+	return dynamodb.deleteTable(params).promise()
+	.catch(function(error) {
+		throw new DaoError("delete feed table", error);
+	});
 };
 
 /**
@@ -126,11 +130,9 @@ FeedAWSDao.prototype.deleteTable = function() {
  * @param 	feed {Feed} the feed object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.createFeed = function(feed) {
 	var dateTimeString = feed.dateTime.toISOString();
@@ -143,7 +145,10 @@ FeedAWSDao.prototype.createFeed = function(feed) {
 			feedAmount: feed.feedAmount
 	    }
 	};
-	return docClient.put(params).promise();	
+	return docClient.put(params).promise()
+	.catch(function(error) {
+		throw new DaoError("create feed", error);
+	});
 };
 
 /**
@@ -153,11 +158,9 @@ FeedAWSDao.prototype.createFeed = function(feed) {
  * @param userId {string}	AWS user ID whose feeds to retrieve. Non-nullable.
  * @param date	{Date}		Date/time after which to retrieve all feeds. Non-nullable.
  * 
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.getFeeds = function(userId, date) {
 	logger.debug("getFeeds: Starting get feeds for day %s", date.toString());
@@ -172,7 +175,10 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
-	return docClient.query(params).promise();
+	return docClient.query(params).promise()
+	.catch(function(error) {
+		throw new DaoError("get feeds", error);
+	});
 };
 
 /**
@@ -181,11 +187,9 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
  * 
  * @param userId {string} 	AWS user ID whose most recent feed to retrieve. Non-nullable.
  * 
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.getLastFeed = function(userId) {
 	logger.debug("getLastFeed: Starting get last feed for user %s", userId);
@@ -198,7 +202,10 @@ FeedAWSDao.prototype.getLastFeed = function(userId) {
 		    ScanIndexForward: false,
 		    Limit: 1
 	};
-	return docClient.query(params).promise();
+	return docClient.query(params).promise()
+	.catch(function(error) {
+		throw new DaoError("get last feed", error);
+	});
 };
 
 module.exports = FeedAWSDao;
