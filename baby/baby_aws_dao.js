@@ -24,6 +24,7 @@ module.change_code = 1;
 //Dependencies
 var Winston = require('winston');
 var AWS = require("aws-sdk");
+var DaoError = require("../common/dao_error");
 
 //Check if environment supports native promises
 if (typeof Promise === 'undefined') {
@@ -68,9 +69,8 @@ function BabyAWSDao() {}
 /**
  * Asynchronous operation to create the baby table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, or ResourceInUseException. 
  */
 BabyAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
@@ -94,26 +94,29 @@ BabyAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
     		};
-    		return dynamodb.createTable(params).promise();
+    		return dynamodb.createTable(params).promise()
+	    		.catch(function(error) {
+	    			throw new DaoError("create baby table", error);
+	    		});
     	});
     	
 };
 
 /**
  * Asynchronous operation to delete the baby table
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, 
+ * 						ResourceInUseException, or ResourceNotFoundException
  */
 BabyAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise();
+	return dynamodb.deleteTable(params).promise()
+	.catch(function(error) {
+		throw new DaoError("delete baby table", error);
+	});
 };
 
 /**
@@ -123,12 +126,9 @@ BabyAWSDao.prototype.deleteTable = function() {
  * 
  * @param 	{Baby} baby the baby object to persist. Non-nullable. 
  * 			Must have all properties populated.
- * 
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException. 
  */
 BabyAWSDao.prototype.createBaby = function(baby) {
 	logger.log('info', "createBaby: Starting baby creation for user %s, baby %s...", baby.toString());
@@ -141,19 +141,19 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	    	birthdate: baby.birthdate.toISOString()
 	    }
 	};
-	return docClient.put(params).promise();
+	return docClient.put(params).promise()
+	.catch(function(error) {
+		throw new DaoError("create baby", error);
+	});
 };
 
 /**
  * Asynchronous operation to retrieve the baby for the given user.
  * 
  * @param {string} userId 	AWS user ID whose baby to retrieve. Non-nullable.
- * 
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException. 
  */
 BabyAWSDao.prototype.readBaby = function(userId) {
 	logger.debug("readBaby: Starting for user %s...", userId);
@@ -163,7 +163,10 @@ BabyAWSDao.prototype.readBaby = function(userId) {
 	        "userId": userId
 	    }
 	};
-	return docClient.get(params).promise();
+	return docClient.get(params).promise()
+	.catch(function(error) {
+		throw new DaoError("read baby", error);
+	});
 };
 
 module.exports = BabyAWSDao;

@@ -23,6 +23,7 @@ module.change_code = 1;
 
 //Dependencies
 var Utils = require('../common/utils');
+var DaoError = require('../common/dao_error');
 var Winston = require('winston');
 var AWS = require("aws-sdk");
 
@@ -71,9 +72,8 @@ function ActivityAWSDao() {}
 /**
  * Asynchronous operation to create the activity table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, or ResourceInUseException. 
  */
 ActivityAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
@@ -98,25 +98,28 @@ ActivityAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
 			};
-			return dynamodb.createTable(params).promise();
+			return dynamodb.createTable(params).promise()
+				.catch(function(error) {
+					throw new DaoError("create the activity table", error);
+				});
 	});
 };
 
 /**
  * Asynchronous operation to delete the activity table
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, LimitExceededException, 
+ * 						ResourceInUseException, or ResourceNotFoundException.
  */
 ActivityAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise();
+	return dynamodb.deleteTable(params).promise()
+		.catch(function(error) {
+			throw new DaoError("delete the activity table", error);
+		});
 };
 
 /**
@@ -127,11 +130,9 @@ ActivityAWSDao.prototype.deleteTable = function() {
  * @param 	{Activity} activity the activity object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.
  */
 ActivityAWSDao.prototype.createActivity = function(activity) {
 	var dateTimeString = activity.dateTime.toISOString();
@@ -144,7 +145,10 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
 			activity: activity.activity
 	    }
 	};
-	return docClient.put(params).promise();	
+	return docClient.put(params).promise()
+		.catch(function(error) {
+			throw new DaoError("create an activity", error);
+		});
 };
 
 /**
@@ -154,11 +158,9 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
  * @param {string} userId 	AWS user ID whose activities to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to retrieve all activities. Non-nullable.
  * 
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {ProvisionedThroughputExceededException} Request rate is too high.
- * @throws {ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
+ * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.
  */
 ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 	logger.debug("getActivitiesForDay: Starting get activities for day %s", date.toString());
@@ -173,7 +175,10 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
-	return docClient.query(params).promise();
+	return docClient.query(params).promise()
+		.catch(function(error) {
+			throw new DaoError("get activities for the day", error);
+		});
 };
 
 module.exports = ActivityAWSDao;
