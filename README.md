@@ -59,6 +59,13 @@ needed slot values, click Send request. You will see the response Alexa generate
 
 For more details, see the [Big Nerd Ranch Series: Developing Alexa Skills Locally with Node.js](https://developer.amazon.com/public/community/post/Tx1BIPOTYRL82PV/Big-Nerd-Ranch-Series-Developing-Alexa-Skills-Locally-with-Node-js-Implementing)
 
+### Running Unit Tests
+Tests are run using mocha. To install mocha, run:
+```npm install mocha -g```
+
+To run the tests, execute the following from the root of the project:
+```mocha test --recursive --watch``` from the root of the project. 
+
 ### Deploy to staging
 
 Detailed instructions on deploying the application to AWS and testing on your Amazon Echo device coming soon. For now, see [Big Nerd Ranch's Tutorial](https://developer.amazon.com/public/community/post/Tx2LL8LQWN9T33O/Big-Nerd-Ranch-Series-Developing-Alexa-Skills-Locally-with-Node-js-Deploying-You)

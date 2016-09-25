@@ -21,28 +21,27 @@
 module.change_code = 1;
 
 /**
- * Represents an error thrown by a data access object
- * @param operation {string}	the type of activity the DAO was trying to accomplish before erroring-out. Non-nullable.
- * 								e.g. "create an activity"
- * @param sourceError {Error} 	the underlying exception/error. Nullable.
- * @param message {String} 		details on the nature of the error. Nullable.
+ * Represents an error thrown when a method argument is
+ * invalid/innapropriate. Examples include a null argument
+ * when a non-nullable argument is expected or a string 
+ * argument that is limited to some set of values falls
+ * outside that set.
+ * 
+ * @param argumentName {string} the name of the argument that is invalid. Non-nullable.
+ * @param details {string}		text describing why the argument is invalid. Non-nullable.
+ * 								e.g. "name must be provided"
+ * 
+ * @param {sourceError} the underlying exception/error. Nullable.
+ * @param {message} details on the nature of the error. Nullable.
+ * 
  * @constructor
  */
-module.exports = function DaoError(operation, sourceError, message) {
+module.exports = function IllegalArgumentError(argumentName, details) {
   Error.captureStackTrace(this, this.constructor);
   this.name = this.constructor.name;
-  this.operation = operation;
-  this.sourceError = sourceError;
-  this.message = "An error occurred while trying to " + operation;
-  if( message ) {
-	  this.message += ": " + message;
-  }
-  if( sourceError && sourceError.code) {
-	  this.message += " (" + sourceError.code + ")";
-  }
-  if( sourceError.message ) {
-	  this.message += " - " + sourceError.message;
-  }
+  this.argumentName = argumentName;
+  this.details = details;
+  this.message = "Illegal argument '" + this.argumentName + "': " + details;
 };
 
 require('util').inherits(module.exports, Error);

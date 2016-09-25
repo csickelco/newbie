@@ -17,5 +17,11 @@
     "mocha": "^3.0.2",
     "request-promise": "^2.0.1",
     "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "chai-as-promised": "^5.3.0",
+    "sinon": "^1.17.6",
+    "sinon-as-promised": "^4.0.2",
+    "sinon-stub-promise": "^3.0.1"
   }
 }

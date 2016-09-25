@@ -352,17 +352,17 @@ app.intent('addActivityIntent', {
 	'utterances': ['{|add|record} activity {-|ACTIVITY}']
 }, function(request, response) {
 	var activity = request.slot('ACTIVITY');
-	var now = new Date();
-	logger.debug('addActivityIntent: %s on %s', activity, now.toString());
+	logger.debug('addActivityIntent: %s', activity);
 	
-	activityController.addActivity(request.userId, now, activity)
+	activityController.addActivity(request.userId, activity)
 		.then(function(responseRetval) {
 			logger.info('addActivityIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
 			logger.debug("Activity successfully added: %s", responseRetval.toString());
-		}, function (error) {
+		})
+		.catch(function(error) {
 			logger.error("An error occurred adding activity: " + error.message + ", " + error.stack);
 		});
 	return false;

@@ -21,28 +21,18 @@
 module.change_code = 1;
 
 /**
- * Represents an error thrown by a data access object
- * @param operation {string}	the type of activity the DAO was trying to accomplish before erroring-out. Non-nullable.
- * 								e.g. "create an activity"
- * @param sourceError {Error} 	the underlying exception/error. Nullable.
- * @param message {String} 		details on the nature of the error. Nullable.
+ * Represents an error thrown when a method is invoked
+ * at an illegal or inappropriate time. 
+ * 
+ * @param message {string}		text describing the nature of the error. Non-nullable.
+ * 								e.g. "you must add a baby before adding a feed for the baby"
+ * 
  * @constructor
  */
-module.exports = function DaoError(operation, sourceError, message) {
+module.exports = function IllegalStateError(message) {
   Error.captureStackTrace(this, this.constructor);
   this.name = this.constructor.name;
-  this.operation = operation;
-  this.sourceError = sourceError;
-  this.message = "An error occurred while trying to " + operation;
-  if( message ) {
-	  this.message += ": " + message;
-  }
-  if( sourceError && sourceError.code) {
-	  this.message += " (" + sourceError.code + ")";
-  }
-  if( sourceError.message ) {
-	  this.message += " - " + sourceError.message;
-  }
+  this.message = message;
 };
 
 require('util').inherits(module.exports, Error);

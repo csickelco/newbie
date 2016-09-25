@@ -10,9 +10,9 @@
  * This class represents an activity you would do with your baby.
  * Examples: Tummy time, reading, visits with family, stroll in the park, etc.
  * 
- * @property {userId} 	the unique ID of the amazon user running this application.
- * @property {dateTime}	the date/time the activity occurred.
- * @property {activity} text describing the activity. e.g. "reading"
+ * @property {string} userId 	the unique ID of the amazon user running this application.
+ * @property {Date} dateTime	the date/time the activity occurred.
+ * @property {string} activity text describing the activity. e.g. "reading"
  * 
  * @author Christina Sickelco
  */
