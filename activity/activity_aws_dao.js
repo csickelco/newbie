@@ -10,6 +10,9 @@
  * This class handles all data persistence (create-retrieve-update-delete operations) 
  * for activities via the AWS SDK.
  * 
+ * @property {AWS.DynamoDB} 	dynamodb - AWS API for interacting with DynamoDB
+ * @property {AWS.DynamoDB.DocumentClient} 	docClient - AWS API for interacting with items in DynamoDB
+ * 
  * @author Christina Sickelco
  */
 
@@ -59,28 +62,29 @@ var logger = new (Winston.Logger)({
 //DynamoDB table name
 var TABLE_NAME = 'NEWBIE.ACTIVITY'; 
 
-//DynamoDB access objects
-var dynamodb = new AWS.DynamoDB();
-var docClient = new AWS.DynamoDB.DocumentClient();
-
 /**
  * Represents data access operations for activities.
  * @constructor
  */
-function ActivityAWSDao() {}
+function ActivityAWSDao() {
+	//DynamoDB access objects
+	this.dynamodb = new AWS.DynamoDB();
+	this.docClient = new AWS.DynamoDB.DocumentClient();
+}
 
 /**
  * Asynchronous operation to create the activity table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, or ResourceInUseException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the create succeeded,
+ * 			else returns a rejected promise with a DaoError.
  */
 ActivityAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
-	return dynamodb.describeTable(describeParams).promise()
+	var self = this;
+	return self.dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
 			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
@@ -98,27 +102,29 @@ ActivityAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
 			};
-			return dynamodb.createTable(params).promise()
+			return self.dynamodb.createTable(params).promise()
 				.catch(function(error) {
-					throw new DaoError("create the activity table", error);
+					return Promise.reject( new DaoError("create the activity table", error));
 				});
 	});
 };
 
 /**
  * Asynchronous operation to delete the activity table
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						ResourceInUseException, or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the delete succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			ResourceInUseException, or ResourceNotFoundException).
  */
 ActivityAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise()
+	return this.dynamodb.deleteTable(params).promise()
 		.catch(function(error) {
-			throw new DaoError("delete the activity table", error);
+			return Promise.reject(new DaoError("delete the activity table", error));
 		});
 };
 
@@ -129,10 +135,11 @@ ActivityAWSDao.prototype.deleteTable = function() {
  * 
  * @param 	{Activity} activity the activity object to persist. Non-nullable. 
  * 			Must have all properties populated.
- * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the create succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException).
  */
 ActivityAWSDao.prototype.createActivity = function(activity) {
 	var dateTimeString = activity.dateTime.toISOString();
@@ -145,9 +152,9 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
 			activity: activity.activity
 	    }
 	};
-	return docClient.put(params).promise()
+	return this.docClient.put(params).promise()
 		.catch(function(error) {
-			throw new DaoError("create an activity", error);
+			return Promise.reject(new DaoError("create an activity", error));
 		});
 };
 
@@ -158,9 +165,11 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
  * @param {string} userId 	AWS user ID whose activities to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to retrieve all activities. Non-nullable.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB.
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException).
  */
 ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 	logger.debug("getActivitiesForDay: Starting get activities for day %s", date.toString());
@@ -175,9 +184,9 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
-	return docClient.query(params).promise()
+	return this.docClient.query(params).promise()
 		.catch(function(error) {
-			throw new DaoError("get activities for the day", error);
+			return Promise.reject(new DaoError("get activities for the day", error));
 		});
 };
 

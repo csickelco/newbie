@@ -9,6 +9,9 @@
 /**
  * This class handles business logic for activity-related operations.
  * 
+ * @property {ActivityAWSDao} 	activityDao 	- Interacts with the activity data store
+ * @property {BabyAWSDao} 		babyDao			- Interacts with the baby data store
+ * 
  * @author Christina Sickelco
  */
 
@@ -25,12 +28,11 @@ var _ = require('lodash');
 var ActivityDao = require('./activity_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Activity = require('./activity');
+var IllegalArgumentError = require('../common/illegal_argument_error');
+var IllegalStateError = require('../common/illegal_state_error');
+var ValidationUtils = require('../common/validation_utils');
 var Response = require('../common/response');
 var Winston = require('winston');
-
-//Properties
-var activityDao = new ActivityDao();
-var babyDao = new BabyDao();
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -52,54 +54,79 @@ var logger = new (Winston.Logger)({
  * @constructor
  */
 function ActivityController () {
+	this.activityDao = new ActivityDao();
+	this.babyDao = new BabyDao();
 }
 
 /**
  * Asynchronous operation to setup any needed activity data in the data store.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the table
+ * 			creation succeeded, else returns a rejected promise with a 
+ * 			DaoError if an error occurred creating the table in the data store.
  */
 ActivityController.prototype.initActivityData = function() {
 	logger.debug("initActivityData: Starting initialization...");
-	return activityDao.createTable();
+	return this.activityDao.createTable();
 };
 
 /**
  * Asynchronous operation to add (or overwrite) a new activity to the data store
  * and return a response.
  * 
- * @param 	{string} userId		the userId who owns the activities. Non-nullable.
- * @param	{Date } dateTime	the date/time the activity occurred. Non-nullable.
- * @param	{Activity} activity	text describing the activity (e.g. "visiting grandma"). Non-nullable
+ * @param 	{string} userId				the userId who owns the activities. Non-nullable.
+ * @param	{Activity} activity			text describing the activity (e.g. "visiting grandma"). Non-nullable.					
+ * @param	{Date} dateTime				the date/time the activity occurred. Nullable.
+ * 										If not specified, the current date/time is used.
  * 
- * @return 	{Promise} promise containing a Response, with both a verbal message and written card,
- *  		describing whether or not the activity was successfully added.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @return 	{Promise<Response>|IllegalArgumentError, IllegalStateError} 				
+ * 										promise containing a response with both a verbal message and written card,
+ *  									providing confirmation of the added activity.
+ *  									Rejected promise with IllegalArgumentError if no activity or userId was specified.
+ *  									Rejected promise with IllegalStateError if the user has not yet added a baby.  
+ *  									Rejected promise with DaoError if an error occurred interacting with the data store while attempting
+ * 										to add the activity. 
  */
-ActivityController.prototype.addActivity = function(userId, dateTime, activity) {
+ActivityController.prototype.addActivity = function(userId, activity, dateTime) {
 	logger.debug("addActivity: Adding activity for %s, date: %s, activity: %s", userId, dateTime, activity);
+	
 	var template = _.template("Added activity ${activity} for ${babyName}");
 	var loadedBaby;
 	var activityObj = new Activity();
-	activityObj.userId = userId;
-	activityObj.dateTime = dateTime;
-	activityObj.activity = activity;
-	return activityDao.createActivity(activityObj)
-		.then( function(result) 
-		{	
-			return babyDao.readBaby(userId);
+	var self = this;
+	var babyName;
+	
+	//First, validate our required arguments
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result){
+			return ValidationUtils.validateRequired("activity", activity);
+		})
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{
-			loadedBaby = readBabyResult.Item;	
-			var babyName = loadedBaby.name;
+			//Then, create the activity in the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+				babyName = loadedBaby.name;
+				
+				if( !dateTime ) {
+					dateTime = new Date();
+				}
+				activityObj.userId = userId;
+				activityObj.dateTime = dateTime;
+				activityObj.activity = activity;
+
+				return self.activityDao.createActivity(activityObj);
+			} else {
+				return Promise.reject(new IllegalStateError("Before recording activities, you must first add a baby"));
+			}
+		})
+		.then( function(readBabyResult) 
+		{
+			//Finally, build the response confirming the add
 			var responseMsg = template(
 			{
 				activity: activity,
