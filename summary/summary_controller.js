@@ -9,6 +9,13 @@
 /**
  * This class handles business logic for summary-related operations.
  * 
+ * @property {ActivityAWSDao} 	activityDao 	- Interacts with the activity data store
+ * @property {BabyAWSDao} 		babyDao			- Interacts with the baby data store
+ * @property {DiaperAWSDao} 	diaperDao		- Interacts with the diaper data store
+ * @property {FeedAWSDao} 		feedDao 		- Interacts with the feed data store
+ * @property {SleepAWSDao} 		sleepDao		- Interacts with the sleep data store
+ * @property {WeightAWSDao} 	weightDao		- Interacts with the weight data store
+ * 
  * @author Christina Sickelco
  */
 
@@ -35,14 +42,6 @@ var Utils = require('../common/utils');
 var Response = require('../common/response');
 var Winston = require('winston');
 
-//Properties
-var feedDao = new FeedDao();
-var babyDao = new BabyDao();
-var weightDao = new WeightDao();
-var diaperDao = new DiaperDao();
-var activityDao = new ActivityDao();
-var sleepDao = new SleepDao();
-
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
     transports: [
@@ -63,6 +62,12 @@ var logger = new (Winston.Logger)({
  * @constructor
  */
 function SummaryController () {
+	this.feedDao = new FeedDao();
+	this.babyDao = new BabyDao();
+	this.weightDao = new WeightDao();
+	this.diaperDao = new DiaperDao();
+	this.activityDao = new ActivityDao();
+	this.sleepDao = new SleepDao();
 }
 
 /**
@@ -88,13 +93,14 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	aWeekAgo.setMinutes(0);
 	aWeekAgo.setSeconds(0);
 	aWeekAgo.setMilliseconds(0);
+	var self = this;
 	
 	var feedMap = new Map();
 	var diaperMap = new Map();
 	var sleepMap = new Map();
 	var weightMap = new Map();
 	
-	return babyDao.readBaby(userId)
+	return self.babyDao.readBaby(userId)
 		.then( function(readBabyResult) {
 			weeklySummary.name = readBabyResult.Item.name;
 			weeklySummary.sex = readBabyResult.Item.sex;
@@ -102,7 +108,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
 			
 			//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
-			return feedDao.getFeeds(userId, aWeekAgo);
+			return self.feedDao.getFeeds(userId, aWeekAgo);
 		}).then( function(feedsForWeekResult) {
 			feedsForWeekResult.Items.forEach(function(item) {
 	            //YYYY-MM-DD
@@ -116,7 +122,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            feedMap.set(dateKey, feedSummary);
 	            logger.debug("getWeeklySummary: Put in feedMap %s - %s", dateKey, feedSummary.toString());
 	        });
-			return diaperDao.getDiapers(userId, aWeekAgo);
+			return self.diaperDao.getDiapers(userId, aWeekAgo);
 		}).then( function(diapersForWeekResult) {
 			diapersForWeekResult.Items.forEach(function(item) {
 	            //YYYY-MM-DD
@@ -134,7 +140,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            diaperMap.set(dateKey, diaperSummary);
 	            logger.debug("getWeeklySummary: Put in diaperMap %s - %s", dateKey, diaperSummary.toString());
 	        });
-			return sleepDao.getSleep(userId, aWeekAgo);
+			return self.sleepDao.getSleep(userId, aWeekAgo);
 		}).then( function(sleepForWeekResult) {
 			//todo: refactor this logic so we're not duplicating
 			sleepForWeekResult.Items.forEach(function(item) {
@@ -151,7 +157,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            	logger.debug("getWeeklySummary: Put in sleepMap %s - %s", dateKey, millisecondsOfSleep);
 				}
 	        });
-			return weightDao.getWeight(userId, aWeekAgo);
+			return self.weightDao.getWeight(userId, aWeekAgo);
 		}).then( function(weightForWeekResult) {
 			weightForWeekResult.Items.forEach(function(item) {
 	            if( item.weight ) {
@@ -247,7 +253,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 			responseCard += "Average number of wet diapers per day: " + weeklySummary.numWetDiapers + "\n";
 			responseCard += "Average number of dirty diapers per day: " + weeklySummary.numDirtyDiapers + "\n";
 			if( weeklySummary.sleep ) {
-				responseMsg += "Each day, " + Utils.heShe(loadedBaby.sex) + " generally slept about " + weeklySummary.sleep; //TODO: replace she with proper prononun
+				responseMsg += "Each day, " + Utils.heShe(weeklySummary.sex) + " generally slept about " + weeklySummary.sleep; //TODO: replace she with proper prononun
 				responseCard += "Average amount of sleep per day: " + weeklySummary.sleep + "\n";
 			}
 			
@@ -278,14 +284,15 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	var today = new Date();
 	var activities = new Set();
 	var response = new Response();
+	var self = this;
 	
-	return babyDao.readBaby(userId)
+	return self.babyDao.readBaby(userId)
 		.then( function(readBabyResult) {
 			dailySummary.name = readBabyResult.Item.name;
 			dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
 			dailySummary.sex = readBabyResult.Item.sex;
 			logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
-			return feedDao.getFeeds(userId, today);
+			return self.feedDao.getFeeds(userId, today);
 		})
 		.then( function(feedsForDayResult) {
 			feedsForDayResult.Items.forEach(function(item) {
@@ -293,7 +300,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	            dailySummary.totalFeedAmount += parseInt(item.feedAmount);
 	            dailySummary.numFeedings++;
 	        });
-			return weightDao.getWeight(userId, today);
+			return self.weightDao.getWeight(userId, today);
 		})
 		.then( function(weightForDayResult) {
 			logger.debug("getDailySummary: weightForDayResult.Items %s", JSON.stringify(weightForDayResult));
@@ -303,7 +310,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			} else {
 				logger.debug("getDailySummary: no weight recorded today");
 			}
-			return diaperDao.getDiapers(userId, today);
+			return self.diaperDao.getDiapers(userId, today);
 		})
 		.then( function(diapersForDayResult) {
 			logger.debug("getDailySummary: diapersForDayResult.Items %s", JSON.stringify(diapersForDayResult));
@@ -317,7 +324,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	            	dailySummary.numDirtyDiapers++;
 	            }
 	        });
-			return activityDao.getActivitiesForDay(userId, today);
+			return self.activityDao.getActivitiesForDay(userId, today);
 		})
 		.then( function(activitiesForDayResult) {
 			logger.debug("getDailySummary: activitiesForDayResult.Items %s", JSON.stringify(activitiesForDayResult));
@@ -327,7 +334,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	            activities.add(item.activity);
 	        });
 			logger.debug("getDailySummary: activities size -- %s", activities.size);
-			return sleepDao.getSleep(userId, today);
+			return self.sleepDao.getSleep(userId, today);
 		})
 		.then( function(sleepsForDayResult) {
 			logger.debug("getDailySummary: sleepsForDayResult.Items %s", JSON.stringify(sleepsForDayResult));

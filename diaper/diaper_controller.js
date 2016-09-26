@@ -9,6 +9,9 @@
 /**
  * This class handles business logic for diaper-related operations.
  * 
+ * @property {DiaperAWSDao} 	diaperDao	 	- Interacts with the diaper data store
+ * @property {BabyAWSDao} 		babyDao			- Interacts with the baby data store
+ * 
  * @author Christina Sickelco
  */
 
@@ -30,10 +33,6 @@ var Response = require('../common/response');
 var Winston = require('winston');
 var rp = require('request-promise');
 
-//Properties
-var diaperDao = new DiaperDao();
-var babyDao = new BabyDao();
-
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
     transports: [
@@ -54,6 +53,8 @@ var logger = new (Winston.Logger)({
  * @constructor
  */
 function DiaperController () {
+	this.diaperDao = new DiaperDao();
+	this.babyDao = new BabyDao();
 }
 
 /**
@@ -64,7 +65,7 @@ function DiaperController () {
  */
 DiaperController.prototype.initDiaperData = function() {
 	logger.debug("initDiaperData: Starting initialization...");
-	return diaperDao.createTable();
+	return this.diaperDao.createTable();
 };
 
 /**
@@ -94,9 +95,10 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 	diaper.isWet = isWet;
 	diaper.isDirty = isDirty;
 	
-	return diaperDao.createDiaper(diaper)
+	var self = this;
+	return self.diaperDao.createDiaper(diaper)
 		.then( function(result) {
-			return diaperDao.getDiapers(userId, dateTime);
+			return self.diaperDao.getDiapers(userId, dateTime);
 		})
 		.then( function(diapersForDayResult) 
 		{
@@ -109,7 +111,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 	            	totalDirtyDiapers++;
 	            }
 	        });
-			return babyDao.readBaby(userId);
+			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{

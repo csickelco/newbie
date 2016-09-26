@@ -9,6 +9,8 @@
 /**
  * This class handles business logic for baby-related operations.
  * 
+ * @property {BabyAWSDao} 		babyDao			- Interacts with the baby data store
+ * 
  * @author Christina Sickelco
  */
 
@@ -27,9 +29,6 @@ var Baby = require('./baby');
 var Response = require('../common/response');
 var Utils = require('../common/utils');
 var Winston = require('winston');
-
-//Properties
-var babyDao = new BabyDao();
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -51,6 +50,7 @@ var logger = new (Winston.Logger)({
  * @constructor
  */
 function BabyController () {
+	this.babyDao = new BabyDao();
 }
 
 /**
@@ -61,7 +61,7 @@ function BabyController () {
  */
 BabyController.prototype.initBabyData = function() {
 	logger.debug("initBabyData: Starting initialization...");
-	return babyDao.createTable();
+	return this.babyDao.createTable();
 };
 
 /**
@@ -89,11 +89,12 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	
 	//We will first create the baby in the data store, then read it back 
 	//(mainly for verification), then format a message
-	return babyDao.createBaby(baby)
+	var self = this;
+	return self.babyDao.createBaby(baby)
 		.then( function(result) 
 		{
 			logger.debug("addBaby: Successfully created baby %s", JSON.stringify(baby));
-			return babyDao.readBaby(userId);
+			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{

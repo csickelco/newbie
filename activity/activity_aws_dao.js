@@ -10,7 +10,7 @@
  * This class handles all data persistence (create-retrieve-update-delete operations) 
  * for activities via the AWS SDK.
  * 
- * @property {AWS.DynamoDB} 	dynamodb - AWS API for interacting with DynamoDB
+ * @property {AWS.DynamoDB} 				dynamodb - AWS API for interacting with DynamoDB
  * @property {AWS.DynamoDB.DocumentClient} 	docClient - AWS API for interacting with items in DynamoDB
  * 
  * @author Christina Sickelco

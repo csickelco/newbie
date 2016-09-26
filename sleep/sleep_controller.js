@@ -9,6 +9,9 @@
 /**
  * This class handles business logic for sleep-related operations.
  * 
+ * @property {SleepAWSDao} 		sleepDao 		- Interacts with the sleep data store
+ * @property {BabyAWSDao} 		babyDao			- Interacts with the baby data store
+ * 
  * @author Christina Sickelco
  */
 
@@ -28,10 +31,6 @@ var Sleep = require('./sleep');
 var Utils = require('../common/utils');
 var Response = require('../common/response');
 var Winston = require('winston');
-
-//Properties
-var sleepDao = new SleepDao();
-var babyDao = new BabyDao();
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -53,6 +52,8 @@ var logger = new (Winston.Logger)({
  * @constructor
  */
 function SleepController () {
+	this.sleepDao = new SleepDao();
+	this.babyDao = new BabyDao();
 }
 
 /**
@@ -63,7 +64,7 @@ function SleepController () {
  */
 SleepController.prototype.initSleepData = function() {
 	logger.debug("initSleepData: Starting initialization...");
-	return sleepDao.createTable();
+	return this.sleepDao.createTable();
 };
 
 /**
@@ -89,10 +90,10 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 	var sleep = new Sleep();
 	sleep.userId = userId;
 	sleep.sleepDateTime = dateTime;
-	
-	return sleepDao.createSleep(sleep)
+	var self = this;
+	return self.sleepDao.createSleep(sleep)
 		.then( function(result) {
-			return babyDao.readBaby(userId);
+			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{
@@ -124,7 +125,8 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 SleepController.prototype.endSleep = function(userId, dateTime) {
 	logger.debug("endSleep: Ending sleep for %s, dateTime: %s,", userId, dateTime);
 	var lastSleep;
-	return sleepDao.getLastSleep(userId)
+	var self = this;
+	return self.sleepDao.getLastSleep(userId)
 		.then( function(getLastSleepResult) {
 			getLastSleepResult.Items.forEach(function(item) {
 	            logger.debug("endSleep: lastSleep %s", item.sleepDateTime);
@@ -132,10 +134,10 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 	            lastSleep.sleepDateTime = new Date(lastSleep.sleepDateTime); //TODO: this is a bit kludgy. Should DAO do this?
 	        });
 			lastSleep.wokeUpDateTime = dateTime;
-			return sleepDao.updateSleep(lastSleep);
+			return self.sleepDao.updateSleep(lastSleep);
 		})
 		.then( function(updateSleepResult) {
-			return babyDao.readBaby(userId);
+			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{
@@ -173,8 +175,8 @@ SleepController.prototype.getAwakeTime = function(userId) {
 	var lastSleepDate;
 	var lastWakeDate;
 	var response = new Response();
-
-	return sleepDao.getLastSleep(userId)
+	var self = this;
+	return self.sleepDao.getLastSleep(userId)
 		.then( function(result) {
 			//TODO: make a sleep object
 			result.Items.forEach(function(item) {
@@ -186,7 +188,7 @@ SleepController.prototype.getAwakeTime = function(userId) {
 	            	lastWakeDate = new Date(item.wokeUpDateTime);
 	            }
 	        });
-			return babyDao.readBaby(userId);
+			return self.babyDao.readBaby(userId);
 		}).then( function(readBabyResult) {
 			var loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;

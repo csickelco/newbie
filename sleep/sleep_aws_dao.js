@@ -10,6 +10,9 @@
  * This class handles all data persistence (create-retrieve-update-delete operations) 
  * for sleep via the AWS SDK.
  * 
+ * @property {AWS.DynamoDB} 				dynamodb - AWS API for interacting with DynamoDB
+ * @property {AWS.DynamoDB.DocumentClient} 	docClient - AWS API for interacting with items in DynamoDB
+ * 
  * @author Christina Sickelco
  */
 
@@ -59,15 +62,15 @@ var logger = new (Winston.Logger)({
 //DynamoDB table name
 var TABLE_NAME = 'NEWBIE.SLEEP'; 
 
-//DynamoDB access objects
-var dynamodb = new AWS.DynamoDB();
-var docClient = new AWS.DynamoDB.DocumentClient();
-
 /**
  * Represents data access operations for sleep.
  * @constructor
  */
-function SleepAWSDao() {}
+function SleepAWSDao() {
+	//DynamoDB access objects
+	this.dynamodb = new AWS.DynamoDB();
+	this.docClient = new AWS.DynamoDB.DocumentClient();
+}
 
 /**
  * Asynchronous operation to create the sleep table if it doesn't already exist.
@@ -84,7 +87,8 @@ SleepAWSDao.prototype.createTable = function() {
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
-	return dynamodb.describeTable(describeParams).promise()
+	var self = this;
+	return self.dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
 			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
@@ -102,7 +106,7 @@ SleepAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
 			};
-			return dynamodb.createTable(params).promise()
+			return self.dynamodb.createTable(params).promise()
 			.catch(function(error) {
 				return Promise.reject( new DaoError("create sleep table", error) );
 			});
@@ -123,7 +127,7 @@ SleepAWSDao.prototype.deleteTable = function() {
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise()
+	return this.dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("delete sleep table", error) );
 	});
@@ -156,7 +160,7 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
 	    }
 	};
 	logger.debug("createSleep: Params -- %s", JSON.stringify(params));
-	return docClient.put(params).promise()
+	return this.docClient.put(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("create sleep", error) );
 	});
@@ -185,7 +189,7 @@ SleepAWSDao.prototype.getLastSleep = function(userId) {
 		    ScanIndexForward: false,
 		    Limit: 1
 	};
-	return docClient.query(params).promise()
+	return this.docClient.query(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("get last sleep", error) );
 	});
@@ -214,7 +218,7 @@ SleepAWSDao.prototype.getSleep = function(userId, date) {
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
-	return docClient.query(params).promise()
+	return this.docClient.query(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("get sleep", error) );
 	});
@@ -248,7 +252,7 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
 		    ReturnValues:"UPDATED_NEW"
 		};
 	
-	return docClient.update(params).promise()
+	return this.docClient.update(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("update sleep", error) );
 	});

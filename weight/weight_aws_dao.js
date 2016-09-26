@@ -10,6 +10,9 @@
  * This class handles all data persistence (create-retrieve-update-delete operations) 
  * for weight records via the AWS SDK.
  * 
+ * @property {AWS.DynamoDB} 				dynamodb - AWS API for interacting with DynamoDB
+ * @property {AWS.DynamoDB.DocumentClient} 	docClient - AWS API for interacting with items in DynamoDB
+ * 
  * @author Christina Sickelco
  */
 
@@ -59,15 +62,15 @@ var logger = new (Winston.Logger)({
 //DynamoDB table name
 var TABLE_NAME = 'NEWBIE.WEIGHT'; 
 
-//DynamoDB access objects
-var dynamodb = new AWS.DynamoDB();
-var docClient = new AWS.DynamoDB.DocumentClient();
-
 /**
  * Represents data access operations for weight.
  * @constructor
  */
-function WeightAWSDao() {}
+function WeightAWSDao() {
+	//DynamoDB access objects
+	this.dynamodb = new AWS.DynamoDB();
+	this.docClient = new AWS.DynamoDB.DocumentClient();
+}
 
 /**
  * Asynchronous operation to create the weight table if it doesn't already exist.
@@ -84,7 +87,8 @@ WeightAWSDao.prototype.createTable = function() {
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
-	return dynamodb.describeTable(describeParams).promise()
+	var self = this;
+	return self.dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
 			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
@@ -102,7 +106,7 @@ WeightAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
 			};
-			return dynamodb.createTable(params).promise()
+			return self.dynamodb.createTable(params).promise()
 			.catch(function(error) {
 				return Promise.reject( new DaoError("create weight table", error) );
 			});
@@ -124,7 +128,7 @@ WeightAWSDao.prototype.deleteTable = function() {
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise()
+	return this.dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("delete weight table", error) );
 	});
@@ -155,7 +159,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
 			weight: weight.weight
 	    }
 	};
-	return docClient.put(params).promise()
+	return this.docClient.put(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("create weight", error) );
 	});
@@ -187,7 +191,7 @@ WeightAWSDao.prototype.getWeight = function(userId, date) {
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
-	return docClient.query(params).promise()
+	return this.docClient.query(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("get weight", error) );
 	});
