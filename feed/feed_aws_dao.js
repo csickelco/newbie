@@ -10,6 +10,9 @@
  * This class handles all data persistence (create-retrieve-update-delete operations) 
  * for feeds via the AWS SDK.
  * 
+ * @property {AWS.DynamoDB} 				dynamodb - AWS API for interacting with DynamoDB
+ * @property {AWS.DynamoDB.DocumentClient} 	docClient - AWS API for interacting with items in DynamoDB
+ * 
  * @author Christina Sickelco
  */
 
@@ -58,15 +61,15 @@ var logger = new (Winston.Logger)({
 //DynamoDB table name
 var TABLE_NAME = 'NEWBIE.FEED'; 
 
-//DynamoDB access objects
-var dynamodb = new AWS.DynamoDB();
-var docClient = new AWS.DynamoDB.DocumentClient();
-
 /**
  * Represents data access operations for feeds.
  * @constructor
  */
-function FeedAWSDao() {}
+function FeedAWSDao() {
+	//DynamoDB access objects
+	this.dynamodb = new AWS.DynamoDB();
+	this.docClient = new AWS.DynamoDB.DocumentClient();
+}
 
 /**
  * Asynchronous operation to create the feed table if it doesn't already exist.
@@ -83,7 +86,8 @@ FeedAWSDao.prototype.createTable = function() {
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
-	return dynamodb.describeTable(describeParams).promise()
+	var self = this;
+	return self.dynamodb.describeTable(describeParams).promise()
 		.catch(function(error) {
 			logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
 			var params = {
@@ -101,7 +105,7 @@ FeedAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
 			};
-			return dynamodb.createTable(params).promise()
+			return self.dynamodb.createTable(params).promise()
 			.catch(function(error) {
 				return Promise.reject( new DaoError("create feed table", error) );
 			});
@@ -122,7 +126,7 @@ FeedAWSDao.prototype.deleteTable = function() {
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise()
+	return this.dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("delete feed table", error) );
 	});
@@ -153,7 +157,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
 			feedAmount: feed.feedAmount
 	    }
 	};
-	return docClient.put(params).promise()
+	return this.docClient.put(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("create feed", error) );
 	});
@@ -185,7 +189,7 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
-	return docClient.query(params).promise()
+	return this.docClient.query(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("get feeds", error) );
 	});
@@ -214,7 +218,7 @@ FeedAWSDao.prototype.getLastFeed = function(userId) {
 		    ScanIndexForward: false,
 		    Limit: 1
 	};
-	return docClient.query(params).promise()
+	return this.docClient.query(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("get last feed", error) );
 	});

@@ -9,6 +9,9 @@
 /**
  * This class handles business logic for feed-related operations.
  * 
+ * @property {FeedAWSDao} 		feedDao		 	- Interacts with the feed data store
+ * @property {BabyAWSDao} 		babyDao			- Interacts with the baby data store
+ * 
  * @author Christina Sickelco
  */
 
@@ -30,10 +33,6 @@ var Utils = require('../common/utils');
 var Winston = require('winston');
 var rp = require('request-promise');
 
-//Properties
-var feedDao = new FeedDao();
-var babyDao = new BabyDao();
-
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
     transports: [
@@ -54,6 +53,8 @@ var logger = new (Winston.Logger)({
  * @constructor
  */
 function FeedController () {
+	this.feedDao = new FeedDao();
+	this.babyDao = new BabyDao();
 }
 
 /**
@@ -64,7 +65,7 @@ function FeedController () {
  */
 FeedController.prototype.initFeedData = function() {
 	logger.debug("initFeedData: Starting initialization...");
-	return feedDao.createTable();
+	return this.feedDao.createTable();
 };
 
 /**
@@ -93,10 +94,11 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	feed.userId = userId;
 	feed.dateTime = dateTime;
 	feed.feedAmount = feedAmount;
+	var self = this;
 	
-	return feedDao.createFeed(feed)
+	return self.feedDao.createFeed(feed)
 		.then( function(result) {
-			return feedDao.getFeeds(userId, dateTime);
+			return self.feedDao.getFeeds(userId, dateTime);
 		})
 		.then( function(feedsForDayResult) 
 		{
@@ -106,7 +108,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	            numFeeds++;
 	        });
 			
-			return babyDao.readBaby(userId);
+			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) 
 		{
@@ -143,15 +145,15 @@ FeedController.prototype.getLastFeed = function(userId) {
 	var lastFeedAmt;
 	var lastFeedDate;
 	var response = new Response();
-
-	return feedDao.getLastFeed(userId)
+	var self = this;
+	return self.feedDao.getLastFeed(userId)
 		.then( function(result) {
 			result.Items.forEach(function(item) {
 	            logger.debug("getLastFeed: lastFeed %s %s", item.dateTime, item.feedAmount);
 	            lastFeedDate = new Date(item.dateTime); //TODO: Can't the DAO do this?
 	            lastFeedAmt = item.feedAmount;
 	        });
-			return babyDao.readBaby(userId);
+			return self.babyDao.readBaby(userId);
 		}).then( function(readBabyResult) {
 			var loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;

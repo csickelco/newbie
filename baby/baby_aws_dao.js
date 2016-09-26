@@ -10,6 +10,9 @@
  * This class handles all data persistence (create-retrieve-update-delete operations) 
  * for babies via the AWS SDK.
  * 
+ * @property {AWS.DynamoDB} 				dynamodb - AWS API for interacting with DynamoDB
+ * @property {AWS.DynamoDB.DocumentClient} 	docClient - AWS API for interacting with items in DynamoDB
+ * 
  * @author Christina Sickelco
  */
 
@@ -56,15 +59,15 @@ var logger = new (Winston.Logger)({
 //DynamoDB table name
 var TABLE_NAME = 'NEWBIE.BABY'; 
 
-//DynamoDB access objects
-var dynamodb = new AWS.DynamoDB();
-var docClient = new AWS.DynamoDB.DocumentClient();
-
 /**
  * Represents data access operations for babies.
  * @constructor
  */
-function BabyAWSDao() {}
+function BabyAWSDao() {
+	//DynamoDB access objects
+	this.dynamodb = new AWS.DynamoDB();
+	this.docClient = new AWS.DynamoDB.DocumentClient();
+}
 
 /**
  * Asynchronous operation to create the baby table if it doesn't already exist.
@@ -81,7 +84,8 @@ BabyAWSDao.prototype.createTable = function() {
 	var describeParams = {
 			TableName: TABLE_NAME,
 	};
-	var request = dynamodb.describeTable(describeParams);
+	var self = this;
+	var request = self.dynamodb.describeTable(describeParams);
 	return request.promise()
     	.catch(function(error) {
     		logger.debug("createTable: Table doesn't yet exist, attempting to create..., error: " + error.message);
@@ -98,7 +102,7 @@ BabyAWSDao.prototype.createTable = function() {
 			        WriteCapacityUnits: 5
 			    }
     		};
-    		return dynamodb.createTable(params).promise()
+    		return self.dynamodb.createTable(params).promise()
 	    		.catch(function(error) {
 	    			return Promise.reject( new DaoError("create baby table", error) );
 	    		});
@@ -119,7 +123,7 @@ BabyAWSDao.prototype.deleteTable = function() {
 	var params = {
 	    TableName : TABLE_NAME
 	};
-	return dynamodb.deleteTable(params).promise()
+	return this.dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("delete baby table", error) );
 	});
@@ -149,7 +153,7 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	    	birthdate: baby.birthdate.toISOString()
 	    }
 	};
-	return docClient.put(params).promise()
+	return this.docClient.put(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("create baby", error) );
 	});
@@ -173,7 +177,7 @@ BabyAWSDao.prototype.readBaby = function(userId) {
 	        "userId": userId
 	    }
 	};
-	return docClient.get(params).promise()
+	return this.docClient.get(params).promise()
 	.catch(function(error) {
 		return Promise.reject( new DaoError("read baby", error) );
 	});

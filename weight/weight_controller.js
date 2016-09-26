@@ -9,6 +9,9 @@
 /**
  * This class handles business logic for feed-related operations.
  * 
+ * @property {WeightAWSDao} 	weightDao 		- Interacts with the weight data store
+ * @property {BabyAWSDao} 		babyDao			- Interacts with the baby data store
+ * 
  * @author Christina Sickelco
  */
 
@@ -29,10 +32,6 @@ var Weight = require('./weight');
 var Utils = require('../common/utils');
 var Winston = require('winston');
 var rp = require('request-promise');
-
-//Properties
-var weightDao = new WeightDao();
-var babyDao = new BabyDao();
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -74,6 +73,8 @@ function stringifyNumber(n) {
  * @constructor
  */
 function WeightController () {
+	this.weightDao = new WeightDao();
+	this.babyDao = new BabyDao();
 }
 
 /**
@@ -85,7 +86,7 @@ function WeightController () {
  */
 WeightController.prototype.initWeightData = function() {
 	logger.debug("initWeightData: Starting initialization...");
-	return weightDao.createTable();
+	return this.weightDao.createTable();
 };
 
 /**
@@ -116,11 +117,13 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	weight.userId = userId;
 	weight.weight = totalOunces;
 	weight.date = date;
+	
+	var self = this;
 
-	var createWeightPromise = weightDao.createWeight(weight);
+	var createWeightPromise = self.weightDao.createWeight(weight);
 	var readBabyPromise = createWeightPromise.then( function(createWeightResult) 
 	{
-		return babyDao.readBaby(userId);
+		return self.babyDao.readBaby(userId);
 	});
 	var calculatePercentilePromise = readBabyPromise.then( function(readBabyResult) 
 	{
