@@ -58,9 +58,9 @@ function DiaperController () {
 
 /**
  * Asynchronous operation to setup any needed diaper data in the data store.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 DiaperController.prototype.initDiaperData = function() {
 	logger.debug("initDiaperData: Starting initialization...");
@@ -76,15 +76,12 @@ DiaperController.prototype.initDiaperData = function() {
  * @param	isWet {boolean}		true/false if the diaper was wet. Non-nullable.
  * @param	isDirty	{boolean}	true/false if the diaper was dirty/soiled. Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		describing whether or not the diaper was successfully added.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty) {
 	logger.debug("addDiaper: Adding diaper for %s, date: %s, isWet: %s, isDirty: %s", userId, dateTime, isWet, isDirty);

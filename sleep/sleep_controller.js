@@ -57,9 +57,9 @@ function SleepController () {
 
 /**
  * Asynchronous operation to setup any needed sleep data in the data store.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @returns {Promise<Empty|DaoError} Returns an epty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 SleepController.prototype.initSleepData = function() {
 	logger.debug("initSleepData: Starting initialization...");
@@ -73,15 +73,12 @@ SleepController.prototype.initSleepData = function() {
  * @param 	userId {string}		the userId whose baby is sleeping. Non-nullable.
  * @param	dateTime {Date}		the date/time the sleep started. Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		describing whether or not the sleep was successfully recorded.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 //TODO: lots of error checking - what if they start a sleep without ending a previous one? indeterminate nap?
 SleepController.prototype.startSleep = function(userId, dateTime) {
@@ -117,15 +114,12 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
  * @param 	userId {string}		the userId whose baby is sleeping. Non-nullable.
  * @param	dateTime {Date}		the date/time the sleep ended. Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		describing whether or not the sleep was successfully ended.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 SleepController.prototype.endSleep = function(userId, dateTime) {
 	logger.debug("endSleep: Ending sleep for %s, dateTime: %s,", userId, dateTime);
@@ -168,16 +162,12 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
  * 
  * @param 	userId {string}		the userId whose baby to get awake time for. Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		describing how long the baby has been awake or the fact that they are 
- *  		still sleeping.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 SleepController.prototype.getAwakeTime = function(userId) {
 	var lastSleepDate;

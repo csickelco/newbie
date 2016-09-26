@@ -72,8 +72,11 @@ function DiaperAWSDao() {}
 /**
  * Asynchronous operation to create the diaper table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, or ResourceInUseException.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, or ResourceInUseException.
  */
 DiaperAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting diaper setup...");
@@ -100,16 +103,19 @@ DiaperAWSDao.prototype.createTable = function() {
 			};
 			return dynamodb.createTable(params).promise()
 			.catch(function(error) {
-				throw new DaoError("create diaper table", error);
+				return Promise.reject( new DaoError("create diaper table", error) );
 			});
 	});
 };
 
 /**
  * Asynchronous operation to delete the diaper table
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						ResourceInUseException or ResourceNotFoundException. 
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			ResourceInUseException or ResourceNotFoundException. 
  */
 DiaperAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
@@ -118,7 +124,7 @@ DiaperAWSDao.prototype.deleteTable = function() {
 	};
 	return dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
-		throw new DaoError("delete diaper table", error);
+		return Promise.reject( new DaoError("delete diaper table", error) );
 	});
 };
 
@@ -130,9 +136,11 @@ DiaperAWSDao.prototype.deleteTable = function() {
  * @param 	diaper {Diaper} the diaper object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceInUseException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceInUseException. 
  */
 DiaperAWSDao.prototype.createDiaper = function(diaper) {
 	var dateTimeString = diaper.dateTime.toISOString();
@@ -148,7 +156,7 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
 	};
 	return docClient.put(params).promise()
 	.catch(function(error) {
-		throw new DaoError("create diaper", error);
+		return Promise.reject( new DaoError("create diaper", error) );
 	});
 };
 
@@ -159,8 +167,10 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
  * @param userId {string}	AWS user ID whose diapers to retrieve. Non-nullable.
  * @param date {Date}		Date/time after which to retrieve all diapers. Non-nullable.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
 DiaperAWSDao.prototype.getDiapers = function(userId, date) {
@@ -178,7 +188,7 @@ DiaperAWSDao.prototype.getDiapers = function(userId, date) {
 	};
 	return docClient.query(params).promise()
 	.catch(function(error) {
-		throw new DaoError("get diapers", error);
+		return Promise.reject( new DaoError("get diapers", error) );
 	});
 };
 

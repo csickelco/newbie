@@ -71,9 +71,12 @@ function FeedAWSDao() {}
 /**
  * Asynchronous operation to create the feed table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						or ResourceInUseException. 
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			or ResourceInUseException. 
  */
 FeedAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
@@ -100,16 +103,19 @@ FeedAWSDao.prototype.createTable = function() {
 			};
 			return dynamodb.createTable(params).promise()
 			.catch(function(error) {
-				throw new DaoError("create feed table", error);
+				return Promise.reject( new DaoError("create feed table", error) );
 			});
 	});
 };
 
 /**
  * Asynchronous operation to delete the feed table
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						ResourceInUseException, or ResourceNotFoundException.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			ResourceInUseException, or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
@@ -118,7 +124,7 @@ FeedAWSDao.prototype.deleteTable = function() {
 	};
 	return dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
-		throw new DaoError("delete feed table", error);
+		return Promise.reject( new DaoError("delete feed table", error) );
 	});
 };
 
@@ -130,9 +136,11 @@ FeedAWSDao.prototype.deleteTable = function() {
  * @param 	feed {Feed} the feed object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.createFeed = function(feed) {
 	var dateTimeString = feed.dateTime.toISOString();
@@ -147,7 +155,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
 	};
 	return docClient.put(params).promise()
 	.catch(function(error) {
-		throw new DaoError("create feed", error);
+		return Promise.reject( new DaoError("create feed", error) );
 	});
 };
 
@@ -158,9 +166,11 @@ FeedAWSDao.prototype.createFeed = function(feed) {
  * @param userId {string}	AWS user ID whose feeds to retrieve. Non-nullable.
  * @param date	{Date}		Date/time after which to retrieve all feeds. Non-nullable.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.getFeeds = function(userId, date) {
 	logger.debug("getFeeds: Starting get feeds for day %s", date.toString());
@@ -177,7 +187,7 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
 	};
 	return docClient.query(params).promise()
 	.catch(function(error) {
-		throw new DaoError("get feeds", error);
+		return Promise.reject( new DaoError("get feeds", error) );
 	});
 };
 
@@ -187,9 +197,11 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
  * 
  * @param userId {string} 	AWS user ID whose most recent feed to retrieve. Non-nullable.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.getLastFeed = function(userId) {
 	logger.debug("getLastFeed: Starting get last feed for user %s", userId);
@@ -204,7 +216,7 @@ FeedAWSDao.prototype.getLastFeed = function(userId) {
 	};
 	return docClient.query(params).promise()
 	.catch(function(error) {
-		throw new DaoError("get last feed", error);
+		return Promise.reject( new DaoError("get last feed", error) );
 	});
 };
 

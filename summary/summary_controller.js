@@ -70,15 +70,12 @@ function SummaryController () {
  * 
  * @param 	userId	{string}	the userId whose summary to return. Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		containing the weekly summary.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 SummaryController.prototype.getWeeklySummary = function(userId) {
 	logger.debug("getWeeklySummary: getting weekly summary for userId %s", userId);
@@ -268,15 +265,12 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
  * 
  * @param 	userId	{string}	the userId whose summary to return. Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		containing the daily summary.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 SummaryController.prototype.getDailySummary = function(userId) {
 	logger.debug("getDailySummary: getting daily summary for userId %s", userId);

@@ -55,9 +55,9 @@ function BabyController () {
 
 /**
  * Asynchronous operation to setup any needed baby data in the data store.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 BabyController.prototype.initBabyData = function() {
 	logger.debug("initBabyData: Starting initialization...");
@@ -73,15 +73,9 @@ BabyController.prototype.initBabyData = function() {
  * @param 	{string} name		the baby's name (it's ok to be just a first name). Non-nullable.
  * @param	{Date} birthdate	the baby's birthdate (as a Date object). Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		describing whether or not the baby was successfully added.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
