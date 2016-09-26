@@ -78,9 +78,10 @@ function WeightController () {
 
 /**
  * Asynchronous operation to setup any needed weight data in the data store.
- * @throws {InternalServerError} An error occurred on the server side.
- * @throws {LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws {ResourceInUseException} The operation conflicts with the resource's availability. 
+ * 
+ * @returns {Promise<Response|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 WeightController.prototype.initWeightData = function() {
 	logger.debug("initWeightData: Starting initialization...");
@@ -96,15 +97,12 @@ WeightController.prototype.initWeightData = function() {
  * @param	pounds {number}		the number of pounds the baby is. Non-nullable.
  * @param	ounces {number}		number of ounces after pounds the baby is. Non-nullable.
  * 
- * @return 	promise containing a Response, with both a verbal message and written card,
- *  		describing the baby's weight.
- * 
- * @throws 	{InternalServerError} An error occurred on the server side.
- * @throws 	{LimitExceededException} The number of concurrent table requests exceeds the maximum allowed.
- * @throws 	{ResourceInUseException} The operation conflicts with the resource's availability. 
- * @throws 	{ResourceNotFoundException} 	The operation tried to access a nonexistent table or index. 
- * 										The resource might not be specified correctly, or its status 
- * 										might not be ACTIVE.
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
  */
 WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	logger.debug("pounds - " + pounds + ", ounces - " + ounces);

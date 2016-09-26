@@ -69,8 +69,12 @@ function BabyAWSDao() {}
 /**
  * Asynchronous operation to create the baby table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, or ResourceInUseException. 
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the create succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			or ResourceInUseException).
  */
 BabyAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
@@ -96,7 +100,7 @@ BabyAWSDao.prototype.createTable = function() {
     		};
     		return dynamodb.createTable(params).promise()
 	    		.catch(function(error) {
-	    			throw new DaoError("create baby table", error);
+	    			return Promise.reject( new DaoError("create baby table", error) );
 	    		});
     	});
     	
@@ -104,9 +108,11 @@ BabyAWSDao.prototype.createTable = function() {
 
 /**
  * Asynchronous operation to delete the baby table
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						ResourceInUseException, or ResourceNotFoundException
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the delete succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			ResourceInUseException, or ResourceNotFoundException
  */
 BabyAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
@@ -115,7 +121,7 @@ BabyAWSDao.prototype.deleteTable = function() {
 	};
 	return dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
-		throw new DaoError("delete baby table", error);
+		return Promise.reject( new DaoError("delete baby table", error) );
 	});
 };
 
@@ -126,9 +132,11 @@ BabyAWSDao.prototype.deleteTable = function() {
  * 
  * @param 	{Baby} baby the baby object to persist. Non-nullable. 
  * 			Must have all properties populated.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the create succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException. 
  */
 BabyAWSDao.prototype.createBaby = function(baby) {
 	logger.log('info', "createBaby: Starting baby creation for user %s, baby %s...", baby.toString());
@@ -143,7 +151,7 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	};
 	return docClient.put(params).promise()
 	.catch(function(error) {
-		throw new DaoError("create baby", error);
+		return Promise.reject( new DaoError("create baby", error) );
 	});
 };
 
@@ -151,9 +159,11 @@ BabyAWSDao.prototype.createBaby = function(baby) {
  * Asynchronous operation to retrieve the baby for the given user.
  * 
  * @param {string} userId 	AWS user ID whose baby to retrieve. Non-nullable.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException. 
  */
 BabyAWSDao.prototype.readBaby = function(userId) {
 	logger.debug("readBaby: Starting for user %s...", userId);
@@ -165,7 +175,7 @@ BabyAWSDao.prototype.readBaby = function(userId) {
 	};
 	return docClient.get(params).promise()
 	.catch(function(error) {
-		throw new DaoError("read baby", error);
+		return Promise.reject( new DaoError("read baby", error) );
 	});
 };
 

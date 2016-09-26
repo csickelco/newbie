@@ -72,9 +72,12 @@ function WeightAWSDao() {}
 /**
  * Asynchronous operation to create the weight table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						or ResourceInUseException.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			or ResourceInUseException.
  */
 WeightAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
@@ -101,7 +104,7 @@ WeightAWSDao.prototype.createTable = function() {
 			};
 			return dynamodb.createTable(params).promise()
 			.catch(function(error) {
-				throw new DaoError("create weight table", error);
+				return Promise.reject( new DaoError("create weight table", error) );
 			});
 		});
 		
@@ -109,9 +112,12 @@ WeightAWSDao.prototype.createTable = function() {
 
 /**
  * Asynchronous operation to delete the weight table
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						ResourceInUseException, or ResourceNotFoundException.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			ResourceInUseException, or ResourceNotFoundException.
  */
 WeightAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
@@ -120,7 +126,7 @@ WeightAWSDao.prototype.deleteTable = function() {
 	};
 	return dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
-		throw new DaoError("delete weight table", error);
+		return Promise.reject( new DaoError("delete weight table", error) );
 	});
 };
 
@@ -132,9 +138,11 @@ WeightAWSDao.prototype.deleteTable = function() {
  * @param 	weight {Weight} the weight object to persist. Non-nullable. 
  * 			Must have all properties populated.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
  */
 WeightAWSDao.prototype.createWeight = function(weight) {
 	var dateString = weight.date.toISOString();
@@ -149,7 +157,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
 	};
 	return docClient.put(params).promise()
 	.catch(function(error) {
-		throw new DaoError("create weight", error);
+		return Promise.reject( new DaoError("create weight", error) );
 	});
 };
 
@@ -160,9 +168,11 @@ WeightAWSDao.prototype.createWeight = function(weight) {
  * @param userId {string}	AWS user ID whose weight records to retrieve. Non-nullable.
  * @param date	{Date}		Date after which to retrieve all weight records. Non-nullable.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
  */
 WeightAWSDao.prototype.getWeight = function(userId, date) {
 	logger.debug("getWeight: Starting get weight for day %s", date.toString());
@@ -179,7 +189,7 @@ WeightAWSDao.prototype.getWeight = function(userId, date) {
 	};
 	return docClient.query(params).promise()
 	.catch(function(error) {
-		throw new DaoError("get weight", error);
+		return Promise.reject( new DaoError("get weight", error) );
 	});
 };
 

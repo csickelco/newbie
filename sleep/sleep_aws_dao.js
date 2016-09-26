@@ -72,9 +72,12 @@ function SleepAWSDao() {}
 /**
  * Asynchronous operation to create the sleep table if it doesn't already exist.
  * If it does exist, does nothing.
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						or ResourceInUseException. 
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			or ResourceInUseException. 
  */
 SleepAWSDao.prototype.createTable = function() {
 	logger.debug("createTable: Starting table setup...");
@@ -101,16 +104,19 @@ SleepAWSDao.prototype.createTable = function() {
 			};
 			return dynamodb.createTable(params).promise()
 			.catch(function(error) {
-				throw new DaoError("create sleep table", error);
+				return Promise.reject( new DaoError("create sleep table", error) );
 			});
 	});
 };
 
 /**
  * Asynchronous operation to delete the sleep table
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, LimitExceededException, 
- * 						ResourceInUseException, or ResourceNotFoundException.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, LimitExceededException, 
+ * 			ResourceInUseException, or ResourceNotFoundException.
  */
 SleepAWSDao.prototype.deleteTable = function() {
 	logger.debug("deleteTable: Starting table delete");
@@ -119,7 +125,7 @@ SleepAWSDao.prototype.deleteTable = function() {
 	};
 	return dynamodb.deleteTable(params).promise()
 	.catch(function(error) {
-		throw new DaoError("delete sleep table", error);
+		return Promise.reject( new DaoError("delete sleep table", error) );
 	});
 };
 
@@ -131,9 +137,11 @@ SleepAWSDao.prototype.deleteTable = function() {
  * @param 	sleep {Sleep} the sleep object to persist. Non-nullable. 
  * 			Must have at least userId and sleepDateTime populated.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, PrivisionedThroughputExceededException, 
- * 						or ResourceNotFoundException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, PrivisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException. 
  */
 SleepAWSDao.prototype.createSleep = function(sleep) {
 	logger.debug("createSleep: Starting sleep creation for %s...", sleep.toString());
@@ -150,7 +158,7 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
 	logger.debug("createSleep: Params -- %s", JSON.stringify(params));
 	return docClient.put(params).promise()
 	.catch(function(error) {
-		throw new DaoError("create sleep", error);
+		return Promise.reject( new DaoError("create sleep", error) );
 	});
 };
 
@@ -160,9 +168,11 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
  * 
  * @param userId {string}	AWS user ID whose most recent sleep record to retrieve. Non-nullable.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException. 
  */
 SleepAWSDao.prototype.getLastSleep = function(userId) {
 	logger.debug("getLastSleep: Starting get last sleep for user %s", userId);
@@ -177,7 +187,7 @@ SleepAWSDao.prototype.getLastSleep = function(userId) {
 	};
 	return docClient.query(params).promise()
 	.catch(function(error) {
-		throw new DaoError("get last sleep", error);
+		return Promise.reject( new DaoError("get last sleep", error) );
 	});
 };
 
@@ -188,9 +198,11 @@ SleepAWSDao.prototype.getLastSleep = function(userId) {
  * @param userId {string} 	AWS user ID whose sleep records to retrieve. Non-nullable.
  * @param date {Date}		Date/time after which to retrieve all sleep records. Non-nullable.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException. 
  */
 SleepAWSDao.prototype.getSleep = function(userId, date) {
 	logger.debug("getSleep: Starting get sleeps for day %s", date.toString());
@@ -204,7 +216,7 @@ SleepAWSDao.prototype.getSleep = function(userId, date) {
 	};
 	return docClient.query(params).promise()
 	.catch(function(error) {
-		throw new DaoError("get sleep", error);
+		return Promise.reject( new DaoError("get sleep", error) );
 	});
 };
 
@@ -214,9 +226,11 @@ SleepAWSDao.prototype.getSleep = function(userId, date) {
  * @param sleep {Sleep}	the sleep record to update. non-nullable. must have 
  * 						at least userId and sleepDateTime specified.
  * 
- * @throws {DaoError} 	An error occurred interacting with DynamoDB. 
- * 						Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
- * 						or ResourceNotFoundException. 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException. 
  */
 SleepAWSDao.prototype.updateSleep = function(sleep) {
 	logger.debug("updateLastSleep: Updating last sleep %s", sleep);
@@ -236,7 +250,7 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
 	
 	return docClient.update(params).promise()
 	.catch(function(error) {
-		throw new DaoError("update sleep", error);
+		return Promise.reject( new DaoError("update sleep", error) );
 	});
 };
 
