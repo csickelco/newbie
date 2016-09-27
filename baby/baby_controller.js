@@ -28,6 +28,7 @@ var BabyDao = require('./baby_aws_dao');
 var Baby = require('./baby');
 var Response = require('../common/response');
 var Utils = require('../common/utils');
+var ValidationUtils = require('../common/validation_utils');
 var Winston = require('winston');
 
 //Configure the logger with basic logging template
@@ -66,16 +67,23 @@ BabyController.prototype.initBabyData = function() {
 
 /**
  * Asynchronous operation to add (or overwrite) a new baby to the data store
- * and return a response.
+ * and return a response. Note that at the moment, if the user already has
+ * a record for the baby, it will be completely overwritten with the information
+ * specified here; a future enhancement will add support for multple babies per user.
  * 
  * @param 	{string} userId		the userId whose baby it is. Non-nullable.
  * @param	{string} sex		the baby's sex (girl/boy). Non-nullable.
  * @param 	{string} name		the baby's name (it's ok to be just a first name). Non-nullable.
  * @param	{Date} birthdate	the baby's birthdate (as a Date object). Non-nullable.
  * 
- * @returns {Promise<Response|DaoError} Returns an empty promise if the operation succeeded,
- * 			else returns a rejected promise with a DaoError 
- * 			if an error occurred interacting with DynamoDB.
+ * @return 	{Promise<Response>|IllegalArgumentError, DaoError} 				
+ * 										promise containing a response with both a verbal message and written card,
+ *  									providing confirmation of the added baby.
+ *  									Rejected promise with IllegalArgumentError if userId, sex, name, or
+ *  									birthdate are not specified, or sex is NOT boy/girl, or birthdate is
+ *  									in the future.
+ *  									Rejected promise with DaoError if an error occurred interacting with the 
+ *  									data store while attempting to add the baby. 
  */
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
@@ -87,26 +95,35 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 	baby.name = name;
 	baby.birthdate = birthdate;
 	
-	//We will first create the baby in the data store, then read it back 
-	//(mainly for verification), then format a message
 	var self = this;
-	return self.babyDao.createBaby(baby)
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+				return ValidationUtils.validateRequired("sex", sex);
+		})
+		.then( function(result) {
+				return ValidationUtils.validateInSet("sex", sex, ["boy", "girl"]);
+		})
+		.then( function(result) {
+				return ValidationUtils.validateRequired("name", name);
+		})
+		.then( function(result) {
+				return ValidationUtils.validateRequired("birthdate", birthdate);
+		})
+		.then( function(result) {
+				return ValidationUtils.validateDateBefore("birthdate", birthdate, new Date());
+		})
+		.then( function(result) {
+				return self.babyDao.createBaby(baby);
+		})
 		.then( function(result) 
 		{
-			logger.debug("addBaby: Successfully created baby %s", JSON.stringify(baby));
-			return self.babyDao.readBaby(userId);
-		})
-		.then( function(readBabyResult) 
-		{
-			logger.debug("addBaby: Successfully read baby %s", JSON.stringify(readBabyResult));
-			var loadedBaby = readBabyResult.Item;
-			logger.debug("addBaby: loadedBaby %s", JSON.stringify(loadedBaby));
+			logger.debug("addBaby: Successfully added baby %s", JSON.stringify(result));
 			var responseMsg = template(
 			{
-				sex: loadedBaby.sex,
-				name: loadedBaby.name,
+				sex: sex,
+				name: name,
 				age: Utils.calculateAgeFromBirthdate(birthdate),
-				pronoun: Utils.heShe(loadedBaby.sex, true)
+				pronoun: Utils.heShe(sex, true)
 			});
 			logger.debug("addBaby: Response %s", responseMsg);
 			return new Response(responseMsg, "Added Baby", responseMsg);

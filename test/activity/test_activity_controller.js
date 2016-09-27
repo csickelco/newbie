@@ -23,7 +23,6 @@
 
 var chai = require('chai');
 var chaiAsPromised = require('chai-as-promised');
-var expect = chai.expect; // we are using the "expect" style of Chai
 var ActivityController = require('../../activity/activity_controller');
 var ActivityDao = require('../../activity/activity_aws_dao');
 var Response = require('../../common/response');

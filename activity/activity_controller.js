@@ -78,7 +78,7 @@ ActivityController.prototype.initActivityData = function() {
  * @param	{Date} dateTime				the date/time the activity occurred. Nullable.
  * 										If not specified, the current date/time is used.
  * 
- * @return 	{Promise<Response>|IllegalArgumentError, IllegalStateError} 				
+ * @return 	{Promise<Response>|IllegalArgumentError, IllegalStateError, DaoError} 				
  * 										promise containing a response with both a verbal message and written card,
  *  									providing confirmation of the added activity.
  *  									Rejected promise with IllegalArgumentError if no activity or userId was specified.
