@@ -29,6 +29,8 @@ var DiaperDao = require('./diaper_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Diaper = require('./diaper');
 var Utils = require('../common/utils');
+var ValidationUtils = require('../common/validation_utils');
+var IllegalStateError = require('../common/illegal_state_error');
 var Response = require('../common/response');
 var Winston = require('winston');
 var rp = require('request-promise');
@@ -73,7 +75,7 @@ DiaperController.prototype.initDiaperData = function() {
  * and return a response.
  * 
  * @param 	userId {string}		the userId whose diaper change this is. Non-nullable.
- * @param	dateTime {Date}		the date/time the diaper change occurred. Non-nullable.
+ * @param	dateTime {Date}		the date/time the diaper change occurred. Non-nullable. 
  * @param	isWet {boolean}		true/false if the diaper was wet. Non-nullable.
  * @param	isDirty	{boolean}	true/false if the diaper was dirty/soiled. Non-nullable.
  * 
@@ -96,12 +98,48 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 	diaper.isDirty = isDirty;
 	
 	var self = this;
-	return self.diaperDao.createDiaper(diaper)
+
+	//First, validate all input arguments
+	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
+			return ValidationUtils.validateRequired("dateTime", dateTime);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateRequired("isWet", isWet);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateRequired("isDirty", isDirty);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateBoolean("isWet", isWet);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateBoolean("isDirty", isDirty);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateDate("dateTime", dateTime);
+		})
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, create the diaper in the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before recording diapers, you must first add a baby"));
+			}
+			return self.diaperDao.createDiaper(diaper)
+		})
+		.then( function(result) {
+			//Then, get all diapers for the day to provide cumultive day count in response
 			return self.diaperDao.getDiapers(userId, dateTime);
 		})
 		.then( function(diapersForDayResult) 
 		{
+			//Finally, put it all together in a response
 			diapersForDayResult.Items.forEach(function(item) {
 	            logger.debug(" -", item.dateTime + ": " + item.isWet + ", " + item.isDirty);
 	            if(item.isWet) {
@@ -111,11 +149,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 	            	totalDirtyDiapers++;
 	            }
 	        });
-			return self.babyDao.readBaby(userId);
-		})
-		.then( function(readBabyResult) 
-		{
-			loadedBaby = readBabyResult.Item;	
+
 			var babyName = loadedBaby.name;
 			var responseMsg = "Added ";
 			if(isWet) {
