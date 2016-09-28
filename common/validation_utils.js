@@ -25,6 +25,7 @@
 module.change_code = 1;
 
 var IllegalArgumentError = require('./illegal_argument_error');
+var _ = require('underscore')._;
 
 var ValidationUtils = exports;
 
@@ -39,10 +40,18 @@ var ValidationUtils = exports;
  * 			IllegalArgumentError.
  */
 ValidationUtils.validateRequired = function(argumentName, argument) {
-	if(!argument) {
+	if( _.isDate(argument) || _.isBoolean(argument) || _.isNumber(argument))
+	{
+		if( argument === null ) {
+			return Promise.reject(new IllegalArgumentError(argumentName, argumentName + " must be provided"));
+		} else {
+			return Promise.resolve();
+		}
+	} else if(_.isEmpty(argument)) {
 		return Promise.reject(new IllegalArgumentError(argumentName, argumentName + " must be provided"));
+	} else {
+		return Promise.resolve();
 	}
-	return Promise.resolve();
 };
 
 /**
@@ -81,6 +90,40 @@ ValidationUtils.validateDateBefore = function(argumentName, argument, dateThresh
 				" must occur before " + dateThreshold.toString()));
 	}
 	return Promise.resolve();
+};
+
+/**
+ * Checks that a particular argument is of type boolean.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Nullable.
+ * @returns {Promise<empty>|TypeError} If argument is boolean, return an empty fulfilled promise,
+ * 			else return a TypeError.
+ */
+ValidationUtils.validateBoolean = function(argumentName, argument) {
+	if( _.isBoolean(argument) )
+	{
+		return Promise.resolve();
+	} else {
+		return Promise.reject(new TypeError(argumentName + " must be true or false"));
+	}
+};
+
+/**
+ * Checks that a particular argument is of type date.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Nullable.
+ * @returns {Promise<empty>|TypeError} If argument is date, return an empty fulfilled promise,
+ * 			else return a TypeError.
+ */
+ValidationUtils.validateDate = function(argumentName, argument) {
+	if( _.isDate(argument) )
+	{
+		return Promise.resolve();
+	} else {
+		return Promise.reject(new TypeError(argumentName + " must be a date"));
+	}
 };
 
 module.exports = ValidationUtils;

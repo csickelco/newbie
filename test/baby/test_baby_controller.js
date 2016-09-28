@@ -107,7 +107,7 @@ describe('BabyController', function() {
 	//Illegal argument - birthdate in future
 	it('addBaby9()', function() {
 		var birthdate2 = new Date();
-		birthdate2.setDate(birthdate.getDate()+1);
+		birthdate2.setDate(birthdate.getDate()+5);
 		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate2).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - no name
