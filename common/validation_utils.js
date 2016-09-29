@@ -110,6 +110,23 @@ ValidationUtils.validateBoolean = function(argumentName, argument) {
 };
 
 /**
+ * Checks that a particular argument is of type Number.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Nullable.
+ * @returns {Promise<empty>|TypeError} If argument is a number, return an empty fulfilled promise,
+ * 			else return a TypeError.
+ */
+ValidationUtils.validateNumber = function(argumentName, argument) {
+	if( _.isNumber(argument) )
+	{
+		return Promise.resolve();
+	} else {
+		return Promise.reject(new TypeError(argumentName + " must be a number"));
+	}
+};
+
+/**
  * Checks that a particular argument is of type date.
  * @param {string} 				argumentName the argument's name, used in the error message
  * 								if invalid. Non-nullable.
@@ -123,6 +140,24 @@ ValidationUtils.validateDate = function(argumentName, argument) {
 		return Promise.resolve();
 	} else {
 		return Promise.reject(new TypeError(argumentName + " must be a date"));
+	}
+};
+
+/**
+ * Checks that a particular argument is greater than some threshold.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Non-Nullable.
+ * @param {number} greaterThanThreshold the number to compare against
+ * @returns {Promise<empty>|RangeError} If argument is <= greaterThanThreshold, return an empty fulfilled promise,
+ * 			else return a TypeError.
+ */
+ValidationUtils.validateNumberGreaterThan = function(argumentName, argument, greaterThanThreshold) {
+	if( argument >  greaterThanThreshold)
+	{
+		return Promise.resolve();
+	} else {
+		return Promise.reject(new RangeError(argumentName + " must be greater than " + greaterThanThreshold));
 	}
 };
 
