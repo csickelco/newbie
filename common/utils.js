@@ -153,7 +153,6 @@ Utils.getMonthsBetween = function(date1,date2,roundUpFractionalMonths)
  * @returns a string describing the duration. e.g. "5 hours and 3 minutes"
  */
 Utils.calculateDuration = function(startDateTime, endDateTime) {
-	console.log("calculateDuration: " + startDateTime + ", " + endDateTime); 
 	var startTime = startDateTime.getTime();
 	var endTime = endDateTime.getTime();
 	var duration = endTime - startTime;

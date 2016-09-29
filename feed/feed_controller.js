@@ -30,6 +30,8 @@ var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
 var Feed = require('./feed');
 var Utils = require('../common/utils');
+var ValidationUtils = require('../common/validation_utils');
+var IllegalStateError = require('../common/illegal_state_error');
 var Winston = require('winston');
 var rp = require('request-promise');
 
@@ -74,7 +76,8 @@ FeedController.prototype.initFeedData = function() {
  * 
  * @param 	userId {string}		the userId who performed the feed. Non-nullable.
  * @param	dateTime {Date}		the date/time the feed occurred. Non-nullable.
- * @param	feedAmount {number}	feed amount (bottle size) in ounces. Non-nullable
+ * @param	feedAmount {number}	feed amount (bottle size) in ounces. Non-nullable.
+ * 								Must be > 0.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -96,23 +99,50 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	feed.feedAmount = feedAmount;
 	var self = this;
 	
-	return self.feedDao.createFeed(feed)
+	//First, validate all input
+	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
+			return ValidationUtils.validateRequired("dateTime", dateTime);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateDate("dateTime", dateTime);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateRequired("feedAmount", feedAmount);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateNumber("feedAmount", feedAmount);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateNumberGreaterThan("feedAmount", feedAmount, 0);
+		})
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, create the feed in the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before recording feeds, you must first add a baby"));
+			}
+			return self.feedDao.createFeed(feed)
+		})
+		.then( function(result) {
+			//Then, get all feeds for the day to provide cumultive day count in response
 			return self.feedDao.getFeeds(userId, dateTime);
 		})
 		.then( function(feedsForDayResult) 
 		{
+			//Finally, put it all together in a response
 			feedsForDayResult.Items.forEach(function(item) {
 	            logger.debug(" -", item.dateTime + ": " + item.feedAmount);
 	            totalFeedAmt += parseInt(item.feedAmount);
 	            numFeeds++;
 	        });
 			
-			return self.babyDao.readBaby(userId);
-		})
-		.then( function(readBabyResult) 
-		{
-			loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			var responseMsg = template(
 			{
@@ -146,36 +176,35 @@ FeedController.prototype.getLastFeed = function(userId) {
 	var lastFeedDate;
 	var response = new Response();
 	var self = this;
-	return self.feedDao.getLastFeed(userId)
+	var loadedBaby
+	
+	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, get the last feed in the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before checking feeds, you must first add a baby"));
+			}
+			return self.feedDao.getLastFeed(userId);
+		}).then( function(result) {
+			//Then put it all together in a response
 			result.Items.forEach(function(item) {
 	            logger.debug("getLastFeed: lastFeed %s %s", item.dateTime, item.feedAmount);
 	            lastFeedDate = new Date(item.dateTime); //TODO: Can't the DAO do this?
 	            lastFeedAmt = item.feedAmount;
 	        });
-			return self.babyDao.readBaby(userId);
-		}).then( function(readBabyResult) {
-			var loadedBaby = readBabyResult.Item;	
 			var babyName = loadedBaby.name;
 			
 			if(lastFeedDate) {
 				var today = new Date();
-				var diffMs = (today - lastFeedDate); 
-				logger.debug("getLastFeed: diffMs %d", diffMs);
-				var diffDays = Math.round(diffMs / 86400000); // days
-				var diffHrs = Math.round((diffMs % 86400000) / 3600000); // hours
-				var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
-				response.message = babyName + " last ate " + lastFeedAmt + " ounces ";
-				if( diffDays > 0 ) {
-					response.message += diffDays + " days ";
-				}
-				if( diffHrs > 0 ) {
-					response.message += diffHrs + " hours and ";
-				}
-				if( diffMins > 0 ) {
-					response.message += diffMins + " minutes ";
-				}
-				response.message += " ago";
+				var timeDiff = Utils.calculateDuration(lastFeedDate, today);
+				response.message = babyName + " last ate " + lastFeedAmt + " ounces " + timeDiff + " ago";
 			} else {
 				response.message = "No previous feeding recorded";
 			}
