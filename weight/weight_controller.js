@@ -29,9 +29,9 @@ var WeightDao = require('./weight_aws_dao');
 var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
 var Weight = require('./weight');
+var WeightPercentileDao = require('./weight_percentile_dao');
 var Utils = require('../common/utils');
 var Winston = require('winston');
-var rp = require('request-promise');
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -75,6 +75,7 @@ function stringifyNumber(n) {
 function WeightController () {
 	this.weightDao = new WeightDao();
 	this.babyDao = new BabyDao();
+	this.weightPercentileDao = new WeightPercentileDao();
 }
 
 /**
@@ -95,8 +96,9 @@ WeightController.prototype.initWeightData = function() {
  * 
  * @param 	userId {string}		the userId whose baby's weight to add. Non-nullable.
  * @param	date {Date}			the date the weight measurement was taken. Non-nullable.
- * @param	pounds {number}		the number of pounds the baby is. Non-nullable.
- * @param	ounces {number}		number of ounces after pounds the baby is. Non-nullable.
+ * @param	pounds {number}		the number of pounds the baby is. Non-nullable.  Must be an integer greater than 0.
+ * @param	ounces {number}		number of ounces after pounds the baby is. Nullable (if null, assumed to be 0).
+ * 								Must be an integer between 0 and 15.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -112,57 +114,33 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	var totalOunces = (pounds*16) + parseInt(ounces);
 	var loadedBaby;
 	
-	var weightInKg = 0.02834952*totalOunces;
 	var weight = new Weight();
 	weight.userId = userId;
 	weight.weight = totalOunces;
 	weight.date = date;
 	
 	var self = this;
-
-	var createWeightPromise = self.weightDao.createWeight(weight);
-	var readBabyPromise = createWeightPromise.then( function(createWeightResult) 
-	{
-		return self.babyDao.readBaby(userId);
-	});
-	var calculatePercentilePromise = readBabyPromise.then( function(readBabyResult) 
-	{
-		loadedBaby = readBabyResult.Item;			
-		var dobValue = loadedBaby.birthdate.toString('yyyy-MM-dd');
-		var dateValue = date.toString('yyyy-MM-dd');
-		logger.debug("addWeight: Percentile calculation for dob %s, date %s, weight in kg %d, weight in ounces %d", dobValue, dateValue, weightInKg, totalOunces);
-		var options = {
-		    method: 'POST',
-		    uri: 'http://peditools.org/growthinfant/index.php',
-		    form: {
-		        sex: '2', // Will be urlencoded //TODO: Handle boys
-		        dob: dobValue,
-		        date: dateValue,
-		        weight: weightInKg
-		    },
-		    headers: {
-		    }
-		};
-
-		return rp(options);
-	});
-	return calculatePercentilePromise.then( function(body) {
-			// logger.debug("POST: %s", body);
-	    	//TODO: This is pretty hacky
-	        var percentile = body.match(/oz<TD>(.*)%<TD>/)[1];
-	        logger.debug("addWeight: Percentile-- %s, readBabyPromise %s", percentile, JSON.stringify(readBabyPromise));
-	        //TODO: Is there any way to have the daos return the Item.data part?
+	
+	return self.babyDao.readBaby(userId)
+		.then(function(readBabyResult) {
+			loadedBaby = readBabyResult.Item;	
+			return self.weightDao.createWeight(weight);
+		}).then(function(createWeightResult) {
+			return self.weightPercentileDao.getWeightPercentile(
+					pounds, ounces, loadedBaby.birthdate, new Date(), loadedBaby.sex);
+		}).then(function(weightPercentileResult) {
+			var dobValue = loadedBaby.birthdate.toString('yyyy-MM-dd');
 			var responseMsg = template(
 			{
 				pounds: pounds,
 				ounces: ounces,
 				babyName: loadedBaby.name,
-				percentile: stringifyNumber(percentile),
+				percentile: stringifyNumber(weightPercentileResult),
 				pronoun: Utils.heShe(loadedBaby.sex, true)
 			});
 			logger.debug("addWeight: Response %s", responseMsg);
 			return new Response(responseMsg, "Weight", responseMsg);
-	});
+		});
 };
 
 module.exports = WeightController;
