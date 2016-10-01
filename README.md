@@ -64,7 +64,7 @@ Tests are run using mocha. To install mocha, run:
 ```npm install mocha -g```
 
 To run the tests, execute the following from the root of the project:
-```mocha test --recursive --watch --timeout 5000``` from the root of the project. 
+```mocha test --recursive --watch --timeout 10000``` from the root of the project. 
 
 ### Deploy to staging
 

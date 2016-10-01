@@ -93,6 +93,25 @@ ValidationUtils.validateDateBefore = function(argumentName, argument, dateThresh
 };
 
 /**
+ * Checks that a particular date argument occurs after the specified date threshold.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Nullable.
+ * @param dateThreshold {Date} 	The date to check against. If less than this date, it is invalid.
+ * @returns {Promise<empty>|IllegalArgumentError} If argument is after or on dateThreshold
+ * 			(or is null), returns an
+ * 			empty promise. Otherwise, returns a rejected promise with an
+ * 			IllegalArgumentError. 
+ */
+ValidationUtils.validateDateAfter = function(argumentName, argument, dateThreshold) {
+	if( argument && argument < dateThreshold ) {
+		return Promise.reject(new IllegalArgumentError(argumentName, argumentName + 
+				" must occur after " + dateThreshold.toString()));
+	}
+	return Promise.resolve();
+};
+
+/**
  * Checks that a particular argument is of type boolean.
  * @param {string} 				argumentName the argument's name, used in the error message
  * 								if invalid. Non-nullable.
@@ -147,17 +166,53 @@ ValidationUtils.validateDate = function(argumentName, argument) {
  * Checks that a particular argument is greater than some threshold.
  * @param {string} 				argumentName the argument's name, used in the error message
  * 								if invalid. Non-nullable.
- * @param argument				the argument to check. Non-Nullable.
+ * @param argument				the argument to check. Nullable (passes validation if not specified).
  * @param {number} greaterThanThreshold the number to compare against
  * @returns {Promise<empty>|RangeError} If argument is <= greaterThanThreshold, return an empty fulfilled promise,
  * 			else return a TypeError.
  */
 ValidationUtils.validateNumberGreaterThan = function(argumentName, argument, greaterThanThreshold) {
-	if( argument >  greaterThanThreshold)
+	if( _.isUndefined(argument) || _.isNull(argument) || argument >  greaterThanThreshold)
 	{
 		return Promise.resolve();
 	} else {
 		return Promise.reject(new RangeError(argumentName + " must be greater than " + greaterThanThreshold));
+	}
+};
+
+/**
+ * Checks that a particular argument is greater than or equal to some threshold.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Nullable (passes validation if not specified).
+ * @param {number} threshold the number to compare against
+ * @returns {Promise<empty>|RangeError} If argument is < greaterThanThreshold, return an empty fulfilled promise,
+ * 			else return a TypeError.
+ */
+ValidationUtils.validateNumberGreaterThanOrEqualTo = function(argumentName, argument, threshold) {
+	if( _.isUndefined(argument) || _.isNull(argument) || argument >=  threshold)
+	{
+		return Promise.resolve();
+	} else {
+		return Promise.reject(new RangeError(argumentName + " must be greater than or equal to " + threshold));
+	}
+};
+
+/**
+ * Checks that a particular argument is less than some threshold.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Nullable (passes validation if not specified).
+ * @param {number} lessThanThreshold the number to compare against
+ * @returns {Promise<empty>|RangeError} If argument is < lessThanThreshold, return an empty fulfilled promise,
+ * 			else return a TypeError.
+ */
+ValidationUtils.validateNumberLessThan = function(argumentName, argument, lessThanThreshold) {
+	if( _.isUndefined(argument) || _.isNull(argument) || argument <  lessThanThreshold)
+	{
+		return Promise.resolve();
+	} else {
+		return Promise.reject(new RangeError(argumentName + " must be less than " + lessThanThreshold));
 	}
 };
 

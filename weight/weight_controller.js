@@ -31,6 +31,7 @@ var Response = require('../common/response');
 var Weight = require('./weight');
 var WeightPercentileDao = require('./weight_percentile_dao');
 var Utils = require('../common/utils');
+var ValidationUtils = require('../common/validation_utils');
 var Winston = require('winston');
 
 //Configure the logger with basic logging template
@@ -95,22 +96,28 @@ WeightController.prototype.initWeightData = function() {
  * and return a response.
  * 
  * @param 	userId {string}		the userId whose baby's weight to add. Non-nullable.
- * @param	date {Date}			the date the weight measurement was taken. Non-nullable.
- * @param	pounds {number}		the number of pounds the baby is. Non-nullable.  Must be an integer greater than 0.
+ * @param	date {Date}			the date the weight measurement was taken. Non-nullable. Must be >= birthdate.
+ * @param	pounds {number}		the number of pounds the baby is. Non-nullable.  Must be an integer >= 0.
  * @param	ounces {number}		number of ounces after pounds the baby is. Nullable (if null, assumed to be 0).
  * 								Must be an integer between 0 and 15.
  * 
- * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * @returns {Promise<Response|DaoError, IllegalArgumentError, TypeError} Returns a promise with a 
  * 			response if the operation succeeded,
  * 			where the response has both a verbal message and written card
  * 			confirming the action,
  * 			else returns a rejected promise with a DaoError 
- * 			if an error occurred interacting with DynamoDB.
+ * 			if an error occurred interacting with DynamoDB,
+ * 			or an illegalArgumentError if invalid input provider,
+ * 			or TypeError if one of the specified arguments was of the wrong type,
+ * 			or RangeError if pounds or ounces fall outside the range.
  */
 WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	logger.debug("pounds - " + pounds + ", ounces - " + ounces);
 	logger.debug("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d", userId, date, pounds, ounces);
-	var template = _.template('Added weight ${pounds} pounds, ${ounces} ounces for ${babyName}. ${pronoun} is in the ${percentile} percentile');
+	var template = _.template('Added weight ${pounds} pound${poundsPlural}, ${ounces} ounce${ouncePlural} for ${babyName}. ${pronoun} is in the ${percentile} percentile');
+	if( !ounces ) {
+		ounces = 0;
+	}
 	var totalOunces = (pounds*16) + parseInt(ounces);
 	var loadedBaby;
 	
@@ -121,9 +128,35 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	
 	var self = this;
 	
-	return self.babyDao.readBaby(userId)
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			return ValidationUtils.validateRequired("date", date);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateRequired("pounds", pounds);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateNumber("pounds", pounds);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateNumberGreaterThanOrEqualTo("pounds", pounds, 0);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateNumber("ounces", ounces);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateNumberGreaterThanOrEqualTo("ounces", ounces, 0);
+		})
+		.then( function(result) {
+			return ValidationUtils.validateNumberLessThan("ounces", ounces, 16);
+		})
+		.then( function(result) {
+			return self.babyDao.readBaby(userId);
+		})
 		.then(function(readBabyResult) {
-			loadedBaby = readBabyResult.Item;	
+			loadedBaby = readBabyResult.Item;
+			return ValidationUtils.validateDateAfter("date", date, new Date(loadedBaby.birthdate));
+		}).then(function(result) {
 			return self.weightDao.createWeight(weight);
 		}).then(function(createWeightResult) {
 			return self.weightPercentileDao.getWeightPercentile(
@@ -133,7 +166,9 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 			var responseMsg = template(
 			{
 				pounds: pounds,
+				poundsPlural: Utils.pluralizeIfNeeded(pounds),
 				ounces: ounces,
+				ouncePlural: Utils.pluralizeIfNeeded(ounces),
 				babyName: loadedBaby.name,
 				percentile: stringifyNumber(weightPercentileResult),
 				pronoun: Utils.heShe(loadedBaby.sex, true)
