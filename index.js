@@ -320,7 +320,7 @@ app.intent('addFeedIntent', {
 	},
 	'utterances': ['{|add|record} {-|NUM_OUNCES} {|ounce} {|feed|bottle}']
 }, function(request, response) {
-	var feedAmount = request.slot('NUM_OUNCES');
+	var feedAmount = parseInt(request.slot('NUM_OUNCES'));
 	var now = new Date();
 	logger.debug('addFeedIntent: %d ounces for %s', feedAmount, now.toString());
 	
@@ -422,8 +422,9 @@ app.intent('addWeightIntent', {
 
 	function(request, response) {
 	    // Get the slot
-	    var pounds = request.slot('NUM_POUNDS');
-	    var ounces = request.slot('NUM_OUNCES');
+		//TODO: Should the integer parsing really be done in the controller, where we're already type checking?
+	    var pounds = parseInt(request.slot('NUM_POUNDS'));
+	    var ounces = parseInt(request.slot('NUM_OUNCES'));
 	    logger.debug("addWeightIntent: %d pounds, %d ounces, request %s", pounds, ounces, JSON.stringify(request));
 	    var now = new Date();
 	    
