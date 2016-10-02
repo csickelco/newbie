@@ -79,7 +79,7 @@ ValidationUtils.validateInSet = function(argumentName, argument, validValues) {
  * @param argument				the argument to check. Nullable.
  * @param dateThreshold {Date} 	The date to check against. If greater than or equal
  * 								to this date, it is invalid.
- * @returns {Promise<empty>|IllegalArgumentError} If argument is before dateThreshold
+ * @returns {Promise<empty>|IllegalArgumentError} If argument is before or equal to dateThreshold
  * 			(or is null), returns an
  * 			empty promise. Otherwise, returns a rejected promise with an
  * 			IllegalArgumentError. 
@@ -88,6 +88,26 @@ ValidationUtils.validateDateBefore = function(argumentName, argument, dateThresh
 	if( argument && argument >= dateThreshold ) {
 		return Promise.reject(new IllegalArgumentError(argumentName, argumentName + 
 				" must occur before " + dateThreshold.toString()));
+	}
+	return Promise.resolve();
+};
+
+/**
+ * Checks that a particular date argument occurs before or on the specified date threshold.
+ * @param {string} 				argumentName the argument's name, used in the error message
+ * 								if invalid. Non-nullable.
+ * @param argument				the argument to check. Nullable.
+ * @param dateThreshold {Date} 	The date to check against. If greater than 
+ * 								to this date, it is invalid.
+ * @returns {Promise<empty>|IllegalArgumentError} If argument is before dateThreshold
+ * 			(or is null), returns an
+ * 			empty promise. Otherwise, returns a rejected promise with an
+ * 			IllegalArgumentError. 
+ */
+ValidationUtils.validateDateBeforeOrOn = function(argumentName, argument, dateThreshold) {
+	if( argument && argument > dateThreshold ) {
+		return Promise.reject(new IllegalArgumentError(argumentName, argumentName + 
+				" must occur before or on " + dateThreshold.toString()));
 	}
 	return Promise.resolve();
 };
