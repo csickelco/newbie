@@ -89,7 +89,7 @@ FeedController.prototype.initFeedData = function() {
 FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	logger.debug("addFeed: Adding feed for %s, date: %s, amount: %d ounces", userId, dateTime, feedAmount);
 	var template = _.template("Added ${feedAmount} ounce feed for ${babyName}. " +
-			"Today, ${pronoun} has eaten ${totalFeedAmt} ounces over ${numFeeds} feeds"); 
+			"Today, ${pronoun} has eaten ${totalFeedAmt} ounce${feedAmtPlural} over ${numFeeds} feed${numFeedsPlural}"); 
 	var loadedBaby;
 	var totalFeedAmt = 0;
 	var numFeeds = 0;
@@ -147,10 +147,12 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 			var responseMsg = template(
 			{
 				feedAmount: feedAmount,
+				feedAmtPlural: Utils.pluralizeIfNeeded(feedAmount),
 				babyName: loadedBaby.name,
 				totalFeedAmt: totalFeedAmt,
 				numFeeds: numFeeds,
-				pronoun: Utils.heShe(loadedBaby.sex)
+				pronoun: Utils.heShe(loadedBaby.sex),
+				numFeedsPlural: Utils.pluralizeIfNeeded(numFeeds)
 			});
 			logger.debug("addFeed: Response %s", responseMsg);
 			return new Response(responseMsg, "Feed", responseMsg);
@@ -204,7 +206,8 @@ FeedController.prototype.getLastFeed = function(userId) {
 			if(lastFeedDate) {
 				var today = new Date();
 				var timeDiff = Utils.calculateDuration(lastFeedDate, today);
-				response.message = babyName + " last ate " + lastFeedAmt + " ounces " + timeDiff + " ago";
+				response.message = babyName + " last ate " + lastFeedAmt + " ounce" + 
+					Utils.pluralizeIfNeeded(lastFeedAmt) + " " + timeDiff + " ago";
 			} else {
 				response.message = "No previous feeding recorded";
 			}
