@@ -39,6 +39,8 @@ var DiaperDao= require('../diaper/diaper_aws_dao');
 var ActivityDao = require('../activity/activity_aws_dao');
 var SleepDao = require('../sleep/sleep_aws_dao');
 var Utils = require('../common/utils');
+var ValidationUtils = require('../common/validation_utils');
+var IllegalStateError = require('../common/illegal_state_error');
 var Response = require('../common/response');
 var Winston = require('winston');
 
@@ -100,16 +102,28 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	var sleepMap = new Map();
 	var weightMap = new Map();
 	
-	return self.babyDao.readBaby(userId)
+	//First, check arguments
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
 		.then( function(readBabyResult) {
-			weeklySummary.name = readBabyResult.Item.name;
-			weeklySummary.sex = readBabyResult.Item.sex;
-			weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
-			logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
-			
-			//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
-			return self.feedDao.getFeeds(userId, aWeekAgo);
+			//Then, get feeds from the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				weeklySummary.name = readBabyResult.Item.name;
+				weeklySummary.sex = readBabyResult.Item.sex;
+				weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
+				logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
+				
+				//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
+				return self.feedDao.getFeeds(userId, aWeekAgo);
+			} else {
+				return Promise.reject(new IllegalStateError("Before getting a summary, you must first add a baby"));
+			}
 		}).then( function(feedsForWeekResult) {
+			//Process the returned feeds
 			feedsForWeekResult.Items.forEach(function(item) {
 	            //YYYY-MM-DD
 	            var dateKey = item.dateTime.substring(0, 10);
@@ -122,8 +136,10 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            feedMap.set(dateKey, feedSummary);
 	            logger.debug("getWeeklySummary: Put in feedMap %s - %s", dateKey, feedSummary.toString());
 	        });
+			//Next get diapers
 			return self.diaperDao.getDiapers(userId, aWeekAgo);
 		}).then( function(diapersForWeekResult) {
+			//Process returned diapers
 			diapersForWeekResult.Items.forEach(function(item) {
 	            //YYYY-MM-DD
 	            var dateKey = item.dateTime.substring(0, 10);
@@ -140,9 +156,11 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            diaperMap.set(dateKey, diaperSummary);
 	            logger.debug("getWeeklySummary: Put in diaperMap %s - %s", dateKey, diaperSummary.toString());
 	        });
+			//Next get sleep
 			return self.sleepDao.getSleep(userId, aWeekAgo);
 		}).then( function(sleepForWeekResult) {
-			//todo: refactor this logic so we're not duplicating
+			//Process returned sleep
+			//TODO: refactor this logic so we're not duplicating
 			sleepForWeekResult.Items.forEach(function(item) {
 	            if( item.sleepDateTime && item.wokeUpDateTime ) {
 	            	var dateKey = item.sleepDateTime.substring(0, 10);
@@ -157,6 +175,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            	logger.debug("getWeeklySummary: Put in sleepMap %s - %s", dateKey, millisecondsOfSleep);
 				}
 	        });
+			//Finally get weight
 			return self.weightDao.getWeight(userId, aWeekAgo);
 		}).then( function(weightForWeekResult) {
 			weightForWeekResult.Items.forEach(function(item) {
@@ -286,13 +305,24 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	var response = new Response();
 	var self = this;
 	
-	return self.babyDao.readBaby(userId)
+	//First, validate all input
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
 		.then( function(readBabyResult) {
-			dailySummary.name = readBabyResult.Item.name;
-			dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
-			dailySummary.sex = readBabyResult.Item.sex;
-			logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
-			return self.feedDao.getFeeds(userId, today);
+			//Then, get feeds from the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				dailySummary.name = readBabyResult.Item.name;
+				dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
+				dailySummary.sex = readBabyResult.Item.sex;
+				logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
+				return self.feedDao.getFeeds(userId, today);
+			} else {
+				return Promise.reject(new IllegalStateError("Before getting a summary, you must first add a baby"));
+			}
 		})
 		.then( function(feedsForDayResult) {
 			feedsForDayResult.Items.forEach(function(item) {
@@ -370,7 +400,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 				"and had " + dailySummary.numWetDiapers + " wet diaper" + Utils.pluralizeIfNeeded(dailySummary.numWetDiapers) + " and " +
 				dailySummary.numDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(dailySummary.numDirtyDiapers) + ". ";
 			responseCard += "Number of feedings: " + dailySummary.numFeedings + "\n";
-			responseCard += "Total feeding amount: " + dailySummary.totalFeedAmount + "\n";
+			responseCard += "Total feeding amount: " + dailySummary.totalFeedAmount + " ounces\n";
 			responseCard += "Number of wet diapers: " + dailySummary.numWetDiapers + "\n";
 			responseCard += "Number of dirty diapers: " + dailySummary.numDirtyDiapers + "\n";
 			if( dailySummary.sleep ) {
