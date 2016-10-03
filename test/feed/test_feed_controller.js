@@ -103,6 +103,35 @@ describe('FeedController', function() {
 			.should.eventually.deep.equal(expectedResponse);
 	});
 	
+	it('addfeed1b()', function() {
+		feedDaoCreateFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":1
+				}
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		var expectedResponseMsg = "Added 1 ounce feed for jane. " +
+			"Today, she has eaten 1 ounce over 1 feed";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.addFeed("MOCK_USER_ID", new Date(), 1)
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
 	//Illegal argument tests - no user ID
 	it('addfeed3()', function() {
 		return feedController.addFeed(null, new Date(), 5).should.be.rejectedWith(IllegalArgumentError);
@@ -317,6 +346,36 @@ describe('FeedController', function() {
 			};
 		feedDaoGetLastFeedStub.resolves(feedItems);
 		var expectedResponseMsg = "jane last ate 5 ounces 2 hours and 1 minute ago";
+		var expectedResponse = new Response(expectedResponseMsg);
+		return feedController.getLastFeed('MOCK_USER_ID').should.eventually.deep.equal(expectedResponse);
+	});
+	
+	it('getLastFeed4b()', function() {
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		
+		var d = new Date();
+		d.setHours(d.getHours()-2);
+		d.setMinutes(d.getMinutes()-1);
+		var feedItems = {
+				"Items" :
+				[
+					{
+						"dateTime":d.toISOString(),
+						"feedAmount":1 
+					}
+				]
+			};
+		feedDaoGetLastFeedStub.resolves(feedItems);
+		var expectedResponseMsg = "jane last ate 1 ounce 2 hours and 1 minute ago";
 		var expectedResponse = new Response(expectedResponseMsg);
 		return feedController.getLastFeed('MOCK_USER_ID').should.eventually.deep.equal(expectedResponse);
 	});
