@@ -535,4 +535,21 @@ app.intent('addBabyIntent', {
 	}
 );
 
+var exitFunction = function(request, response) {
+	var speechOutput = 'Goodbye.';
+	response.say(speechOutput);
+};
+
+app.intent('AMAZON.StopIntent', exitFunction);
+
+app.intent('AMAZON.CancelIntent', exitFunction);
+
+app.intent('AMAZON.HelpIntent', function(request, response) {
+	var speechOutput = "To first set up Newbie, say 'add baby'. After that, here are some examples of things you can tell Newbie: " +
+		"Add 5 ounce bottle. Add wet and dirty diaper. The baby is sleeping. The baby woke up. " +
+		"Add activity reading. Add weight 12 pounds 2 ounces. How long has the baby been awake? " +
+		"When did the baby last eat?";
+	response.say(speechOutput);
+});
+
 module.exports = app;
