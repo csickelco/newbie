@@ -68,7 +68,9 @@ To run the tests, execute the following from the root of the project:
 
 ### Deploy to staging
 
-Detailed instructions on deploying the application to AWS and testing on your Amazon Echo device coming soon. For now, see [Big Nerd Ranch's Tutorial](https://developer.amazon.com/public/community/post/Tx2LL8LQWN9T33O/Big-Nerd-Ranch-Series-Developing-Alexa-Skills-Locally-with-Node-js-Deploying-You)
+To test the app on an Alexa-enabled device, see Big Nerd Ranch's Tutorial at https://developer.amazon.com/public/community/post/Tx3LNNP6YRGM176/Big-Nerd-Ranch-Series-Developing-Alexa-Skills-Locally-with-Node-js-Submitting-an. Follow the steps, except for when configuring the Lambda function, specify:
+Name: newbieService
+Runtime: Node.js 4.3
 
 ## Contributors
 
