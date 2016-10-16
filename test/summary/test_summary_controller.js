@@ -96,10 +96,15 @@ describe('SummaryController', function() {
 	//Happy path
 	it('getWeeklySummary4()', function() {
 		//Stub baby return
+		var d = new Date();
+		  d.setDate(d.getDate()-(7*12));
+		  d.setHours(0);
+		  d.setMinutes(0);
+		//Stub baby return
 		var item = {
 				"Item" :
 				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
+					"birthdate":d.toISOString(),
 					"sex":"girl",
 					"userId":"MOCK_USER_ID",
 					"name":"jane"  
@@ -221,9 +226,9 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
-		var expectedResponseMsg = "jane is now 4 months old and weighs 12 pounds, 8 ounces. On average, she ate " +
+		var expectedResponseMsg = "jane is now 12 weeks old and weighs 12 pounds, 8 ounces. On average, she ate " +
 			"2 times for a total of 11 ounces and had 2 wet and 1 dirty diaper per day. Each day, she generally slept about 4 hours";
-		var expectedCardBody = "Age: 4 months\nWeight: 12 pounds, 8 ounces\nAverage number of feedings per day: 2\n" +
+		var expectedCardBody = "Age: 12 weeks\nWeight: 12 pounds, 8 ounces\nAverage number of feedings per day: 2\n" +
 			"Average feeding amount per day: 11 ounces\nAverage number of wet diapers per day: 2\nAverage number of dirty diapers per day: 1\n" +
 			"Average amount of sleep per day: 4 hours\n";
 		var expectedResponse = new Response(expectedResponseMsg, "Weekly Summary", expectedCardBody);
@@ -253,11 +258,15 @@ describe('SummaryController', function() {
 	
 	//Happy path
 	it('getDailySummary4()', function() {
+		  var d = new Date();
+		  d.setDate(d.getDate()-(7*12));
+		  d.setHours(0);
+		  d.setMinutes(0);
 		//Stub baby return
 		var item = {
 				"Item" :
 				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
+					"birthdate":d.toISOString(),
 					"sex":"girl",
 					"userId":"MOCK_USER_ID",
 					"name":"jane"  
@@ -327,9 +336,9 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
-		var expectedResponseMsg = "Today, jane is 4 months old and weighs 12 pounds, 8 ounces. She ate " +
+		var expectedResponseMsg = "Today, jane is 12 weeks old and weighs 12 pounds, 8 ounces. She ate " +
 			"2 times for a total of 11 ounces and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
-		var expectedCardBody = "Age: 4 months\nWeight: 12 pounds, 8 ounces\nNumber of feedings: 2\n" +
+		var expectedCardBody = "Age: 12 weeks\nWeight: 12 pounds, 8 ounces\nNumber of feedings: 2\n" +
 			"Total feeding amount: 11 ounces\nNumber of wet diapers: 2\nNumber of dirty diapers: 1\n" +
 			"Sleep: 4 hours\n";
 		var expectedResponse = new Response(expectedResponseMsg, "Daily Summary", expectedCardBody);

@@ -79,8 +79,13 @@ Utils.calculateAgeFromBirthdate = function(birthdate) {
 	if( ageInYears > 0 ) {
 		retval += parseInt(ageInYears) + " year" + Utils.pluralizeIfNeeded(ageInYears);
 	}
-	else if( diffWeeks > 12 ) {
-		retval += parseInt(Utils.getMonthsBetween(birthdate, now, false)) + " months";
+	else if( diffWeeks > 20 ) {
+		var roundedMonths = Utils.getMonthsBetween(birthdate, now, true);
+		var daysAfter = Utils.getNumDaysAfterMonthsBetween(birthdate, now);
+		if( daysAfter !== 0 ) {
+			retval += "about ";
+		}
+		retval += roundedMonths + " months";
 	} else {
 		if( diffWeeks > 0 ) {
 			retval += diffWeeks + " week" + Utils.pluralizeIfNeeded(diffWeeks);
@@ -131,8 +136,8 @@ Utils.getMonthsBetween = function(date1,date2,roundUpFractionalMonths)
 
     var monthCorrection=0;
     //If roundUpFractionalMonths is true, check if an extra month needs to be added from rounding up.
-    //The difference is done by ceiling (round up), e.g. 3 months and 1 day will be 4 months.
-    if(roundUpFractionalMonths===true && daysDifference>0)
+    //The difference is done by ceiling (round up), e.g. 3 months and 16 day will be 4 months.
+    if(roundUpFractionalMonths===true && daysDifference>15)
     {
         monthCorrection=1;
     }
@@ -143,6 +148,29 @@ Utils.getMonthsBetween = function(date1,date2,roundUpFractionalMonths)
     }
 
     return (inverse?-1:1)*(yearsDifference*12+monthsDifference+monthCorrection);
+};
+
+Utils.getNumDaysAfterMonthsBetween = function(date1,date2)
+{
+    //Months will be calculated between start and end dates.
+    //Make sure start date is less than end date.
+    //But remember if the difference should be negative.
+    var startDate=date1;
+    var endDate=date2;
+    var inverse=false;
+    if(date1>date2)
+    {
+        startDate=date2;
+        endDate=date1;
+        inverse=true;
+    }
+
+    //Calculate the differences between the start and end dates
+    var yearsDifference=endDate.getFullYear()-startDate.getFullYear();
+    var monthsDifference=endDate.getMonth()-startDate.getMonth();
+    var daysDifference=endDate.getDate()-startDate.getDate();
+
+    return daysDifference;
 };
 
 /**

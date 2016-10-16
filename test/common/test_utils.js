@@ -124,34 +124,42 @@ describe('Utils', function() {
 	  d.setMinutes(0);
 	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("12 weeks");
   });
-  it('calculateAgeFromBirthdate11()', function() {
-	  //Born exactly 4 months ago
+  it('calculateAgeFromBirthdate10b()', function() {
+	  //Born 20 weeks
 	  var d = new Date();
-	  d.setMonth(d.getMonth()-4);
+	  d.setDate(d.getDate()-(7*20));
+	  d.setHours(0);
+	  d.setMinutes(0);
+	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("20 weeks");
+  });
+  it('calculateAgeFromBirthdate11()', function() {
+	  //Born exactly 6 months ago
+	  var d = new Date();
+	  d.setMonth(d.getMonth()-6);
 	  d.setHours(0);
 	  d.setMinutes(0);
 	  d.setSeconds(0);
-	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("4 months");
+	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("6 months");
   });
   it('calculateAgeFromBirthdate12()', function() {
-	  //Born 4 months and 1 days ago
+	  //Born 6 months and 2 days ago
 	  var d = new Date();
-	  d.setMonth(d.getMonth()-4);
-	  d.setDate(d.getDate()-1);
+	  d.setMonth(d.getMonth()-6);
+	  d.setDate(d.getDate()-2);
 	  d.setHours(0);
 	  d.setMinutes(0);
 	  d.setSeconds(0);
-	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("4 months");
+	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("about 6 months");
   });
   it('calculateAgeFromBirthdate13()', function() {
-	  //Born 4 months and 27 days ago
+	  //Born 6 months and 27 days ago
 	  var d = new Date();
-	  d.setMonth(d.getMonth()-4);
+	  d.setMonth(d.getMonth()-6);
 	  d.setDate(d.getDate()-27);
 	  d.setHours(0);
 	  d.setMinutes(0);
 	  d.setSeconds(0);
-	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("4 months");
+	  expect(Utils.calculateAgeFromBirthdate(d)).to.equal("about 7 months");
   });
   it('calculateAgeFromBirthdate14()', function() {
 	  //Born exactly 5 months ago
