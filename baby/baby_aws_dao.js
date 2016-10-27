@@ -99,7 +99,7 @@ BabyAWSDao.prototype.createTable = function() {
 			    ],
 			    ProvisionedThroughput: {       
 			        ReadCapacityUnits: 5, 
-			        WriteCapacityUnits: 5
+			        WriteCapacityUnits: 2
 			    }
     		};
     		return self.dynamodb.createTable(params).promise()

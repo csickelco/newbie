@@ -101,8 +101,8 @@ FeedAWSDao.prototype.createTable = function() {
 			        { AttributeName: "dateTime", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
-			        ReadCapacityUnits: 5, 
-			        WriteCapacityUnits: 5
+			        ReadCapacityUnits: 3, 
+			        WriteCapacityUnits: 3
 			    }
 			};
 			return self.dynamodb.createTable(params).promise()
