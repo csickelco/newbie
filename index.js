@@ -40,6 +40,7 @@ var SummaryController = require('./summary/summary_controller');
 var DiaperController = require('./diaper/diaper_controller');
 var ActivityController = require('./activity/activity_controller');
 var SleepController = require('./sleep/sleep_controller');
+var Utils = require('./common/utils');
 
 //Properties
 var app = new Alexa.app('newbie');
@@ -467,16 +468,21 @@ app.intent('addBabyIntent', {
 	"slots": {
 		'SEX': 'SEXES', 
 		'NAME': 'AMAZON.US_FIRST_NAME', //TODO: Not sure this will really work for all names
-		'BIRTHDATE': 'DATE' 
+		'BIRTHDATE': 'DATE',
+		'TIMEZONE': 'TIMEZONE',
+		'DAYLIGHT_SAVINGS_OBSERVED' : 'YES_NO'
 	},
-	'utterances': ['{|add|record} {|baby|child|kid}', '{-|SEX}', '{-|BIRTHDATE}', '{-|NAME}']
+	'utterances': ['{|add|record} {|baby|child|kid}', '{-|SEX}', '{-|BIRTHDATE}', '{-|NAME}', '{-|TIMEZONE}', '{-|DAYLIGHT_SAVINGS_OBSERVED}']
 	},
 	function(request, response) {
 		try {
 			var sexValue = request.slot("SEX");
 			var nameValue = request.slot("NAME");
 			var birthdateValue = request.slot("BIRTHDATE");
-			logger.debug('addBabyIntent: Processing with sexValue: %s, nameValue: %s, birthdateValue: %s', sexValue, nameValue, birthdateValue);
+			var timezoneValue = request.slot("TIMEZONE");
+			var daylightSavingsObservedValue = request.slot('DAYLIGHT_SAVINGS_OBSERVED');
+			logger.debug('addBabyIntent: Processing with sexValue: %s, nameValue: %s, birthdateValue: %s, timezoneValue: %s, daylightSavingsObseved: %s', 
+					sexValue, nameValue, birthdateValue, timezoneValue, daylightSavingsObservedValue);
 			
 			var babyData = request.session(NEWBIE_SESSION_KEY);
 			if(babyData === undefined) {
@@ -497,25 +503,41 @@ app.intent('addBabyIntent', {
 				logger.debug('addBabyIntent: Adding birthdateValue %s', birthdateValue);
 				babyData.birthdate = birthdateValue;
 			}
+			if( timezoneValue ) {
+				logger.debug('addBabyIntent: Adding timezoneValue %s', timezoneValue);
+				babyData.timezone = timezoneValue;
+			}
+			if( daylightSavingsObservedValue ) {
+				logger.debug('addBabyIntent: Adding daylightSavingsObservedValue %s', daylightSavingsObservedValue);
+				babyData.daylightSavingsObservedValue = daylightSavingsObservedValue;
+			}
 			response.session(NEWBIE_SESSION_KEY, babyData);
 			logger.debug('addBabyIntent: babyData - %s', JSON.stringify(babyData));
 			
 			if(!babyData.name) {
-				response.say("What is your baby's name?").send();
+				response.say("What is your baby's first name?").send();
 				response.shouldEndSession(false);
 			} else if(!babyData.sex) {
 				response.say('Is ' + babyData.name + ' a boy or girl?').send();
 				response.shouldEndSession(false);
 			} else if(!babyData.birthdate) {
-				//TODO: Add him
-				response.say('What is her birthdate?').send();
+				response.say("What is " + Utils.hisHer(babyData.sex, false) + " birthdate?").send();
 				response.shouldEndSession(false);
-			} else {				
+			} else if(!babyData.timezone) {
+				response.say('What is your timezone? For example: Eastern, Central, Mountain, Pacific').send();
+				response.shouldEndSession(false);
+			} else if(!daylightSavingsObservedValue && babyData.timezone === "mountain") {
+				response.say('Is daylight savings time observed in your location?').send();
+				response.shouldEndSession(false);
+			} else {		
+				var daylightSavingsObserved = babyData.daylightSavingsObservedValue === "no" ? false : true;
 				var addBabyPromise = babyController.addBaby(
 						request.userId, 
 						babyData.sex, 
 						babyData.name, 
-						new Date(babyData.birthdate)
+						new Date(babyData.birthdate),
+						babyData.timezone,
+						daylightSavingsObserved
 					);
 				addBabyPromise.then(function(responseRetval) {
 					logger.debug('addBabyIntent: %s', responseRetval.toString());

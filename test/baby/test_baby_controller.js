@@ -23,6 +23,7 @@
 
 var chai = require('chai');
 var chaiAsPromised = require('chai-as-promised');
+var Baby = require('../../baby/baby');
 var BabyController = require('../../baby/baby_controller');
 var BabyDao = require('../../baby/baby_aws_dao');
 var Response = require('../../common/response');
@@ -69,7 +70,7 @@ describe('BabyController', function() {
 		babyDaoCreateBabyStub.resolves();
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate)
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true)
 			.should.eventually.deep.equal(expectedResponse);
 	});
 	
@@ -78,54 +79,220 @@ describe('BabyController', function() {
 		babyDaoCreateBabyStub.resolves();
 		var expectedResponseMsg = "Added baby boy john. He is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
-		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate)
+		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate, "eastern", true)
 			.should.eventually.deep.equal(expectedResponse);
 	});	
 	
 	//Illegal argument - no user id
 	it('addBaby3()', function() {
-		return babyController.addBaby(null, "boy", "john", birthdate).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby(null, "boy", "john", birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	it('addBaby4()', function() {
-		return babyController.addBaby("", "boy", "john", birthdate).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("", "boy", "john", birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - no sex
 	it('addBaby5()', function() {
-		return babyController.addBaby("MOCK_USER_ID", null, "john", birthdate).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("MOCK_USER_ID", null, "john", birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	it('addBaby6()', function() {
-		return babyController.addBaby("MOCK_USER_ID", "", "john", birthdate).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("MOCK_USER_ID", "", "john", birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - invalid sex
 	it('addBaby7()', function() {
-		return babyController.addBaby("MOCK_USER_ID", "unknown", "john", birthdate).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("MOCK_USER_ID", "unknown", "john", birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - no birthdate
 	it('addBaby8()', function() {
-		return babyController.addBaby("MOCK_USER_ID", "boy", "john", null).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("MOCK_USER_ID", "boy", "john", null, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - birthdate in future
 	it('addBaby9()', function() {
 		var birthdate2 = new Date();
 		birthdate2.setDate(birthdate.getDate()+5);
-		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate2).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate2, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - no name
 	it('addBaby10()', function() {
-		return babyController.addBaby("MOCK_USER_ID", "boy", null, birthdate).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("MOCK_USER_ID", "boy", null, birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	it('addBaby11()', function() {
-		return babyController.addBaby("MOCK_USER_ID", "boy", "", birthdate).should.be.rejectedWith(IllegalArgumentError);
+		return babyController.addBaby("MOCK_USER_ID", "boy", "", birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - birthdate is not a date
 	it('addBaby12()', function() {
-		return babyController.addBaby("MOCK_USER_ID", "boy", "john", "notadate").should.be.rejectedWith(TypeError);
+		return babyController.addBaby("MOCK_USER_ID", "boy", "john", "notadate", "eastern", true).should.be.rejectedWith(TypeError);
+	});
+	//Illegal argument - no timezone
+	it('addBaby12b()', function() {
+		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate, "", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//DAO Error
 	it('addBaby13()', function() {
 		var daoError = new DaoError("create the baby", new Error("foo"));
 		babyDaoCreateBabyStub.rejects(daoError);
-		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate).should.be.rejectedWith(daoError);
+		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate, "eastern", true).should.be.rejectedWith(daoError);
+	});
+	
+	//Timezone test 1
+	it('addBaby14()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "America/New_York";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby15()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "America/Chicago";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "central", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby16()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "America/Puerto_Rico";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "atlantic", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby16()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "America/Denver";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "mountain", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby17()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "America/Phoenix";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "mountain", false).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby18()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "America/Los_Angeles";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "pacific", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby19()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "America/Juneau";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "alaska", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby20()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "Pacific/Honolulu";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "hawaii", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby21()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "Pacific/Samoa";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "samoa", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
+	});
+	it('addBaby22()', function() {
+		babyDaoCreateBabyStub.resolves();
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		
+		var expectedBaby = new Baby();
+		expectedBaby.name = "jane";
+		expectedBaby.userId = "MOCK_USER_ID";
+		expectedBaby.sex = "girl";
+		expectedBaby.birthdate = birthdate;
+		expectedBaby.timezone = "Pacific/Guam";
+		
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "chamorro", true).then(function () {
+			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
+		});
 	});
 	
 	//initActivityData tests

@@ -299,7 +299,8 @@ describe('SleepController', function() {
 				"birthdate":"2016-06-01T00:00:00.000Z",
 				"sex":"girl",
 				"userId":"MOCK_USER_ID",
-				"name":"jane"  
+				"name":"jane" ,
+				"timezone": "America/New_York"
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
@@ -329,7 +330,8 @@ describe('SleepController', function() {
 					"birthdate":"2016-06-01T00:00:00.000Z",
 					"sex":"girl",
 					"userId":"MOCK_USER_ID",
-					"name":"jane"  
+					"name":"jane",
+					"timezone": "America/New_York"
 				}
 			};
 		babyDaoReadBabyStub.resolves(item);
@@ -380,7 +382,8 @@ describe('SleepController', function() {
 				"birthdate":"2016-06-01T00:00:00.000Z",
 				"sex":"girl",
 				"userId":"MOCK_USER_ID",
-				"name":"jane"  
+				"name":"jane",
+				"timezone": "America/New_York"
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
@@ -390,7 +393,7 @@ describe('SleepController', function() {
 	//Happy path
 	it('endSleep11()', function() {
 		sleepDaoUpdateSleepStub.resolves();
-		var sleepDate = new Date(2016, 5, 1, 10, 0, 0);
+		var sleepDate = new Date(2016, 5, 1, 6, 0, 0);
 		var sleepItem = {
 				"Items" :
 				[
@@ -406,11 +409,12 @@ describe('SleepController', function() {
 				"birthdate":"2016-06-01T00:00:00.000Z",
 				"sex":"girl",
 				"userId":"MOCK_USER_ID",
-				"name":"jane"  
+				"name":"jane",
+				"timezone": "America/New_York"
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
-		var wakeDate = new Date(2016, 5, 1, 11, 0, 0);
+		var wakeDate = new Date(2016, 5, 1, 7, 0, 0);
 		var expectedResponseMsg = "Recorded 1 hour of sleep from 6 oh clock AM to 7 oh clock AM for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "End Sleep", expectedResponseMsg);
 		return sleepController.endSleep('MOCK_USER_ID', wakeDate).should.eventually.deep.equal(expectedResponse);

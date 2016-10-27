@@ -34,6 +34,7 @@ function Baby (obj) {
 	this.sex = undefined;
 	this.name = undefined;
 	this.birthdate = undefined;
+	this.timezone = undefined;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -46,7 +47,7 @@ function Baby (obj) {
  * @returns {string} a string representation of this object
  */
 Baby.prototype.toString = function babyToString() {
-	  var ret = 'Baby, userId: ' + this.userId + ', sex: ' + this.sex + ", name: " + this.name + ", birthdate: " + this.birthdate;
+	  var ret = 'Baby, userId: ' + this.userId + ', sex: ' + this.sex + ", name: " + this.name + ", birthdate: " + this.birthdate + ", timezone: " + this.timezone;
 	  return ret;
 };
 
