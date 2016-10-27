@@ -150,7 +150,8 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	    	userId: baby.userId,
 	    	sex: baby.sex,
 	    	name: baby.name,
-	    	birthdate: baby.birthdate.toISOString()
+	    	birthdate: baby.birthdate.toISOString(),
+	    	timezone: baby.timezone
 	    }
 	};
 	return this.docClient.put(params).promise()

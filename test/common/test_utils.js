@@ -266,31 +266,31 @@ describe('Utils', function() {
   
   //getTime
   it('getTime1', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 4, 0, 0))).to.equal("12 oh clock AM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 0, 0, 0), "America/New_York")).to.equal("12 oh clock AM");
   });
   it('getTime2', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 4, 1, 0))).to.equal("12 oh 1 AM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 0, 1, 0), "America/New_York")).to.equal("12 oh 1 AM");
   });
   it('getTime3', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 5, 0, 0))).to.equal("1 oh clock AM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 1, 0, 0), "America/New_York")).to.equal("1 oh clock AM");
   });
   it('getTime4', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 5, 1, 0))).to.equal("1 oh 1 AM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 1, 1, 0), "America/New_York")).to.equal("1 oh 1 AM");
   });
   it('getTime5', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 16, 0, 0))).to.equal("12 oh clock PM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 12, 0, 0), "America/New_York")).to.equal("12 oh clock PM");
   });
   it('getTime6', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 16, 1, 0))).to.equal("12 oh 1 PM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 12, 1, 0), "America/New_York")).to.equal("12 oh 1 PM");
   });
   it('getTime7', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 17, 0, 0))).to.equal("1 oh clock PM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 13, 0, 0), "America/New_York")).to.equal("1 oh clock PM");
   });
   it('getTime8', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 17, 1, 0))).to.equal("1 oh 1 PM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 13, 1, 0), "America/New_York")).to.equal("1 oh 1 PM");
   });
   it('getTime9', function() {
-	  expect(Utils.getTime(new Date(2016, 8, 20, 17, 10, 0))).to.equal("1 10 PM");
+	  expect(Utils.getTime(new Date(2016, 8, 20, 13, 10, 0), "America/New_York")).to.equal("1 10 PM");
   });
   
   //pluralizeIfNeeded

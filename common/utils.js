@@ -20,6 +20,7 @@
 //See https://runkit.com/npm/alexa-app-server
 module.change_code = 1;
 var Utils = exports;
+var moment = require('moment-timezone');
 
 //Constants
 var DAYS_PER_WEEK = 7; 
@@ -247,9 +248,11 @@ Utils.formatDuration = function(duration) {
  * 
  * @returns a string containing the time text to speak (e.g. "12 oh 5 PM")
  */
-Utils.getTime = function(dateTime) {
+Utils.getTime = function(dateTime, timezone) {
 	var am = true;
-	var hours = dateTime.getHours() - 4; //EST offset TODO: Make timezone configurable
+	
+	var localTime = moment.tz(dateTime, timezone);
+	var hours = localTime.hour();
 	if( hours >= 12 ) {
 		am = false;
 	}
@@ -313,6 +316,29 @@ Utils.heShe = function(sex, capitalize) {
 			return "She";
 		} else {
 			return "she";
+		}
+	}
+};
+
+/**
+ * Determines which prononun to use (his/her) given the baby's sex.
+ * @param {String} sex The baby's sex (girl/boy). Non-nullable.
+ * @param {Boolean} capitalize True if his/her should be capitalized (His/Her), 
+ * 					false otherwise. Nullable.
+ * @returns {String} "his" if baby's sex is boy, else "her"
+ */
+Utils.hisHer = function(sex, capitalize) {
+	if( sex === "boy" ) {
+		if( capitalize ) {
+			return "His";
+		} else {
+			return "his";
+		}
+	} else {
+		if( capitalize ) {
+			return "Her";
+		} else {
+			return "her";
 		}
 	}
 };

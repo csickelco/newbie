@@ -204,8 +204,8 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 		{
 			babyName: loadedBaby.name,
 			sleepAmt: Utils.calculateDuration(lastSleep.sleepDateTime, lastSleep.wokeUpDateTime),
-			sleepDateTime: Utils.getTime(lastSleep.sleepDateTime),
-			wokeUpDateTime: Utils.getTime(lastSleep.wokeUpDateTime)
+			sleepDateTime: Utils.getTime(lastSleep.sleepDateTime, loadedBaby.timezone),
+			wokeUpDateTime: Utils.getTime(lastSleep.wokeUpDateTime, loadedBaby.timezone)
 		});
 		logger.debug("endSleep: Response %s", responseMsg);
 		return new Response(responseMsg, "End Sleep", responseMsg);

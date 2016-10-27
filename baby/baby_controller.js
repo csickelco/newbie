@@ -66,6 +66,55 @@ BabyController.prototype.initBabyData = function() {
 };
 
 /**
+ * Helper method to return the proper timezone identifier given
+ * a timezone name and whether the location observes daylight savings times.
+ * 
+ * @param   {string} timezone	Non-nullable. One of the following values:
+ * 								hawaii
+ * 								alaska
+ * 								pacific
+ * 								mountain
+ * 								central
+ * 								eastern
+ * 								atlantic
+ * 								samoa
+ * 								chamorro
+ * @param 	{boolean} 	daylightSavingsObserved For Mountain and Eastern zones, true if daylight savings
+ * 						is observed, false otherwise. Nullable.
+ * 
+ * @return timezone identifier (See TZ column in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+ */
+function processTimezone(timezone, daylightSavingsObserved) {
+	var retval = "";
+	if( timezone === "hawaii") {
+		retval = "Pacific/Honolulu";
+	} else if( timezone === "alaska" ) {
+		retval = "America/Juneau";
+	} else if( timezone === "pacific" ) {
+		retval = "America/Los_Angeles";
+	} else if( timezone === "mountain" ) {
+		if( daylightSavingsObserved ) {
+			retval = "America/Denver";
+		} else {
+			retval = "America/Phoenix";
+		}
+	} else if( timezone === "central" ) {
+		retval = "America/Chicago";
+	} else if( timezone === "eastern" ) {
+		retval = "America/New_York";
+	} else if( timezone === "atlantic" ) {
+		retval = "America/Puerto_Rico";
+	} else if( timezone === "samoa" ) {
+		retval = "Pacific/Samoa";
+	} else if( timezone === "chamorro" ) {
+		retval = "Pacific/Guam";
+	} 
+	logger.debug("processTimezone: timezone %s, daylightSavingsObserved %s, retval %s", 
+			timezone, daylightSavingsObserved, retval);
+	return retval;
+}
+
+/**
  * Asynchronous operation to add (or overwrite) a new baby to the data store
  * and return a response. Note that at the moment, if the user already has
  * a record for the baby, it will be completely overwritten with the information
@@ -75,6 +124,18 @@ BabyController.prototype.initBabyData = function() {
  * @param	{string} sex		the baby's sex (girl/boy). Non-nullable.
  * @param 	{string} name		the baby's name (it's ok to be just a first name). Non-nullable.
  * @param	{Date} birthdate	the baby's birthdate (as a Date object). Non-nullable.
+ * @param   {string} timezone	Non-nullable. One of the following values:
+ * 								hawaii
+ * 								alaska
+ * 								pacific
+ * 								mountain
+ * 								central
+ * 								eastern
+ * 								atlantic
+ * 								samoa
+ * 								chamorro
+ * @param 	{boolean} 	daylightSavingsObserved For Mountain and Eastern zones, true if daylight savings
+ * 						is observed, false otherwise. Nullable.
  * 
  * @return 	{Promise<Response>|IllegalArgumentError, DaoError} 				
  * 										promise containing a response with both a verbal message and written card,
@@ -85,15 +146,9 @@ BabyController.prototype.initBabyData = function() {
  *  									Rejected promise with DaoError if an error occurred interacting with the 
  *  									data store while attempting to add the baby. 
  */
-BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
+BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezone, daylightSavingsObserved) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
 	var template = _.template('Added baby ${sex} ${name}. ${pronoun} is ${age} old');
-	
-	var baby = new Baby(); 
-	baby.userId = userId;
-	baby.sex = sex;
-	baby.name = name;
-	baby.birthdate = birthdate;
 	
 	var self = this;
 	return ValidationUtils.validateRequired("userId", userId)
@@ -107,13 +162,22 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate) {
 				return ValidationUtils.validateRequired("name", name);
 		})
 		.then( function(result) {
+				return ValidationUtils.validateRequired("timezone", timezone);
+		})
+		.then( function(result) {
 				return ValidationUtils.validateRequired("birthdate", birthdate);
 		})
 		.then( function(result) {
 				return ValidationUtils.validateDateBefore("birthdate", birthdate, new Date());
 		})
 		.then( function(result) {
-				return self.babyDao.createBaby(baby);
+			var baby = new Baby(); 
+			baby.userId = userId;
+			baby.sex = sex;
+			baby.name = name;
+			baby.birthdate = birthdate;
+			baby.timezone = processTimezone(timezone, daylightSavingsObserved);
+			return self.babyDao.createBaby(baby);
 		})
 		.then( function(result) 
 		{
