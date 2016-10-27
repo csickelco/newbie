@@ -102,8 +102,8 @@ SleepAWSDao.prototype.createTable = function() {
 			        { AttributeName: "sleepDateTime", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
-			        ReadCapacityUnits: 5, 
-			        WriteCapacityUnits: 5
+			        ReadCapacityUnits: 3, 
+			        WriteCapacityUnits: 3
 			    }
 			};
 			return self.dynamodb.createTable(params).promise()

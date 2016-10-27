@@ -102,8 +102,8 @@ WeightAWSDao.prototype.createTable = function() {
 			        { AttributeName: "date", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
-			        ReadCapacityUnits: 5, 
-			        WriteCapacityUnits: 5
+			        ReadCapacityUnits: 2, 
+			        WriteCapacityUnits: 2
 			    }
 			};
 			return self.dynamodb.createTable(params).promise()
