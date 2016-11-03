@@ -156,7 +156,7 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	};
 	return this.docClient.put(params).promise()
 	.catch(function(error) {
-		return Promise.reject( new DaoError("create baby", error) );
+		return Promise.reject( new DaoError("add baby", error) );
 	});
 };
 

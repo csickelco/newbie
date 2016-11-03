@@ -102,22 +102,22 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 	//First, validate all input arguments
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
-			return ValidationUtils.validateRequired("dateTime", dateTime);
+			return ValidationUtils.validateRequired("diaper date and time", dateTime);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateRequired("isWet", isWet);
+			return ValidationUtils.validateRequired("whether the diaper is wet", isWet);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateRequired("isDirty", isDirty);
+			return ValidationUtils.validateRequired("whether the diaper is dirty", isDirty);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateBoolean("isWet", isWet);
+			return ValidationUtils.validateBoolean("whether the diaper is wet", isWet);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateBoolean("isDirty", isDirty);
+			return ValidationUtils.validateBoolean("whether the diaper is dirty", isDirty);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateDate("dateTime", dateTime);
+			return ValidationUtils.validateDate("diaper date and time", dateTime);
 		})
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the

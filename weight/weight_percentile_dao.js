@@ -99,7 +99,7 @@ WeightPercentileDao.prototype.getWeightPercentile = function(pounds, ounces, bir
 	        return Promise.resolve(parseInt(percentile));
 		})
 		.catch(function (err) {
-			return Promise.reject( new DaoError("accessing weight percentile", err) );
+			return Promise.reject( new DaoError("determine weight percentile", err) );
 	    });
 };
 

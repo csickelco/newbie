@@ -102,19 +102,19 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	//First, validate all input
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
-			return ValidationUtils.validateRequired("dateTime", dateTime);
+			return ValidationUtils.validateRequired("feed date and time", dateTime);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateDate("dateTime", dateTime);
+			return ValidationUtils.validateDate("feed date and time", dateTime);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateRequired("feedAmount", feedAmount);
+			return ValidationUtils.validateRequired("feed amount", feedAmount);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumber("feedAmount", feedAmount);
+			return ValidationUtils.validateNumber("feed amount", feedAmount);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumberGreaterThan("feedAmount", feedAmount, 0);
+			return ValidationUtils.validateNumberGreaterThan("feed amount", feedAmount, 0);
 		})
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the

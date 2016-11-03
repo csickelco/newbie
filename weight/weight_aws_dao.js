@@ -161,7 +161,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
 	};
 	return this.docClient.put(params).promise()
 	.catch(function(error) {
-		return Promise.reject( new DaoError("create weight", error) );
+		return Promise.reject( new DaoError("add weight", error) );
 	});
 };
 

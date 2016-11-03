@@ -75,6 +75,9 @@ var logger = new (Winston.Logger)({
  * @param response  The spoken Echo response + any cards delivered to the Alexa app.
  * 					This function does not generate a response.
  */
+//Commenting out lines below, all tables exist at this point and have been properly configured
+//so avoiding this overhead
+/*
 app.pre = function(request, response, type) {
 	logger.debug('pre: Start initialization of newbie data...');	
 	babyController.initBabyData()
@@ -125,6 +128,7 @@ app.pre = function(request, response, type) {
 			logger.error("pre: An error occurred initializing sleep data: " + error.message + ", " + error.stack);
 		});
 };
+*/
 
 /**
  * Triggered when the user says "Launch Newbie" - essentially a boot-up/introduction
@@ -165,6 +169,8 @@ app.intent('dailySummaryIntent', {
 			logger.debug('dailySummaryIntent: Completed successfully');
 		}, function (error) {
 			logger.error("An error occurred getting the daily summary: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
 		});
 	return false;
 });
@@ -193,6 +199,8 @@ app.intent('weeklySummaryIntent', {
 			logger.debug('weeklySummaryIntent: Completed successfully');
 		}, function (error) {
 			logger.error("An error occurred getting the weekly summary: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
 		});
 	return false;
 });
@@ -222,6 +230,8 @@ app.intent('startSleepIntent', {
 			response.shouldEndSession(true);
 		}, function (error) {
 			logger.error("startSleepIntent: An error occurred starting sleep: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
 		});
 	return false;
 });
@@ -251,6 +261,8 @@ app.intent('endSleepIntent', {
 			response.shouldEndSession(true);
 		}, function (error) {
 			logger.error("endSleepIntent: An error occurred ending sleep: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
 		});
 	return false;
 });
@@ -276,6 +288,10 @@ app.intent('getAwakeTimeIntent', {
 				response.say(responseRetval.message).send();	
 				response.shouldEndSession(true);
 				logger.debug("getAwakeTimeIntent: Successfully completed");
+			}, function (error) {
+				logger.error("getAwakeTimeIntent: An error occurred getting awake time: " + error.message + ", " + error.stack);
+				response.say(error.message).send();
+				response.shouldEndSession(true);
 			});
 		return false;
 	}
@@ -302,6 +318,10 @@ app.intent('getLastFeedIntent', {
 				response.say(responseRetval.message).send();	
 				response.shouldEndSession(true);
 				logger.debug("getLastFeedIntent: Successfully completed");
+			}, function (error) {
+				logger.error("getLastFeedIntent: An error occurred getting last feed: " + error.message + ", " + error.stack);
+				response.say(error.message).send();
+				response.shouldEndSession(true);
 			});
 		return false;
 	}
@@ -334,6 +354,8 @@ app.intent('addFeedIntent', {
 			logger.debug("Feed successfully added, response: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding feed: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
 		});
 	return false;
 });
@@ -365,6 +387,8 @@ app.intent('addActivityIntent', {
 		})
 		.catch(function(error) {
 			logger.error("An error occurred adding activity: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
 		});
 	return false;
 });
@@ -401,6 +425,8 @@ function(request, response) {
 			logger.debug("Diaper successfully added, response: %s", responseRetval.toString());
 		}, function (error) {
 			logger.error("An error occurred adding diaper: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
 		});
 	return false;
 });
@@ -445,6 +471,8 @@ app.intent('addWeightIntent', {
 				logger.info("Weight successfully added, %s", responseRetval.toString());
 			}, function (error) {
 				logger.error("An error occurred adding weight: " + error.message + ", " + error.stack);
+				response.say(error.message).send();
+				response.shouldEndSession(true);
 			});
 	    } else {
 	    	response.say("I'm sorry, I couldn't add weight - you must specify both pounds and ounces").send();		
@@ -546,12 +574,15 @@ app.intent('addBabyIntent', {
 					logger.info("Baby successfully added, response: %s", responseRetval.toString());
 				}, function (error) {
 					logger.error("An error occurred adding baby: " + error.message + ", " + error.stack);
+					response.say(error.message).send();
+					response.shouldEndSession(true);
 				});
 			} 
 			//TODO: Checking if baby already exists
 		} catch( err ) {
-			//TODO: Figure out exception management for all exception handling
 			logger.error("An error occurred adding baby: " + err.message + ", " + err.stack);
+			response.say(err.message).send();
+			response.shouldEndSession(true);
 		}
 		return false;
 	}

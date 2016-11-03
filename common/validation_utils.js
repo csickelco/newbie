@@ -43,12 +43,12 @@ ValidationUtils.validateRequired = function(argumentName, argument) {
 	if( _.isDate(argument) || _.isBoolean(argument) || _.isNumber(argument))
 	{
 		if( argument === null ) {
-			return Promise.reject(new IllegalArgumentError(argumentName, argumentName + " must be provided"));
+			return Promise.reject(new IllegalArgumentError(argumentName, "Please provide " + argumentName));
 		} else {
 			return Promise.resolve();
 		}
 	} else if(_.isEmpty(argument)) {
-		return Promise.reject(new IllegalArgumentError(argumentName, argumentName + " must be provided"));
+		return Promise.reject(new IllegalArgumentError(argumentName, "Please provide " + argumentName));
 	} else {
 		return Promise.resolve();
 	}
