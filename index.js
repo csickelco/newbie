@@ -172,6 +172,9 @@ app.intent('dailySummaryIntent', {
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
+	//Per https://www.npmjs.com/package/alexa-app, returning false should be used for
+	//asynchronous intent handlers so a response isn't sent automatically, but
+	//manually when we call response.send() after executing our own async logic
 	return false;
 });
 
@@ -578,7 +581,7 @@ app.intent('addBabyIntent', {
 					response.shouldEndSession(true);
 				});
 			} 
-			//TODO: Checking if baby already exists
+			//TODO: Checking if baby already exists. Right now, it just overwrites, which may be ok.
 		} catch( err ) {
 			logger.error("An error occurred adding baby: " + err.message + ", " + err.stack);
 			response.say(err.message).send();
