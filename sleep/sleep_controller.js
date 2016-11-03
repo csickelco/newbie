@@ -96,13 +96,13 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 	var self = this;
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
-			return ValidationUtils.validateRequired("dateTime", dateTime);
+			return ValidationUtils.validateRequired("sleep date and time", dateTime);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateDate("dateTime", dateTime);
+			return ValidationUtils.validateDate("sleep date and time", dateTime);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateDateBeforeOrOn("dateTime", dateTime, new Date());
+			return ValidationUtils.validateDateBeforeOrOn("sleep date and time", dateTime, new Date());
 		})
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
@@ -156,13 +156,13 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 	
 	return ValidationUtils.validateRequired("userId", userId)
 	.then( function(result) {
-		return ValidationUtils.validateRequired("dateTime", dateTime);
+		return ValidationUtils.validateRequired("wake date and time", dateTime);
 	})
 	.then( function(result) {
-		return ValidationUtils.validateDate("dateTime", dateTime);
+		return ValidationUtils.validateDate("wake date and time", dateTime);
 	})
 	.then( function(result) {
-		return ValidationUtils.validateDateBeforeOrOn("dateTime", dateTime, new Date());
+		return ValidationUtils.validateDateBeforeOrOn("wake date and time", dateTime, new Date());
 	})
 	.then( function(result) {
 		//Next, get this user's baby (to make sure it exists and to use the
@@ -174,7 +174,7 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 		if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
 			loadedBaby = readBabyResult.Item;
 		} else {
-			return Promise.reject(new IllegalStateError("Before recording sleep, you must first add a baby"));
+			return Promise.reject(new IllegalStateError("Before recording wake, you must first add a baby"));
 		}
 		return self.sleepDao.getLastSleep(userId);
 	})

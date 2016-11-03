@@ -98,7 +98,7 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
 	//First, validate our required arguments
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result){
-			return ValidationUtils.validateRequired("activity", activity);
+			return ValidationUtils.validateRequired("the activity name ", activity);
 		})
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
@@ -124,7 +124,7 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
 				return Promise.reject(new IllegalStateError("Before recording activities, you must first add a baby"));
 			}
 		})
-		.then( function(readBabyResult) 
+		.then( function(createActivityResult) 
 		{
 			//Finally, build the response confirming the add
 			var responseMsg = template(

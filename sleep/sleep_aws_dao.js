@@ -162,7 +162,7 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
 	logger.debug("createSleep: Params -- %s", JSON.stringify(params));
 	return this.docClient.put(params).promise()
 	.catch(function(error) {
-		return Promise.reject( new DaoError("create sleep", error) );
+		return Promise.reject( new DaoError("add sleep", error) );
 	});
 };
 

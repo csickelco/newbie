@@ -153,22 +153,22 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 	var self = this;
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
-				return ValidationUtils.validateRequired("sex", sex);
+				return ValidationUtils.validateRequired("baby's sex", sex);
 		})
 		.then( function(result) {
-				return ValidationUtils.validateInSet("sex", sex, ["boy", "girl"]);
+				return ValidationUtils.validateInSet("baby's sex", sex, ["boy", "girl"]);
 		})
 		.then( function(result) {
-				return ValidationUtils.validateRequired("name", name);
+				return ValidationUtils.validateRequired("baby's name", name);
 		})
 		.then( function(result) {
-				return ValidationUtils.validateRequired("timezone", timezone);
+				return ValidationUtils.validateRequired("your timezone", timezone);
 		})
 		.then( function(result) {
-				return ValidationUtils.validateRequired("birthdate", birthdate);
+				return ValidationUtils.validateRequired("baby's birthdate", birthdate);
 		})
 		.then( function(result) {
-				return ValidationUtils.validateDateBefore("birthdate", birthdate, new Date());
+				return ValidationUtils.validateDateBefore("baby's birthdate", birthdate, new Date());
 		})
 		.then( function(result) {
 			var baby = new Baby(); 

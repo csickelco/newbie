@@ -160,7 +160,7 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
 	};
 	return this.docClient.put(params).promise()
 	.catch(function(error) {
-		return Promise.reject( new DaoError("create diaper", error) );
+		return Promise.reject( new DaoError("add diaper", error) );
 	});
 };
 

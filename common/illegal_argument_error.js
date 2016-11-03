@@ -41,7 +41,7 @@ module.exports = function IllegalArgumentError(argumentName, details) {
   this.name = this.constructor.name;
   this.argumentName = argumentName;
   this.details = details;
-  this.message = "Illegal argument '" + this.argumentName + "': " + details;
+  this.message = details;
 };
 
 require('util').inherits(module.exports, Error);

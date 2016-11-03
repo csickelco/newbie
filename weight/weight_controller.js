@@ -130,32 +130,32 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
-			return ValidationUtils.validateRequired("date", date);
+			return ValidationUtils.validateRequired("weight date", date);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateRequired("pounds", pounds);
+			return ValidationUtils.validateRequired("weight pounds", pounds);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumber("pounds", pounds);
+			return ValidationUtils.validateNumber("weight pounds", pounds);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumberGreaterThanOrEqualTo("pounds", pounds, 0);
+			return ValidationUtils.validateNumberGreaterThanOrEqualTo("weight pounds", pounds, 0);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumber("ounces", ounces);
+			return ValidationUtils.validateNumber("weight ounces", ounces);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumberGreaterThanOrEqualTo("ounces", ounces, 0);
+			return ValidationUtils.validateNumberGreaterThanOrEqualTo("weight ounces", ounces, 0);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumberLessThan("ounces", ounces, 16);
+			return ValidationUtils.validateNumberLessThan("weight ounces", ounces, 16);
 		})
 		.then( function(result) {
 			return self.babyDao.readBaby(userId);
 		})
 		.then(function(readBabyResult) {
 			loadedBaby = readBabyResult.Item;
-			return ValidationUtils.validateDateAfter("date", date, new Date(loadedBaby.birthdate));
+			return ValidationUtils.validateDateAfter("weight date", date, new Date(loadedBaby.birthdate));
 		}).then(function(result) {
 			return self.weightDao.createWeight(weight);
 		}).then(function(createWeightResult) {

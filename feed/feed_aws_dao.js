@@ -159,7 +159,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
 	};
 	return this.docClient.put(params).promise()
 	.catch(function(error) {
-		return Promise.reject( new DaoError("create feed", error) );
+		return Promise.reject( new DaoError("add feed", error) );
 	});
 };
 
