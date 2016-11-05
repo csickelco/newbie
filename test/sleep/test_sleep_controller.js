@@ -50,6 +50,7 @@ describe('SleepController', function() {
 	var sleepDaoUpdateSleepStub;
 	var sleepDaoCreateTableStub;
 	var sleepDaoGetLastSleepStub;
+	var sleepDaoDeleteSleepStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
@@ -57,6 +58,7 @@ describe('SleepController', function() {
 		sleepDaoCreateTableStub = sinon.stub(sleepController.sleepDao, 'createTable');
 		sleepDaoUpdateSleepStub = sinon.stub(sleepController.sleepDao, 'updateSleep');
 		sleepDaoGetLastSleepStub = sinon.stub(sleepController.sleepDao, 'getLastSleep');
+		sleepDaoDeleteSleepStub = sinon.stub(sleepController.sleepDao, 'deleteSleep');
 		babyDaoReadBabyStub = sinon.stub(sleepController.babyDao, 'readBaby');
 	});
 	
@@ -65,6 +67,7 @@ describe('SleepController', function() {
 		sleepController.sleepDao.createTable.restore();
 		sleepController.sleepDao.updateSleep.restore();
 		sleepController.sleepDao.getLastSleep.restore();
+		sleepController.sleepDao.deleteSleep.restore();
 		sleepController.babyDao.readBaby.restore();
 	});
 	 
@@ -418,6 +421,106 @@ describe('SleepController', function() {
 		var expectedResponseMsg = "Recorded 1 hour of sleep from 6 oh clock AM to 7 oh clock AM for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "End Sleep", expectedResponseMsg);
 		return sleepController.endSleep('MOCK_USER_ID', wakeDate).should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//removeLastsleep tests
+	//Happy path test 1
+	it('removeLastsleep1()', function() {
+		sleepDaoDeleteSleepStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var sleepItem = {
+				"Items" :
+				[
+				{
+					"sleepDateTime":"2016-06-01T00:00:00.000Z"
+				}
+				]
+			};
+		sleepDaoGetLastSleepStub.resolves(sleepItem);
+		var expectedResponseMsg = "Removed last sleep entry for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Sleep", expectedResponseMsg);
+		return sleepController.removeLastSleep("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Illegal argument tests - no user ID
+	it('removeLastsleep4()', function() {
+		return sleepController.removeLastSleep(null).should.be.rejectedWith(IllegalArgumentError);
+	});
+	it('removeLastsleep5()', function() {
+		return sleepController.removeLastSleep('').should.be.rejectedWith(IllegalArgumentError);
+	});
+	//Illegal state tests
+	it('removeLastsleep6()', function() {
+		sleepDaoDeleteSleepStub.resolves();
+		babyDaoReadBabyStub.resolves(); //No baby returned
+		var sleepItem = {
+				"Items" :
+				[
+				{
+					"sleepDateTime":"2016-06-01T00:00:00.000Z"
+				}
+				]
+			};
+		sleepDaoGetLastSleepStub.resolves(sleepItem);
+		return sleepController.removeLastSleep('MOCK_USER_ID').should.be.rejectedWith(IllegalStateError);
+	});
+	//DAO Errors
+	it('removeLastsleep7()', function() {
+		var daoError = new DaoError("Dao error", new Error("foo"));
+		sleepDaoDeleteSleepStub.rejects(daoError);
+		var item = {
+				"Item" :
+				{
+					"birthdate":"2016-06-01T00:00:00.000Z",
+					"sex":"girl",
+					"userId":"MOCK_USER_ID",
+					"name":"jane"  
+				}
+			};
+		babyDaoReadBabyStub.resolves(item);
+		var sleepItem = {
+				"Items" :
+				[
+				{
+					"sleepDateTime":"2016-06-01T00:00:00.000Z"
+				}
+				]
+			};
+		sleepDaoGetLastSleepStub.resolves(sleepItem);
+		return sleepController.removeLastSleep('MOCK_USER_ID').should.be.rejectedWith(daoError);
+	});
+	
+	//No sleep entries exist
+	it('removeLastsleep8()', function() {
+		sleepDaoDeleteSleepStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var sleepItem = {
+				"Items" : []
+			};
+		sleepDaoGetLastSleepStub.resolves(sleepItem);
+		var expectedResponseMsg = "No previous sleep entries recorded for jane";
+		var expectedResponse = new Response(expectedResponseMsg, "Sleep", expectedResponseMsg);
+		return sleepController.removeLastSleep("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
 	});
 });
 

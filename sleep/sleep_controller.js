@@ -50,7 +50,7 @@ var logger = new (Winston.Logger)({
   });
 
 /**
- * Represents business logic for feed-related operations.
+ * Represents business logic for sleep-related operations.
  * @constructor
  */
 function SleepController () {
@@ -275,6 +275,72 @@ SleepController.prototype.getAwakeTime = function(userId) {
 		}
 		return response;
 	});
+};
+
+/**
+ * Asynchronous operation to remove the most recent sleep entry from the data store
+ * and return a response.
+ * 
+ * @param 	userId {string}		the userId whose last sleep entry to remove. Non-nullable.
+ * 
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
+ */
+SleepController.prototype.removeLastSleep = function(userId) {
+	logger.debug("removeLastSleep: Removing sleep for %s", userId);
+	var loadedBaby;	
+	var self = this;
+	var lastSleepDateTime;
+
+	//First, validate all input arguments
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, get the most recent sleep entry from the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before removing sleeps, you must first add a baby"));
+			}
+			return self.sleepDao.getLastSleep(userId);
+		})
+		.then( function(getLastSleepResult) {
+			//TODO: Handle the case where there are no sleep entries
+			getLastSleepResult.Items.forEach(function(item) {
+	            logger.debug("getLastSleep: lastSleep %s", item.sleepDateTime);
+	            lastSleepDateTime = new Date(item.sleepDateTime); //TODO: Can't the DAO do this?
+	        });
+			
+			//Then delete that sleep
+			if( lastSleepDateTime ) {
+				logger.debug("Deleting sleep");
+				return self.sleepDao.deleteSleep(userId, new Date(lastSleepDateTime));
+			} else {
+				return Promise.resolve();
+			}
+		})
+		.then( function(deleteSleepResult) 
+		{
+			logger.debug("Delete sleep result: %s", JSON.stringify(deleteSleepResult));
+			//Finally, put it all together in a response
+			var babyName = loadedBaby.name;
+			var responseMsg;
+			if( lastSleepDateTime ) {
+				responseMsg = "Removed last sleep entry for " + babyName + "."; 
+			} else {
+				responseMsg =  "No previous sleep entries recorded for " + babyName;
+			}
+			logger.debug("removeSleep: Response %s", responseMsg);
+			return new Response(responseMsg, "Sleep", responseMsg);
+		});
 };
 
 module.exports = SleepController;

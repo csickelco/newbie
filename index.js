@@ -271,6 +271,34 @@ app.intent('endSleepIntent', {
 });
 
 /**
+ * This intent handler removes the last sleep entry for the baby
+ * 
+ * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
+ * @param response  The spoken Echo response + any cards delivered to the Alexa app.
+ * 					This intent handler generates a spoken response and card acknowledging
+ * 					the sleep change recorded.
+ */
+app.intent('removeSleepIntent', {
+	'utterances': ['{|remove|delete|undo} sleep']
+},
+function(request, response) {
+	logger.debug("removeSleepIntent");
+	sleepController.removeLastSleep(request.userId)
+		.then(function(responseRetval) {
+			logger.info('removeSleepIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
+			response.shouldEndSession(true);
+			logger.debug("Sleep successfully removed, response: %s", responseRetval.toString());
+		}, function (error) {
+			logger.error("An error occurred removing sleep: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
+	return false;
+});
+
+/**
  * This intent handler determines how long the baby has been awake.
  * 
  * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
