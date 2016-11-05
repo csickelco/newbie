@@ -364,6 +364,34 @@ app.intent('addFeedIntent', {
 });
 
 /**
+ * This intent handler removes the last feed entry for the baby
+ * 
+ * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
+ * @param response  The spoken Echo response + any cards delivered to the Alexa app.
+ * 					This intent handler generates a spoken response and card acknowledging
+ * 					the feed change recorded.
+ */
+app.intent('removeFeedIntent', {
+	'utterances': ['{|remove|delete|undo} feed']
+},
+function(request, response) {
+	logger.debug("removeFeedIntent");
+	feedController.removeLastFeed(request.userId)
+		.then(function(responseRetval) {
+			logger.info('removeFeedIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
+			response.shouldEndSession(true);
+			logger.debug("Feed successfully removed, response: %s", responseRetval.toString());
+		}, function (error) {
+			logger.error("An error occurred removing feed: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
+	return false;
+});
+
+/**
  * This intent handler records a new activity for the baby
  * 
  * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format

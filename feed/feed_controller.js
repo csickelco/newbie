@@ -215,4 +215,72 @@ FeedController.prototype.getLastFeed = function(userId) {
 		});
 };
 
+/**
+ * Asynchronous operation to remove the most recent feed entry from the data store
+ * and return a response.
+ * 
+ * @param 	userId {string}		the userId whose last feed entry to remove. Non-nullable.
+ * 
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
+ */
+FeedController.prototype.removeLastFeed = function(userId) {
+	logger.debug("removeLastFeed: Removing feed for %s", userId);
+	var loadedBaby;	
+	var self = this;
+	var feedAmount;
+	var lastFeedDateTime;
+
+	//First, validate all input arguments
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, get the most recent feed entry from the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before removing feeds, you must first add a baby"));
+			}
+			return self.feedDao.getLastFeed(userId);
+		})
+		.then( function(getLastFeedResult) {
+			//TODO: Handle the case where there are no feed entries
+			getLastFeedResult.Items.forEach(function(item) {
+	            logger.debug("getLastFeed: lastFeed %s %d", item.dateTime, item.feedAmount);
+	            lastFeedDateTime = new Date(item.dateTime); //TODO: Can't the DAO do this?
+	            feedAmount = item.feedAmount;
+	        });
+			
+			//Then delete that feed
+			if( lastFeedDateTime ) {
+				logger.debug("Deleting feed");
+				return self.feedDao.deleteFeed(userId, new Date(lastFeedDateTime));
+			} else {
+				return Promise.resolve();
+			}
+		})
+		.then( function(deleteFeedResult) 
+		{
+			logger.debug("Delete feed result: %s", JSON.stringify(deleteFeedResult));
+			//Finally, put it all together in a response
+			var babyName = loadedBaby.name;
+			var responseMsg;
+			if( lastFeedDateTime ) {
+				responseMsg = "Removed " + feedAmount + " ounce feed for " + babyName + "."; 
+			} else {
+				responseMsg =  "No previous feed entries recorded for " + babyName;
+			}
+			logger.debug("removeFeed: Response %s", responseMsg);
+			return new Response(responseMsg, "Feed", responseMsg);
+		});
+};
+
 module.exports = FeedController;

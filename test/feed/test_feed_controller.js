@@ -50,6 +50,7 @@ describe('FeedController', function() {
 	var feedDaoCreateTableStub;
 	var feedDaoGetFeedsStub;
 	var feedDaoGetLastFeedStub;
+	var feedDaoDeleteFeedStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
@@ -57,6 +58,7 @@ describe('FeedController', function() {
 		feedDaoCreateTableStub = sinon.stub(feedController.feedDao, 'createTable');
 		feedDaoGetFeedsStub = sinon.stub(feedController.feedDao, 'getFeeds');
 		feedDaoGetLastFeedStub = sinon.stub(feedController.feedDao, 'getLastFeed');
+		feedDaoDeleteFeedStub = sinon.stub(feedController.feedDao, 'deleteFeed');
 		babyDaoReadBabyStub = sinon.stub(feedController.babyDao, 'readBaby');
 	});
 	
@@ -65,6 +67,7 @@ describe('FeedController', function() {
 		feedController.feedDao.createTable.restore();
 		feedController.feedDao.getFeeds.restore();
 		feedController.feedDao.getLastFeed.restore();
+		feedController.feedDao.deleteFeed.restore();
 		feedController.babyDao.readBaby.restore();
 	});
 	 
@@ -393,6 +396,109 @@ describe('FeedController', function() {
 		babyDaoReadBabyStub.rejects(daoError);
 		feedDaoGetLastFeedStub.resolves();
 		return feedController.getLastFeed('MOCK_USER_ID').should.be.rejectedWith(daoError);
+	});
+	
+	//removeLastfeed tests
+	//Happy path test 1
+	it('removeLastfeed1()', function() {
+		feedDaoDeleteFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":5
+				}
+				]
+			};
+		feedDaoGetLastFeedStub.resolves(feedItem);
+		var expectedResponseMsg = "Removed 5 ounce feed for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.removeLastFeed("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Illegal argument tests - no user ID
+	it('removeLastfeed4()', function() {
+		return feedController.removeLastFeed(null, new Date(), true, true).should.be.rejectedWith(IllegalArgumentError);
+	});
+	it('removeLastfeed5()', function() {
+		return feedController.removeLastFeed('').should.be.rejectedWith(IllegalArgumentError);
+	});
+	//Illegal state tests
+	it('removeLastfeed6()', function() {
+		feedDaoDeleteFeedStub.resolves();
+		babyDaoReadBabyStub.resolves(); //No baby returned
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":5
+				}
+				]
+			};
+		feedDaoGetLastFeedStub.resolves(feedItem);
+		return feedController.removeLastFeed('MOCK_USER_ID').should.be.rejectedWith(IllegalStateError);
+	});
+	//DAO Errors
+	it('removeLastfeed7()', function() {
+		var daoError = new DaoError("Dao error", new Error("foo"));
+		feedDaoDeleteFeedStub.rejects(daoError);
+		var item = {
+				"Item" :
+				{
+					"birthdate":"2016-06-01T00:00:00.000Z",
+					"sex":"girl",
+					"userId":"MOCK_USER_ID",
+					"name":"jane"  
+				}
+			};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":5
+				}
+				]
+			};
+		feedDaoGetLastFeedStub.resolves(feedItem);
+		return feedController.removeLastFeed('MOCK_USER_ID').should.be.rejectedWith(daoError);
+	});
+	
+	//No feed entries exist
+	it('removeLastfeed8()', function() {
+		feedDaoDeleteFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" : []
+			};
+		feedDaoGetLastFeedStub.resolves(feedItem);
+		var expectedResponseMsg = "No previous feed entries recorded for jane";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.removeLastFeed("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
 	});
 });
 

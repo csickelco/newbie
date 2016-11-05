@@ -224,4 +224,32 @@ FeedAWSDao.prototype.getLastFeed = function(userId) {
 	});
 };
 
+/**
+ * Asynchronous operation to delete the specified feed entry 
+ * from the datastore.
+ * 
+ * @param userId {string}	AWS user ID whose feed to delete. Non-nullable.
+ * @param date {Date}		The date/time of the feed entry to delete. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.   
+ */
+FeedAWSDao.prototype.deleteFeed = function(userId, dateTime) {
+	logger.debug("deleteFeed: Starting delete feed for %s %s", userId, dateTime.toISOString() );
+	var params = {
+	    TableName: TABLE_NAME,
+	    Key:{
+	        "userId":userId,
+	        "dateTime":dateTime.toISOString() 
+	    }
+	};
+	return this.docClient.delete(params).promise()
+		.catch(function(error) {
+			return Promise.reject( new DaoError("remove feed", error) );
+		});
+};
+
 module.exports = FeedAWSDao;

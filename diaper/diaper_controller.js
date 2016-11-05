@@ -201,7 +201,7 @@ DiaperController.prototype.removeLastDiaper = function(userId) {
 			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
 				loadedBaby = readBabyResult.Item;
 			} else {
-				return Promise.reject(new IllegalStateError("Before recording diapers, you must first add a baby"));
+				return Promise.reject(new IllegalStateError("Before removing diapers, you must first add a baby"));
 			}
 			return self.diaperDao.getLastDiaper(userId);
 		})
