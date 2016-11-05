@@ -435,6 +435,34 @@ function(request, response) {
 });
 
 /**
+ * This intent handler removes the last diaper entry for the baby
+ * 
+ * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
+ * @param response  The spoken Echo response + any cards delivered to the Alexa app.
+ * 					This intent handler generates a spoken response and card acknowledging
+ * 					the diaper change recorded.
+ */
+app.intent('removeDiaperIntent', {
+	'utterances': ['{|remove|delete|undo} diaper']
+},
+function(request, response) {
+	logger.debug("removeDiaperIntent");
+	diaperController.removeLastDiaper(request.userId)
+		.then(function(responseRetval) {
+			logger.info('removeDiaperIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
+			response.shouldEndSession(true);
+			logger.debug("Diaper successfully removed, response: %s", responseRetval.toString());
+		}, function (error) {
+			logger.error("An error occurred removing diaper: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
+	return false;
+});
+
+/**
  * This intent handler records the baby's weight
  * 
  * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
