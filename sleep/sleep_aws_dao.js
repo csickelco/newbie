@@ -258,4 +258,32 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
 	});
 };
 
+/**
+ * Asynchronous operation to delete the specified sleep entry 
+ * from the datastore.
+ * 
+ * @param userId {string}	AWS user ID whose sleep to delete. Non-nullable.
+ * @param date {Date}		The date/time of the sleep entry to delete. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.   
+ */
+SleepAWSDao.prototype.deleteSleep = function(userId, sleepDateTime) {
+	logger.debug("deleteSleep: Starting delete sleep for %s %s", userId, sleepDateTime.toISOString() );
+	var params = {
+	    TableName: TABLE_NAME,
+	    Key:{
+	        "userId":userId,
+	        "sleepDateTime":sleepDateTime.toISOString() 
+	    }
+	};
+	return this.docClient.delete(params).promise()
+		.catch(function(error) {
+			return Promise.reject( new DaoError("remove sleep", error) );
+		});
+};
+
 module.exports = SleepAWSDao;
