@@ -453,6 +453,34 @@ app.intent('addActivityIntent', {
 });
 
 /**
+ * This intent handler removes the last activity entry for the baby
+ * 
+ * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
+ * @param response  The spoken Echo response + any cards delivered to the Alexa app.
+ * 					This intent handler generates a spoken response and card acknowledging
+ * 					the activity change recorded.
+ */
+app.intent('removeActivityIntent', {
+	'utterances': ['{|remove|delete|undo} activity']
+},
+function(request, response) {
+	logger.debug("removeActivityIntent");
+	activityController.removeLastActivity(request.userId)
+		.then(function(responseRetval) {
+			logger.info('removeActivityIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
+			response.shouldEndSession(true);
+			logger.debug("Activity successfully removed, response: %s", responseRetval.toString());
+		}, function (error) {
+			logger.error("An error occurred removing activity: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
+	return false;
+});
+
+/**
  * This intent handler records a new wet and/or dirty diaper for the baby
  * 
  * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format

@@ -190,4 +190,61 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 		});
 };
 
+/**
+ * Asynchronous operation to retrieve the most recent activity for 
+ * the given userId, or null if no activitys exist.
+ * 
+ * @param userId {string} 	AWS user ID whose most recent activity to retrieve. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
+ */
+ActivityAWSDao.prototype.getLastActivity = function(userId) {
+	logger.debug("getLastActivity: Starting get last activity for user %s", userId);
+	var params = {
+			TableName : TABLE_NAME,
+			KeyConditionExpression: "userId = :val1",
+		    ExpressionAttributeValues: {
+		    	":val1":userId
+		    },
+		    ScanIndexForward: false,
+		    Limit: 1
+	};
+	return this.docClient.query(params).promise()
+	.catch(function(error) {
+		return Promise.reject( new DaoError("get last activity", error) );
+	});
+};
+
+/**
+ * Asynchronous operation to delete the specified activity entry 
+ * from the datastore.
+ * 
+ * @param userId {string}	AWS user ID whose activity to delete. Non-nullable.
+ * @param date {Date}		The date/time of the activity entry to delete. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.   
+ */
+ActivityAWSDao.prototype.deleteActivity = function(userId, dateTime) {
+	logger.debug("deleteActivity: Starting delete activity for %s %s", userId, dateTime.toISOString() );
+	var params = {
+	    TableName: TABLE_NAME,
+	    Key:{
+	        "userId":userId,
+	        "dateTime":dateTime.toISOString() 
+	    }
+	};
+	return this.docClient.delete(params).promise()
+		.catch(function(error) {
+			return Promise.reject( new DaoError("remove activity", error) );
+		});
+};
+
 module.exports = ActivityAWSDao;

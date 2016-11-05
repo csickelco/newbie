@@ -137,4 +137,72 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
 		});
 };
 
+/**
+ * Asynchronous operation to remove the most recent activity entry from the data store
+ * and return a response.
+ * 
+ * @param 	userId {string}		the userId whose last activity entry to remove. Non-nullable.
+ * 
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
+ */
+ActivityController.prototype.removeLastActivity = function(userId) {
+	logger.debug("removeLastActivity: Removing activity for %s", userId);
+	var loadedBaby;	
+	var self = this;
+	var lastActivity;
+	var lastActivityDateTime;
+
+	//First, validate all input arguments
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, get the most recent activity entry from the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before removing activities, you must first add a baby"));
+			}
+			return self.activityDao.getLastActivity(userId);
+		})
+		.then( function(getLastActivityResult) {
+			//TODO: Handle the case where there are no activity entries
+			getLastActivityResult.Items.forEach(function(item) {
+	            logger.debug("getLastActivity: lastActivity %s %d", item.dateTime, item.activityAmount);
+	            lastActivityDateTime = new Date(item.dateTime); //TODO: Can't the DAO do this?
+	            lastActivity = item.activity;
+	        });
+			
+			//Then delete that activity
+			if( lastActivityDateTime ) {
+				logger.debug("Deleting activity");
+				return self.activityDao.deleteActivity(userId, new Date(lastActivityDateTime));
+			} else {
+				return Promise.resolve();
+			}
+		})
+		.then( function(deleteActivityResult) 
+		{
+			logger.debug("Delete activity result: %s", JSON.stringify(deleteActivityResult));
+			//Finally, put it all together in a response
+			var babyName = loadedBaby.name;
+			var responseMsg;
+			if( lastActivityDateTime ) {
+				responseMsg = "Removed activity " + lastActivity + " for " + babyName + "."; 
+			} else {
+				responseMsg =  "No previous activity entries recorded for " + babyName;
+			}
+			logger.debug("removeActivity: Response %s", responseMsg);
+			return new Response(responseMsg, "Activity", responseMsg);
+		});
+};
+
 module.exports = ActivityController;
