@@ -48,17 +48,23 @@ describe('ActivityController', function() {
 	 */
 	var activityDaoCreateActivityStub;
 	var activityDaoCreateTableStub;
+	var activityDaoDeleteActivityStub;
+	var activityDaoGetLastActivityStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
 		activityDaoCreateActivityStub = sinon.stub(activityController.activityDao, 'createActivity');
 		activityDaoCreateTableStub = sinon.stub(activityController.activityDao, 'createTable');
+		activityDaoDeleteActivityStub = sinon.stub(activityController.activityDao, 'deleteActivity');
+		activityDaoGetLastActivityStub = sinon.stub(activityController.activityDao, 'getLastActivity');
 		babyDaoReadBabyStub = sinon.stub(activityController.babyDao, 'readBaby');
 	});
 	
 	afterEach(function() {
 		activityController.activityDao.createActivity.restore();
 		activityController.activityDao.createTable.restore();
+		activityController.activityDao.getLastActivity.restore();
+		activityController.activityDao.deleteActivity.restore();
 		activityController.babyDao.readBaby.restore();
 	});
 	 
@@ -157,6 +163,109 @@ describe('ActivityController', function() {
 		var daoError = new DaoError("create the table", new Error("foo"));
 		activityDaoCreateTableStub.rejects(daoError);
 		return activityController.initActivityData().should.be.rejectedWith(daoError);
+	});
+	
+	//removeLastactivity tests
+	//Happy path test 1
+	it('removeLastactivity1()', function() {
+		activityDaoDeleteActivityStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var activityItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"activity":"reading"
+				}
+				]
+			};
+		activityDaoGetLastActivityStub.resolves(activityItem);
+		var expectedResponseMsg = "Removed activity reading for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Activity", expectedResponseMsg);
+		return activityController.removeLastActivity("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Illegal argument tests - no user ID
+	it('removeLastactivity4()', function() {
+		return activityController.removeLastActivity(null, new Date(), true, true).should.be.rejectedWith(IllegalArgumentError);
+	});
+	it('removeLastactivity5()', function() {
+		return activityController.removeLastActivity('').should.be.rejectedWith(IllegalArgumentError);
+	});
+	//Illegal state tests
+	it('removeLastactivity6()', function() {
+		activityDaoDeleteActivityStub.resolves();
+		babyDaoReadBabyStub.resolves(); //No baby returned
+		var activityItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"activity":"reading"
+				}
+				]
+			};
+		activityDaoGetLastActivityStub.resolves(activityItem);
+		return activityController.removeLastActivity('MOCK_USER_ID').should.be.rejectedWith(IllegalStateError);
+	});
+	//DAO Errors
+	it('removeLastactivity7()', function() {
+		var daoError = new DaoError("Dao error", new Error("foo"));
+		activityDaoDeleteActivityStub.rejects(daoError);
+		var item = {
+				"Item" :
+				{
+					"birthdate":"2016-06-01T00:00:00.000Z",
+					"sex":"girl",
+					"userId":"MOCK_USER_ID",
+					"name":"jane"  
+				}
+			};
+		babyDaoReadBabyStub.resolves(item);
+		var activityItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"activity":"reading"
+				}
+				]
+			};
+		activityDaoGetLastActivityStub.resolves(activityItem);
+		return activityController.removeLastActivity('MOCK_USER_ID').should.be.rejectedWith(daoError);
+	});
+	
+	//No activity entries exist
+	it('removeLastactivity8()', function() {
+		activityDaoDeleteActivityStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var activityItem = {
+				"Items" : []
+			};
+		activityDaoGetLastActivityStub.resolves(activityItem);
+		var expectedResponseMsg = "No previous activity entries recorded for jane";
+		var expectedResponse = new Response(expectedResponseMsg, "Activity", expectedResponseMsg);
+		return activityController.removeLastActivity("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
 	});
 });
 
