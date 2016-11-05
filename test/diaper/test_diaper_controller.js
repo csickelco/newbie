@@ -49,12 +49,16 @@ describe('DiaperController', function() {
 	var diaperDaoCreateDiaperStub;
 	var diaperDaoCreateTableStub;
 	var diaperDaoGetDiapersStub;
+	var diaperDaoDeleteDiaperStub;
+	var diaperDaoGetLastDiaperStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
 		diaperDaoCreateDiaperStub = sinon.stub(diaperController.diaperDao, 'createDiaper');
 		diaperDaoCreateTableStub = sinon.stub(diaperController.diaperDao, 'createTable');
 		diaperDaoGetDiapersStub = sinon.stub(diaperController.diaperDao, 'getDiapers');
+		diaperDaoDeleteDiaperStub = sinon.stub(diaperController.diaperDao, 'deleteDiaper');
+		diaperDaoGetLastDiaperStub = sinon.stub(diaperController.diaperDao, 'getLastDiaper');
 		babyDaoReadBabyStub = sinon.stub(diaperController.babyDao, 'readBaby');
 	});
 	
@@ -62,6 +66,8 @@ describe('DiaperController', function() {
 		diaperController.diaperDao.createDiaper.restore();
 		diaperController.diaperDao.createTable.restore();
 		diaperController.diaperDao.getDiapers.restore();
+		diaperController.diaperDao.getLastDiaper.restore();
+		diaperController.diaperDao.deleteDiaper.restore();
 		diaperController.babyDao.readBaby.restore();
 	});
 	 
@@ -268,6 +274,172 @@ describe('DiaperController', function() {
 		var daoError = new DaoError("create the table", new Error("foo"));
 		diaperDaoCreateTableStub.rejects(daoError);
 		return diaperController.initDiaperData().should.be.rejectedWith(daoError);
+	});
+	
+	//removeLastdiaper tests
+	//Happy path test 1
+	it('removeLastdiaper1()', function() {
+		diaperDaoDeleteDiaperStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				}
+				]
+			};
+		diaperDaoGetLastDiaperStub.resolves(diaperItem);
+		var expectedResponseMsg = "Removed wet diaper for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Diaper", expectedResponseMsg);
+		return diaperController.removeLastDiaper("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Happy path test 2
+	it('removeLastdiaper2()', function() {
+		diaperDaoDeleteDiaperStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetLastDiaperStub.resolves(diaperItem);
+		var expectedResponseMsg = "Removed wet and dirty diaper for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Diaper", expectedResponseMsg);
+		return diaperController.removeLastDiaper("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Happy path test 2
+	it('removeLastdiaper3()', function() {
+		diaperDaoDeleteDiaperStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":false,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetLastDiaperStub.resolves(diaperItem);
+		var expectedResponseMsg = "Removed dirty diaper for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Diaper", expectedResponseMsg);
+		return diaperController.removeLastDiaper("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Illegal argument tests - no user ID
+	it('removeLastdiaper4()', function() {
+		return diaperController.removeLastDiaper(null, new Date(), true, true).should.be.rejectedWith(IllegalArgumentError);
+	});
+	it('removeLastdiaper5()', function() {
+		return diaperController.removeLastDiaper('').should.be.rejectedWith(IllegalArgumentError);
+	});
+	//Illegal state tests
+	it('removeLastdiaper6()', function() {
+		diaperDaoDeleteDiaperStub.resolves();
+		babyDaoReadBabyStub.resolves(); //No baby returned
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":false,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetLastDiaperStub.resolves(diaperItem);
+		return diaperController.removeLastDiaper('MOCK_USER_ID').should.be.rejectedWith(IllegalStateError);
+	});
+	//DAO Errors
+	it('removeLastdiaper7()', function() {
+		var daoError = new DaoError("Dao error", new Error("foo"));
+		diaperDaoDeleteDiaperStub.rejects(daoError);
+		var item = {
+				"Item" :
+				{
+					"birthdate":"2016-06-01T00:00:00.000Z",
+					"sex":"girl",
+					"userId":"MOCK_USER_ID",
+					"name":"jane"  
+				}
+			};
+		babyDaoReadBabyStub.resolves(item);
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":false,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetLastDiaperStub.resolves(diaperItem);
+		return diaperController.removeLastDiaper('MOCK_USER_ID').should.be.rejectedWith(daoError);
+	});
+	
+	//No diaper entries exist
+	it('removeLastdiaper8()', function() {
+		diaperDaoDeleteDiaperStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var diaperItem = {
+				"Items" : []
+			};
+		diaperDaoGetLastDiaperStub.resolves(diaperItem);
+		var expectedResponseMsg = "No previous diaper entries recorded for jane";
+		var expectedResponse = new Response(expectedResponseMsg, "Diaper", expectedResponseMsg);
+		return diaperController.removeLastDiaper("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
 	});
 });
 

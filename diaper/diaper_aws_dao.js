@@ -196,4 +196,61 @@ DiaperAWSDao.prototype.getDiapers = function(userId, date) {
 	});
 };
 
+/**
+ * Asynchronous operation to delete the specified diaper entry 
+ * from the datastore.
+ * 
+ * @param userId {string}	AWS user ID whose diaper to delete. Non-nullable.
+ * @param date {Date}		The date/time of the diaper entry to delete. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.   
+ */
+DiaperAWSDao.prototype.deleteDiaper = function(userId, dateTime) {
+	logger.debug("deleteDiaper: Starting delete diaper for %s %s", userId, dateTime.toISOString() );
+	var params = {
+	    TableName: TABLE_NAME,
+	    Key:{
+	        "userId":userId,
+	        "dateTime":dateTime.toISOString() 
+	    }
+	};
+	return this.docClient.delete(params).promise()
+		.catch(function(error) {
+			return Promise.reject( new DaoError("remove diaper", error) );
+		});
+};
+
+/**
+ * Asynchronous operation to retrieve the most recent diaper entry for 
+ * the given userId, or null if no feeds exist.
+ * 
+ * @param userId {string} 	AWS user ID whose most recent diaper entry to retrieve. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
+ */
+DiaperAWSDao.prototype.getLastDiaper = function(userId) {
+	logger.debug("getLastDiaper: Starting get last diaper for user %s", userId);
+	var params = {
+			TableName : TABLE_NAME,
+			KeyConditionExpression: "userId = :val1",
+		    ExpressionAttributeValues: {
+		    	":val1":userId
+		    },
+		    ScanIndexForward: false,
+		    Limit: 1
+	};
+	return this.docClient.query(params).promise()
+	.catch(function(error) {
+		return Promise.reject( new DaoError("get last diaper", error) );
+	});
+};
+
 module.exports = DiaperAWSDao;

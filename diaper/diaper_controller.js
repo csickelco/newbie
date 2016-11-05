@@ -168,4 +168,84 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 		});
 };
 
+/**
+ * Asynchronous operation to remove the most recent diaper entry from the data store
+ * and return a response.
+ * 
+ * @param 	userId {string}		the userId whose last diaper entry to remove. Non-nullable.
+ * 
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
+ */
+DiaperController.prototype.removeLastDiaper = function(userId) {
+	logger.debug("removeLastDiaper: Removing diaper for %s", userId);
+	var loadedBaby;	
+	var self = this;
+	var isWet;
+	var isDirty;
+	var lastDiaperDateTime;
+
+	//First, validate all input arguments
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, get the most recent diaper entry from the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before recording diapers, you must first add a baby"));
+			}
+			return self.diaperDao.getLastDiaper(userId);
+		})
+		.then( function(getLastDiaperResult) {
+			//TODO: Handle the case where there are no diaper entries
+			getLastDiaperResult.Items.forEach(function(item) {
+	            logger.debug("getLastDiaper: lastDiaper %s %s %s", item.dateTime, item.isWet, item.isDirty);
+	            lastDiaperDateTime = new Date(item.dateTime); //TODO: Can't the DAO do this?
+	            isWet = item.isWet;
+	            isDirty = item.isDirty;
+	        });
+			
+			//Then delete that diaper
+			if( lastDiaperDateTime ) {
+				logger.debug("Deleting diaper");
+				return self.diaperDao.deleteDiaper(userId, new Date(lastDiaperDateTime));
+			} else {
+				return Promise.resolve();
+			}
+		})
+		.then( function(deleteDiaperResult) 
+		{
+			logger.debug("Delete diaper result: %s", JSON.stringify(deleteDiaperResult));
+			//Finally, put it all together in a response
+			var babyName = loadedBaby.name;
+			var responseMsg;
+			if( lastDiaperDateTime ) {
+				responseMsg = "Removed ";
+				if(isWet) {
+					responseMsg += "wet ";
+				}
+				if(isWet && isDirty) {
+					responseMsg += "and ";
+				}
+				if(isDirty) {
+					responseMsg += "dirty ";
+				}
+				responseMsg += "diaper for " + babyName + "."; 
+			} else {
+				responseMsg =  "No previous diaper entries recorded for " + babyName;
+			}
+			logger.debug("removeDiaper: Response %s", responseMsg);
+			return new Response(responseMsg, "Diaper", responseMsg);
+		});
+};
+
 module.exports = DiaperController;
