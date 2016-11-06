@@ -197,4 +197,61 @@ WeightAWSDao.prototype.getWeight = function(userId, date) {
 	});
 };
 
+/**
+ * Asynchronous operation to retrieve the most recent weight for 
+ * the given userId, or null if no weights exist.
+ * 
+ * @param userId {string} 	AWS user ID whose most recent weight to retrieve. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
+ */
+WeightAWSDao.prototype.getLastWeight = function(userId) {
+	logger.debug("getLastWeight: Starting get last weight for user %s", userId);
+	var params = {
+			TableName : TABLE_NAME,
+			KeyConditionExpression: "userId = :val1",
+		    ExpressionAttributeValues: {
+		    	":val1":userId
+		    },
+		    ScanIndexForward: false,
+		    Limit: 1
+	};
+	return this.docClient.query(params).promise()
+	.catch(function(error) {
+		return Promise.reject( new DaoError("get last weight", error) );
+	});
+};
+
+/**
+ * Asynchronous operation to delete the specified weight entry 
+ * from the datastore.
+ * 
+ * @param userId {string}	AWS user ID whose weight to delete. Non-nullable.
+ * @param date {Date}		The date/time of the weight entry to delete. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.   
+ */
+WeightAWSDao.prototype.deleteWeight = function(userId, date) {
+	logger.debug("deleteWeight: Starting delete weight for %s %s", userId, date.toISOString() );
+	var params = {
+	    TableName: TABLE_NAME,
+	    Key:{
+	        "userId":userId,
+	        "date":date.toISOString() 
+	    }
+	};
+	return this.docClient.delete(params).promise()
+		.catch(function(error) {
+			return Promise.reject( new DaoError("remove weight", error) );
+		});
+};
+
 module.exports = WeightAWSDao;

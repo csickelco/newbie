@@ -50,11 +50,15 @@ describe('WeightController', function() {
 	var weightPercentileGetPercentileStub;
 	var weightDaoCreateWeightStub;
 	var weightDaoCreateTableStub;
+	var weightDaoDeleteWeightStub;
+	var weightDaoGetLastWeightStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
 		weightDaoCreateWeightStub = sinon.stub(weightController.weightDao, 'createWeight');
 		weightDaoCreateTableStub = sinon.stub(weightController.weightDao, 'createTable');
+		weightDaoDeleteWeightStub = sinon.stub(weightController.weightDao, 'deleteWeight');
+		weightDaoGetLastWeightStub = sinon.stub(weightController.weightDao, 'getLastWeight');
 		weightPercentileGetPercentileStub = sinon.stub(weightController.weightPercentileDao, 'getWeightPercentile');
 		babyDaoReadBabyStub = sinon.stub(weightController.babyDao, 'readBaby');
 	});
@@ -62,6 +66,8 @@ describe('WeightController', function() {
 	afterEach(function() {
 		weightController.weightDao.createWeight.restore();
 		weightController.weightDao.createTable.restore();
+		weightController.weightDao.deleteWeight.restore();
+		weightController.weightDao.getLastWeight.restore();
 		weightController.weightPercentileDao.getWeightPercentile.restore();
 		weightController.babyDao.readBaby.restore();
 	});
@@ -296,6 +302,109 @@ describe('WeightController', function() {
 		var daoError = new DaoError("create the table", new Error("foo"));
 		weightDaoCreateTableStub.rejects(daoError);
 		return weightController.initWeightData().should.be.rejectedWith(daoError);
+	});
+	
+	//removeLastweight tests
+	//Happy path test 1
+	it('removeLastweight1()', function() {
+		weightDaoDeleteWeightStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var weightItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"weight":184
+				}
+				]
+			};
+		weightDaoGetLastWeightStub.resolves(weightItem);
+		var expectedResponseMsg = "Removed weight 11 pounds, 8 ounces for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
+		return weightController.removeLastWeight("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Illegal argument tests - no user ID
+	it('removeLastweight4()', function() {
+		return weightController.removeLastWeight(null, new Date(), true, true).should.be.rejectedWith(IllegalArgumentError);
+	});
+	it('removeLastweight5()', function() {
+		return weightController.removeLastWeight('').should.be.rejectedWith(IllegalArgumentError);
+	});
+	//Illegal state tests
+	it('removeLastweight6()', function() {
+		weightDaoDeleteWeightStub.resolves();
+		babyDaoReadBabyStub.resolves(); //No baby returned
+		var weightItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"weight":184
+				}
+				]
+			};
+		weightDaoGetLastWeightStub.resolves(weightItem);
+		return weightController.removeLastWeight('MOCK_USER_ID').should.be.rejectedWith(IllegalStateError);
+	});
+	//DAO Errors
+	it('removeLastweight7()', function() {
+		var daoError = new DaoError("Dao error", new Error("foo"));
+		weightDaoDeleteWeightStub.rejects(daoError);
+		var item = {
+				"Item" :
+				{
+					"birthdate":"2016-06-01T00:00:00.000Z",
+					"sex":"girl",
+					"userId":"MOCK_USER_ID",
+					"name":"jane"  
+				}
+			};
+		babyDaoReadBabyStub.resolves(item);
+		var weightItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"weight":184
+				}
+				]
+			};
+		weightDaoGetLastWeightStub.resolves(weightItem);
+		return weightController.removeLastWeight('MOCK_USER_ID').should.be.rejectedWith(daoError);
+	});
+	
+	//No weight entries exist
+	it('removeLastweight8()', function() {
+		weightDaoDeleteWeightStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var weightItem = {
+				"Items" : []
+			};
+		weightDaoGetLastWeightStub.resolves(weightItem);
+		var expectedResponseMsg = "No previous weight entries recorded for jane";
+		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
+		return weightController.removeLastWeight("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
 	});
 });
 

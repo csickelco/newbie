@@ -599,6 +599,34 @@ app.intent('addWeightIntent', {
 );
 
 /**
+ * This intent handler removes the last weight entry for the baby
+ * 
+ * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
+ * @param response  The spoken Echo response + any cards delivered to the Alexa app.
+ * 					This intent handler generates a spoken response and card acknowledging
+ * 					the weight recorded.
+ */
+app.intent('removeWeightIntent', {
+	'utterances': ['{|remove|delete|undo} weight']
+},
+function(request, response) {
+	logger.debug("removeWeightIntent");
+	weightController.removeLastWeight(request.userId)
+		.then(function(responseRetval) {
+			logger.info('removeWeightIntent: %s', responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
+			response.shouldEndSession(true);
+			logger.debug("Weight successfully removed, response: %s", responseRetval.toString());
+		}, function (error) {
+			logger.error("An error occurred removing weight: " + error.message + ", " + error.stack);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
+	return false;
+});
+
+/**
  * This intent handler adds a new baby for the user. It is the first
  * command that the user should say.
  * 
