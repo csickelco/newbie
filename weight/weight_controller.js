@@ -31,6 +31,7 @@ var Response = require('../common/response');
 var Weight = require('./weight');
 var WeightPercentileDao = require('./weight_percentile_dao');
 var Utils = require('../common/utils');
+var IllegalStateError = require('../common/illegal_state_error');
 var ValidationUtils = require('../common/validation_utils');
 var Winston = require('winston');
 
@@ -174,6 +175,74 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 				pronoun: Utils.heShe(loadedBaby.sex, true)
 			});
 			logger.debug("addWeight: Response %s", responseMsg);
+			return new Response(responseMsg, "Weight", responseMsg);
+		});
+};
+
+/**
+ * Asynchronous operation to remove the most recent weight entry from the data store
+ * and return a response.
+ * 
+ * @param 	userId {string}		the userId whose last weight entry to remove. Non-nullable.
+ * 
+ * @returns {Promise<Response|DaoError} Returns a promise with a 
+ * 			response if the operation succeeded,
+ * 			where the response has both a verbal message and written card
+ * 			confirming the action,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB.
+ */
+WeightController.prototype.removeLastWeight = function(userId) {
+	logger.debug("removeLastWeight: Removing weight for %s", userId);
+	var loadedBaby;	
+	var self = this;
+	var lastWeight;
+	var lastWeightDate;
+
+	//First, validate all input arguments
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+			//Next, get this user's baby (to make sure it exists and to use the
+			//name in the response)
+			return self.babyDao.readBaby(userId);
+		})
+		.then( function(readBabyResult) {
+			//Then, get the most recent weight entry from the datastore provided the baby exists
+			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
+				loadedBaby = readBabyResult.Item;
+			} else {
+				return Promise.reject(new IllegalStateError("Before removing activities, you must first add a baby"));
+			}
+			return self.weightDao.getLastWeight(userId);
+		})
+		.then( function(getLastWeightResult) {
+			//TODO: Handle the case where there are no weight entries
+			getLastWeightResult.Items.forEach(function(item) {
+	            logger.debug("getLastWeight: lastWeight %s %d", item.date, item.weight);
+	            lastWeightDate = new Date(item.date); //TODO: Can't the DAO do this?
+	            lastWeight = item.weight;
+	        });
+			
+			//Then delete that weight
+			if( lastWeightDate ) {
+				logger.debug("Deleting weight");
+				return self.weightDao.deleteWeight(userId, new Date(lastWeightDate));
+			} else {
+				return Promise.resolve();
+			}
+		})
+		.then( function(deleteWeightResult) 
+		{
+			logger.debug("Delete weight result: %s", JSON.stringify(deleteWeightResult));
+			//Finally, put it all together in a response
+			var babyName = loadedBaby.name;
+			var responseMsg;
+			if( lastWeightDate ) {
+				responseMsg = "Removed weight " + Utils.getPoundsAndOuncesString(lastWeight) + " for " + babyName + "."; 
+			} else {
+				responseMsg =  "No previous weight entries recorded for " + babyName;
+			}
+			logger.debug("removeWeight: Response %s", responseMsg);
 			return new Response(responseMsg, "Weight", responseMsg);
 		});
 };
