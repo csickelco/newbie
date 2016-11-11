@@ -254,4 +254,41 @@ WeightAWSDao.prototype.deleteWeight = function(userId, date) {
 		});
 };
 
+/**
+ * Asynchronous operation to to get a count of all weight entries created 
+ * for the specified date or later for a given user.
+ * 
+ * @param {string} userId 	AWS user ID whose weight count to retrieve. Non-nullable.
+ * @param {Date} date		Date/time after which to count weight. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB.
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException).
+ */
+WeightAWSDao.prototype.getWeightCountForDay = function(userId, date) {
+	logger.debug("getWeightCountForDay: Starting get weight count for day %s", date.toString());
+	var params = {
+			TableName : TABLE_NAME,
+			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			ExpressionAttributeNames: {
+				"#dt": "date" //This is needed because date is a reserved word
+			},
+		    ExpressionAttributeValues: {
+		    	":val1":userId,
+		        ":val2":Utils.formatDateString(date) 
+		    },
+		    ProjectionExpression: "noattribute"
+	};
+	return this.docClient.query(params).promise()
+		.then( function(queryResult)  {
+			logger.debug("getWeightCountForDay: query result %s", JSON.stringify(queryResult));
+			return Promise.resolve(queryResult.Count);
+		})
+		.catch(function(error) {
+			return Promise.reject(new DaoError("get weight count for the day", error));
+		});
+};
+
 module.exports = WeightAWSDao;

@@ -31,6 +31,7 @@ var Diaper = require('./diaper');
 var Utils = require('../common/utils');
 var ValidationUtils = require('../common/validation_utils');
 var IllegalStateError = require('../common/illegal_state_error');
+var ActivityLimitError = require('../common/activity_limit_error');
 var Response = require('../common/response');
 var Winston = require('winston');
 var rp = require('request-promise');
@@ -49,6 +50,12 @@ var logger = new (Winston.Logger)({
       })
     ]
   });
+
+//Constants
+/**
+ * The maximum number of diapers that can be added in any given day
+ */
+var ADD_LIMIT = 40;
 
 /**
  * Represents business logic for diaper-related operations.
@@ -125,23 +132,21 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) {
-			//Then, create the diaper in the datastore provided the baby exists
+			//Provided the baby exists, get all diapers for the day to provide cumultive day count in response
+			//and to make sure the user hasn't exceeded any limits
 			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
 				loadedBaby = readBabyResult.Item;
 			} else {
 				return Promise.reject(new IllegalStateError("Before recording diapers, you must first add a baby"));
 			}
-			return self.diaperDao.createDiaper(diaper)
-		})
-		.then( function(result) {
-			//Then, get all diapers for the day to provide cumultive day count in response
 			return self.diaperDao.getDiapers(userId, dateTime);
 		})
-		.then( function(diapersForDayResult) 
-		{
-			//Finally, put it all together in a response
+		.then( function(diapersForDayResult) {
+			var totalDiaperCount = 0;
+			//Count up all the previous diapers for the day
 			diapersForDayResult.Items.forEach(function(item) {
 	            logger.debug(" -", item.dateTime + ": " + item.isWet + ", " + item.isDirty);
+	            totalDiaperCount++;
 	            if(item.isWet) {
 	            	totalWetDiapers++;
 	            }
@@ -149,7 +154,28 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 	            	totalDirtyDiapers++;
 	            }
 	        });
-
+			
+			//Add the current diaper
+			totalDiaperCount++;
+			if( diaper.isWet ) {
+				totalWetDiapers++;
+			}
+			if( diaper.isDirty ) {
+				totalDirtyDiapers++;
+			}
+			
+			//Make sure the user is within their limits
+			if( totalDiaperCount > ADD_LIMIT ) {
+				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
+						" diapers in any given day"));
+			}
+			
+			//Assuming within limits, add the diaper to the datastore
+			return self.diaperDao.createDiaper(diaper);
+		})
+		.then( function(createDiaperResult) 
+		{
+			//Finally, put it all together in a response
 			var babyName = loadedBaby.name;
 			var responseMsg = "Added ";
 			if(isWet) {

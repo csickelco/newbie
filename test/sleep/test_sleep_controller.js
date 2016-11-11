@@ -29,6 +29,7 @@ var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
+var ActivityLimitError = require('../../common/activity_limit_error');
 var DaoError = require('../../common/dao_error');
 var sinon = require('sinon');
 var sinonAsPromised = require('sinon-as-promised');
@@ -51,6 +52,7 @@ describe('SleepController', function() {
 	var sleepDaoCreateTableStub;
 	var sleepDaoGetLastSleepStub;
 	var sleepDaoDeleteSleepStub;
+	var sleepDaoGetSleepCountForDayStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
@@ -59,6 +61,7 @@ describe('SleepController', function() {
 		sleepDaoUpdateSleepStub = sinon.stub(sleepController.sleepDao, 'updateSleep');
 		sleepDaoGetLastSleepStub = sinon.stub(sleepController.sleepDao, 'getLastSleep');
 		sleepDaoDeleteSleepStub = sinon.stub(sleepController.sleepDao, 'deleteSleep');
+		sleepDaoGetSleepCountForDayStub = sinon.stub(sleepController.sleepDao, 'getSleepCountForDay');
 		babyDaoReadBabyStub = sinon.stub(sleepController.babyDao, 'readBaby');
 	});
 	
@@ -68,6 +71,7 @@ describe('SleepController', function() {
 		sleepController.sleepDao.updateSleep.restore();
 		sleepController.sleepDao.getLastSleep.restore();
 		sleepController.sleepDao.deleteSleep.restore();
+		sleepController.sleepDao.getSleepCountForDay.restore();
 		sleepController.babyDao.readBaby.restore();
 	});
 	 
@@ -75,6 +79,7 @@ describe('SleepController', function() {
 	//Happy path test 1
 	it('startSleep1()', function() {
 		sleepDaoCreateSleepStub.resolves();
+		sleepDaoGetSleepCountForDayStub.resolves(0);
 		var item = {
 			"Item" :
 			{
@@ -521,6 +526,24 @@ describe('SleepController', function() {
 		var expectedResponse = new Response(expectedResponseMsg, "Sleep", expectedResponseMsg);
 		return sleepController.removeLastSleep("MOCK_USER_ID")
 			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Activity Limit Tests
+	it('startSleep100()', function() {
+		sleepDaoCreateSleepStub.resolves();
+		sleepDaoGetSleepCountForDayStub.resolves(40);
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		return sleepController.startSleep("MOCK_USER_ID", new Date())
+			.should.be.rejectedWith(ActivityLimitError);
 	});
 });
 

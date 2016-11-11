@@ -29,6 +29,7 @@ var Baby = require('./baby');
 var Response = require('../common/response');
 var Utils = require('../common/utils');
 var ValidationUtils = require('../common/validation_utils');
+var ActivityLimitError = require('../common/activity_limit_error');
 var Winston = require('winston');
 
 //Configure the logger with basic logging template
@@ -45,6 +46,9 @@ var logger = new (Winston.Logger)({
       })
     ]
   });
+
+//Constants
+var ADD_LIMIT = 20;
 
 /**
  * Represents business logic for baby-related operations.
@@ -171,12 +175,21 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 				return ValidationUtils.validateDateBefore("baby's birthdate", birthdate, new Date());
 		})
 		.then( function(result) {
-			var baby = new Baby(); 
-			baby.userId = userId;
-			baby.sex = sex;
-			baby.name = name;
-			baby.birthdate = birthdate;
-			baby.timezone = processTimezone(timezone, daylightSavingsObserved);
+				return self.babyDao.getBabyCount(userId);
+		})
+		.then( function(result) {
+			//TODO: This is actually future functionality. Right now the app only supports 1 baby anyway
+			//and just overwrites it any time you try to add a new one
+			if( result + 1 > ADD_LIMIT ) {
+				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + " babies"));
+			} else {
+				var baby = new Baby(); 
+				baby.userId = userId;
+				baby.sex = sex;
+				baby.name = name;
+				baby.birthdate = birthdate;
+				baby.timezone = processTimezone(timezone, daylightSavingsObserved);
+			}
 			return self.babyDao.createBaby(baby);
 		})
 		.then( function(result) 

@@ -30,6 +30,7 @@ var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
+var ActivityLimitError = require('../../common/activity_limit_error');
 var DaoError = require('../../common/dao_error');
 var sinon = require('sinon');
 var sinonAsPromised = require('sinon-as-promised');
@@ -52,6 +53,7 @@ describe('WeightController', function() {
 	var weightDaoCreateTableStub;
 	var weightDaoDeleteWeightStub;
 	var weightDaoGetLastWeightStub;
+	var weightDaoGetWeightCountForDayStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
@@ -59,6 +61,7 @@ describe('WeightController', function() {
 		weightDaoCreateTableStub = sinon.stub(weightController.weightDao, 'createTable');
 		weightDaoDeleteWeightStub = sinon.stub(weightController.weightDao, 'deleteWeight');
 		weightDaoGetLastWeightStub = sinon.stub(weightController.weightDao, 'getLastWeight');
+		weightDaoGetWeightCountForDayStub = sinon.stub(weightController.weightDao, 'getWeightCountForDay');
 		weightPercentileGetPercentileStub = sinon.stub(weightController.weightPercentileDao, 'getWeightPercentile');
 		babyDaoReadBabyStub = sinon.stub(weightController.babyDao, 'readBaby');
 	});
@@ -68,6 +71,7 @@ describe('WeightController', function() {
 		weightController.weightDao.createTable.restore();
 		weightController.weightDao.deleteWeight.restore();
 		weightController.weightDao.getLastWeight.restore();
+		weightController.weightDao.getWeightCountForDay.restore();
 		weightController.weightPercentileDao.getWeightPercentile.restore();
 		weightController.babyDao.readBaby.restore();
 	});
@@ -86,6 +90,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(22);
 		
 		var expectedResponseMsg = "Added weight 12 pounds, 8 ounces for jane. She is in the twenty-second percentile";
@@ -106,6 +111,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(60);
 		
 		var expectedResponseMsg = "Added weight 6 pounds, 1 ounce for henry. He is in the sixtieth percentile";
@@ -126,6 +132,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(5);
 		
 		var expectedResponseMsg = "Added weight 1 pound, 15 ounces for jane. She is in the fifth percentile";
@@ -146,6 +153,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("", new Date(), 12, 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
@@ -161,6 +169,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", "", 12, 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
@@ -176,6 +185,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(2016, 4, 31), 12, 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
@@ -191,6 +201,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), "", 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
@@ -206,6 +217,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), "NaN", 8).should.be.rejectedWith(TypeError);
 	});
 	
@@ -221,6 +233,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), -1, 8).should.be.rejectedWith(RangeError);
 	});
 	
@@ -237,6 +250,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(60);
 		
 		var expectedResponseMsg = "Added weight 6 pounds, 0 ounces for henry. He is in the sixtieth percentile";
@@ -257,6 +271,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, "NaN").should.be.rejectedWith(TypeError);
 	});
 	
@@ -272,6 +287,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, -1).should.be.rejectedWith(RangeError);
 	});
 	
@@ -287,6 +303,7 @@ describe('WeightController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, 16).should.be.rejectedWith(RangeError);
 	});
 	
@@ -405,6 +422,28 @@ describe('WeightController', function() {
 		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
 		return weightController.removeLastWeight("MOCK_USER_ID")
 			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Activity Limit Tests
+	it('addweight100()', function() {
+		weightDaoCreateWeightStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		weightDaoGetWeightCountForDayStub.resolves(5);
+		weightPercentileGetPercentileStub.resolves(22);
+		
+		var expectedResponseMsg = "Added weight 12 pounds, 8 ounces for jane. She is in the twenty-second percentile";
+		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
+		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, 8)
+			.should.be.rejectedWith(ActivityLimitError);
 	});
 });
 

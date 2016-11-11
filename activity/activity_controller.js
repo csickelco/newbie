@@ -30,6 +30,7 @@ var BabyDao = require('../baby/baby_aws_dao');
 var Activity = require('./activity');
 var IllegalArgumentError = require('../common/illegal_argument_error');
 var IllegalStateError = require('../common/illegal_state_error');
+var ActivityLimitError = require('../common/activity_limit_error');
 var ValidationUtils = require('../common/validation_utils');
 var Response = require('../common/response');
 var Winston = require('winston');
@@ -48,6 +49,12 @@ var logger = new (Winston.Logger)({
       })
     ]
   });
+
+//Constants
+/**
+ * The maximum number of activities that can be added in any given day
+ */
+var ADD_LIMIT = 40;
 
 /**
  * Represents business logic for activity-related operations.
@@ -107,7 +114,8 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
 		})
 		.then( function(readBabyResult) 
 		{
-			//Then, create the activity in the datastore provided the baby exists
+			//Provided baby exists, get a count of activities for the day 
+			//to make sure the user has not exceeded their limits
 			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
 				loadedBaby = readBabyResult.Item;
 				babyName = loadedBaby.name;
@@ -119,12 +127,25 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
 				activityObj.dateTime = dateTime;
 				activityObj.activity = activity;
 
-				return self.activityDao.createActivity(activityObj);
+				return self.activityDao.getActivityCountForDay(activityObj.userId, activityObj.dateTime);
 			} else {
 				return Promise.reject(new IllegalStateError("Before recording activities, you must first add a baby"));
 			}
 		})
-		.then( function(createActivityResult) 
+		.then( function(activityCountResult) 
+		{
+			logger.debug("addActivity: Activity count: %d", activityCountResult);
+			var totalActivityCount = activityCountResult + 1; //All activities for the day plus the one we're trying to add
+			
+			if( totalActivityCount > ADD_LIMIT ) {
+				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
+					" activities in any given day"));
+			} else {
+				//Assuming they haven't exceeded the activity limit, go ahead and create this one
+				return self.activityDao.createActivity(activityObj);
+			}
+		})
+		.then( function(createActivityResult)
 		{
 			//Finally, build the response confirming the add
 			var responseMsg = template(

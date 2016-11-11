@@ -184,4 +184,35 @@ BabyAWSDao.prototype.readBaby = function(userId) {
 	});
 };
 
+/**
+ * Asynchronous operation to to get a count of all babies for a given user.
+ * 
+ * @param {string} userId 	AWS user ID whose baby count to retrieve. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB.
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException).
+ */
+BabyAWSDao.prototype.getBabyCount = function(userId) {
+	logger.debug("getBabyCount: Starting get baby count for user %s",userId);
+	var params = {
+			TableName : TABLE_NAME,
+			KeyConditionExpression: "userId = :val1",
+		    ExpressionAttributeValues: {
+		    	":val1":userId
+		    },
+		    ProjectionExpression: "noattribute"
+	};
+	return this.docClient.query(params).promise()
+		.then( function(queryResult)  {
+			logger.debug("getBabyCount: query result %s", JSON.stringify(queryResult));
+			return Promise.resolve(queryResult.Count);
+		})
+		.catch(function(error) {
+			return Promise.reject(new DaoError("get baby count", error));
+		});
+};
+
 module.exports = BabyAWSDao;

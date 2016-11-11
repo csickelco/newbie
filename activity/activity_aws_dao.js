@@ -191,6 +191,43 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 };
 
 /**
+ * Asynchronous operation to to get a count of all activities created 
+ * for the specified date or later for a given user.
+ * 
+ * @param {string} userId 	AWS user ID whose activity count to retrieve. Non-nullable.
+ * @param {Date} date		Date/time after which to count activities. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			(if an error occurred interacting with DynamoDB.
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException).
+ */
+ActivityAWSDao.prototype.getActivityCountForDay = function(userId, date) {
+	logger.debug("getActivityCountForDay: Starting get activity count for day %s", date.toString());
+	var params = {
+			TableName : TABLE_NAME,
+			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			ExpressionAttributeNames: {
+				"#dt": "dateTime" //This is needed because dateTime is a reserved word
+			},
+		    ExpressionAttributeValues: {
+		    	":val1":userId,
+		        ":val2":Utils.formatDateString(date) 
+		    },
+		    ProjectionExpression: "noattribute"
+	};
+	return this.docClient.query(params).promise()
+		.then( function(queryResult)  {
+			logger.debug("getActivityCountForDay: query result %s", JSON.stringify(queryResult));
+			return Promise.resolve(queryResult.Count);
+		})
+		.catch(function(error) {
+			return Promise.reject(new DaoError("get activity count for the day", error));
+		});
+};
+
+/**
  * Asynchronous operation to retrieve the most recent activity for 
  * the given userId, or null if no activitys exist.
  * 

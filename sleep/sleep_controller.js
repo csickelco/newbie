@@ -31,6 +31,7 @@ var Sleep = require('./sleep');
 var Utils = require('../common/utils');
 var ValidationUtils = require('../common/validation_utils');
 var IllegalStateError = require('../common/illegal_state_error');
+var ActivityLimitError = require('../common/activity_limit_error');
 var Response = require('../common/response');
 var Winston = require('winston');
 
@@ -48,6 +49,12 @@ var logger = new (Winston.Logger)({
       })
     ]
   });
+
+//Constants
+/**
+ * The maximum number of sleep entries that can be added in any given day
+ */
+var ADD_LIMIT = 40;
 
 /**
  * Represents business logic for sleep-related operations.
@@ -115,6 +122,15 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 				loadedBaby = readBabyResult.Item;
 			} else {
 				return Promise.reject(new IllegalStateError("Before recording sleep, you must first add a baby"));
+			}
+			
+			//Next, check to make sure activity limits haven't been exceeded
+			return self.sleepDao.getSleepCountForDay(userId, sleep.sleepDateTime);
+		})
+		.then( function(sleepCountResult) {
+			if( sleepCountResult + 1 > ADD_LIMIT ) {
+				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
+					" sleep entries in any given day"));
 			}
 			return self.sleepDao.createSleep(sleep)
 		})
