@@ -1,0 +1,121 @@
+dailySummaryIntent	daily summary
+weeklySummaryIntent	weekly summary
+startSleepIntent	{NAME} sleeping
+startSleepIntent	the baby {NAME} sleeping
+startSleepIntent	{NAME} is sleeping
+startSleepIntent	the baby {NAME} is sleeping
+startSleepIntent	{NAME} started sleeping
+startSleepIntent	the baby {NAME} started sleeping
+startSleepIntent	{NAME} went to sleep
+startSleepIntent	the baby {NAME} went to sleep
+startSleepIntent	{NAME} is went to sleep
+startSleepIntent	the baby {NAME} is went to sleep
+startSleepIntent	{NAME} started went to sleep
+startSleepIntent	the baby {NAME} started went to sleep
+startSleepIntent	{NAME} taking a nap
+startSleepIntent	the baby {NAME} taking a nap
+startSleepIntent	{NAME} is taking a nap
+startSleepIntent	the baby {NAME} is taking a nap
+startSleepIntent	{NAME} started taking a nap
+startSleepIntent	the baby {NAME} started taking a nap
+startSleepIntent	{NAME} napping
+startSleepIntent	the baby {NAME} napping
+startSleepIntent	{NAME} is napping
+startSleepIntent	the baby {NAME} is napping
+startSleepIntent	{NAME} started napping
+startSleepIntent	the baby {NAME} started napping
+endSleepIntent	{NAME} is awake
+endSleepIntent	the baby {NAME} is awake
+endSleepIntent	{NAME} woke up
+endSleepIntent	the baby {NAME} woke up
+endSleepIntent	{NAME} finished sleeping
+endSleepIntent	the baby {NAME} finished sleeping
+endSleepIntent	{NAME} finished napping
+endSleepIntent	the baby {NAME} finished napping
+removeSleepIntent	remove sleep
+removeSleepIntent	delete sleep
+removeSleepIntent	undo sleep
+getAwakeTimeIntent	how long has {NAME} been awake
+getAwakeTimeIntent	how long has baby {NAME} been awake
+getAwakeTimeIntent	how long has the baby {NAME} been awake
+getAwakeTimeIntent	how long has baby the baby {NAME} been awake
+getLastFeedIntent	when did {NAME} last eat
+getLastFeedIntent	when did baby {NAME} last eat
+getLastFeedIntent	when did the baby {NAME} last eat
+getLastFeedIntent	when did baby the baby {NAME} last eat
+addFeedIntent	{NUM_OUNCES}
+addFeedIntent	add {NUM_OUNCES}
+addFeedIntent	record {NUM_OUNCES}
+addFeedIntent	{NUM_OUNCES} ounce
+addFeedIntent	add {NUM_OUNCES} ounce
+addFeedIntent	record {NUM_OUNCES} ounce
+addFeedIntent	{NUM_OUNCES} feed
+addFeedIntent	add {NUM_OUNCES} feed
+addFeedIntent	record {NUM_OUNCES} feed
+addFeedIntent	{NUM_OUNCES} ounce feed
+addFeedIntent	add {NUM_OUNCES} ounce feed
+addFeedIntent	record {NUM_OUNCES} ounce feed
+addFeedIntent	{NUM_OUNCES} bottle
+addFeedIntent	add {NUM_OUNCES} bottle
+addFeedIntent	record {NUM_OUNCES} bottle
+addFeedIntent	{NUM_OUNCES} ounce bottle
+addFeedIntent	add {NUM_OUNCES} ounce bottle
+addFeedIntent	record {NUM_OUNCES} ounce bottle
+removeFeedIntent	remove feed
+removeFeedIntent	delete feed
+removeFeedIntent	undo feed
+addActivityIntent	add activity
+addActivityIntent	activity {ACTIVITY}
+addActivityIntent	add activity {ACTIVITY}
+addActivityIntent	record activity {ACTIVITY}
+removeActivityIntent	remove activity
+removeActivityIntent	delete activity
+removeActivityIntent	undo activity
+addDiaperIntent	{FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
+addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
+addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
+addDiaperIntent	{FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
+addDiaperIntent	add {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
+addDiaperIntent	record {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
+removeDiaperIntent	remove diaper
+removeDiaperIntent	delete diaper
+removeDiaperIntent	undo diaper
+addWeightIntent	{NUM_POUNDS} {NUM_OUNCES}
+addWeightIntent	add {NUM_POUNDS} {NUM_OUNCES}
+addWeightIntent	record {NUM_POUNDS} {NUM_OUNCES}
+addWeightIntent	weight {NUM_POUNDS} {NUM_OUNCES}
+addWeightIntent	add weight {NUM_POUNDS} {NUM_OUNCES}
+addWeightIntent	record weight {NUM_POUNDS} {NUM_OUNCES}
+addWeightIntent	{NUM_POUNDS} pounds {NUM_OUNCES}
+addWeightIntent	add {NUM_POUNDS} pounds {NUM_OUNCES}
+addWeightIntent	record {NUM_POUNDS} pounds {NUM_OUNCES}
+addWeightIntent	weight {NUM_POUNDS} pounds {NUM_OUNCES}
+addWeightIntent	add weight {NUM_POUNDS} pounds {NUM_OUNCES}
+addWeightIntent	record weight {NUM_POUNDS} pounds {NUM_OUNCES}
+addWeightIntent	{NUM_POUNDS} {NUM_OUNCES} ounces
+addWeightIntent	add {NUM_POUNDS} {NUM_OUNCES} ounces
+addWeightIntent	record {NUM_POUNDS} {NUM_OUNCES} ounces
+addWeightIntent	weight {NUM_POUNDS} {NUM_OUNCES} ounces
+addWeightIntent	add weight {NUM_POUNDS} {NUM_OUNCES} ounces
+addWeightIntent	record weight {NUM_POUNDS} {NUM_OUNCES} ounces
+addWeightIntent	{NUM_POUNDS} pounds {NUM_OUNCES} ounces
+addWeightIntent	add {NUM_POUNDS} pounds {NUM_OUNCES} ounces
+addWeightIntent	record {NUM_POUNDS} pounds {NUM_OUNCES} ounces
+addWeightIntent	weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces
+addWeightIntent	add weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces
+addWeightIntent	record weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces
+removeWeightIntent	remove weight
+removeWeightIntent	delete weight
+removeWeightIntent	undo weight
+addBabyIntent	add baby
+addBabyIntent	record baby
+addBabyIntent	child
+addBabyIntent	add child
+addBabyIntent	record child
+addBabyIntent	add kid
+addBabyIntent	record kid
+addBabyIntent	{SEX}
+addBabyIntent	{BIRTHDATE}
+addBabyIntent	{NAME}
+addBabyIntent	{TIMEZONE}
+addBabyIntent	{DAYLIGHT_SAVINGS_OBSERVED}

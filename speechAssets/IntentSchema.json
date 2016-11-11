@@ -1,0 +1,149 @@
+{
+  "intents": [
+    {
+      "intent": "dailySummaryIntent",
+      "slots": []
+    },
+    {
+      "intent": "weeklySummaryIntent",
+      "slots": []
+    },
+    {
+      "intent": "startSleepIntent",
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "endSleepIntent",
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "removeSleepIntent",
+      "slots": []
+    },
+    {
+      "intent": "getAwakeTimeIntent",
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "getLastFeedIntent",
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "addFeedIntent",
+      "slots": [
+        {
+          "name": "NUM_OUNCES",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "removeFeedIntent",
+      "slots": []
+    },
+    {
+      "intent": "addActivityIntent",
+      "slots": [
+        {
+          "name": "ACTIVITY",
+          "type": "ACTIVITY_TYPE"
+        }
+      ]
+    },
+    {
+      "intent": "removeActivityIntent",
+      "slots": []
+    },
+    {
+      "intent": "addDiaperIntent",
+      "slots": [
+        {
+          "name": "FIRST_DIAPER_TYPE",
+          "type": "DIAPER_TYPE"
+        },
+        {
+          "name": "SECOND_DIAPER_TYPE",
+          "type": "DIAPER_TYPE"
+        }
+      ]
+    },
+    {
+      "intent": "removeDiaperIntent",
+      "slots": []
+    },
+    {
+      "intent": "addWeightIntent",
+      "slots": [
+        {
+          "name": "NUM_POUNDS",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "NUM_OUNCES",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "removeWeightIntent",
+      "slots": []
+    },
+    {
+      "intent": "addBabyIntent",
+      "slots": [
+        {
+          "name": "SEX",
+          "type": "SEXES"
+        },
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        },
+        {
+          "name": "BIRTHDATE",
+          "type": "DATE"
+        },
+        {
+          "name": "TIMEZONE",
+          "type": "TIMEZONE"
+        },
+        {
+          "name": "DAYLIGHT_SAVINGS_OBSERVED",
+          "type": "YES_NO"
+        }
+      ]
+    },
+    {
+      "intent": "AMAZON.StopIntent",
+      "slots": []
+    },
+    {
+      "intent": "AMAZON.CancelIntent",
+      "slots": []
+    },
+    {
+      "intent": "AMAZON.HelpIntent",
+      "slots": []
+    }
+  ]
+}
