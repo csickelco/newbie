@@ -67,6 +67,22 @@ var logger = new (Winston.Logger)({
     ]
   });
 
+//Helper functions
+/**
+ * @return true if the spoken diaper type indicates a wet diaper
+ */
+var determineIfWetDiaper = function(diaperType) {
+	return diaperType === "wet" || diaperType === "pee";
+};
+
+/**
+ * @return true if the spoken diaper type indicates a dirty diaper
+ */
+var determineIfDirtyDiaper = function(diaperType) {
+	return diaperType === "dirty" || diaperType === "poopy" || 
+		diaperType === "poop" || diaperType === "poo" || diaperType === "soiled";
+};
+
 /**
  * This function gets executed before every command and is used to
  * setup any needed data.
@@ -499,8 +515,8 @@ function(request, response) {
 	var diaperType1 = request.slot('FIRST_DIAPER_TYPE');
 	var diaperType2 = request.slot('SECOND_DIAPER_TYPE');
 	logger.debug("addDiaperIntent: %s diaper AND %s diaper", diaperType1, diaperType2);
-	var isWet = diaperType1 === "wet" || diaperType2 === "wet";
-	var isDirty = diaperType1 === "dirty" || diaperType2 === "dirty"; //TODO: Add more flexible wording
+	var isWet = determineIfWetDiaper(diaperType1) || determineIfWetDiaper(diaperType2);
+	var isDirty = determineIfDirtyDiaper(diaperType1) || determineIfDirtyDiaper(diaperType2);
 	logger.debug("addDiaperIntent: wet -- %s, dirty -- %s", isWet, isDirty);
 	var now = new Date();
 	diaperController.addDiaper(request.userId, now, isWet, isDirty)

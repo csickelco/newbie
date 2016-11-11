@@ -1,0 +1,9 @@
+hawaii
+alaska
+pacific
+mountain
+central
+eastern
+atlantic
+samoa
+chamorro
