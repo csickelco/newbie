@@ -29,6 +29,7 @@ var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
+var ActivityLimitError = require('../../common/activity_limit_error');
 var DaoError = require('../../common/dao_error');
 var sinon = require('sinon');
 var sinonAsPromised = require('sinon-as-promised');
@@ -90,10 +91,6 @@ describe('FeedController', function() {
 				[
 				{
 					"dateTime":"2016-06-01T00:00:00.000Z",
-					"feedAmount":5
-				},
-				{
-					"dateTime":"2016-06-01T00:00:00.000Z",
 					"feedAmount":6
 				}
 				]
@@ -121,10 +118,6 @@ describe('FeedController', function() {
 		var feedItem = {
 				"Items" :
 				[
-				{
-					"dateTime":"2016-06-01T00:00:00.000Z",
-					"feedAmount":1
-				}
 				]
 			};
 		feedDaoGetFeedsStub.resolves(feedItem);
@@ -239,6 +232,12 @@ describe('FeedController', function() {
 				}
 			};
 		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
 		return feedController.addFeed('MOCK_USER_ID', new Date(), 5).should.be.rejectedWith(daoError);
 	});
 	it('addfeed15()', function() {
@@ -499,6 +498,189 @@ describe('FeedController', function() {
 		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
 		return feedController.removeLastFeed("MOCK_USER_ID")
 			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Test activity limits
+	it('addfeed100()', function() {
+		feedDaoCreateFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":5
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				}
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		return feedController.addFeed("MOCK_USER_ID", new Date(), 5)
+			.should.be.rejectedWith(ActivityLimitError);
 	});
 });
 

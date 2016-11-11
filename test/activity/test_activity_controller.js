@@ -29,6 +29,7 @@ var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
+var ActivityLimitError = require('../../common/activity_limit_error');
 var DaoError = require('../../common/dao_error');
 var sinon = require('sinon');
 var sinonAsPromised = require('sinon-as-promised');
@@ -50,6 +51,7 @@ describe('ActivityController', function() {
 	var activityDaoCreateTableStub;
 	var activityDaoDeleteActivityStub;
 	var activityDaoGetLastActivityStub;
+	var activityDaoGetActivityCountForDayStub;
 	var babyDaoReadBabyStub;
 	
 	beforeEach(function() {	    	
@@ -57,6 +59,7 @@ describe('ActivityController', function() {
 		activityDaoCreateTableStub = sinon.stub(activityController.activityDao, 'createTable');
 		activityDaoDeleteActivityStub = sinon.stub(activityController.activityDao, 'deleteActivity');
 		activityDaoGetLastActivityStub = sinon.stub(activityController.activityDao, 'getLastActivity');
+		activityDaoGetActivityCountForDayStub = sinon.stub(activityController.activityDao, 'getActivityCountForDay');
 		babyDaoReadBabyStub = sinon.stub(activityController.babyDao, 'readBaby');
 	});
 	
@@ -65,6 +68,7 @@ describe('ActivityController', function() {
 		activityController.activityDao.createTable.restore();
 		activityController.activityDao.getLastActivity.restore();
 		activityController.activityDao.deleteActivity.restore();
+		activityController.activityDao.getActivityCountForDay.restore();
 		activityController.babyDao.readBaby.restore();
 	});
 	 
@@ -82,6 +86,7 @@ describe('ActivityController', function() {
 			}
 		};
 		babyDaoReadBabyStub.resolves(item);
+		activityDaoGetActivityCountForDayStub.resolves(0);
 		var expectedResponseMsg = "Added activity unit testing for jane";
 		var expectedResponse = new Response(expectedResponseMsg, "Activity", expectedResponseMsg);
 		return activityController.addActivity("MOCK_USER_ID", "unit testing", new Date())
@@ -91,6 +96,7 @@ describe('ActivityController', function() {
 	//Happy path test 2 - no date
 	it('addActivity2()', function() {
 		activityDaoCreateActivityStub.resolves();
+		activityDaoGetActivityCountForDayStub.resolves(0);
 		var item = {
 			"Item" :
 			{
@@ -132,6 +138,7 @@ describe('ActivityController', function() {
 	it('addActivity7()', function() {
 		var daoError = new DaoError("create the activity table", new Error("foo"));
 		activityDaoCreateActivityStub.rejects(daoError);
+		activityDaoGetActivityCountForDayStub.resolves(0);
 		var item = {
 				"Item" :
 				{
@@ -146,6 +153,7 @@ describe('ActivityController', function() {
 	});
 	it('addActivity8()', function() {
 		activityDaoCreateActivityStub.resolves();
+		activityDaoGetActivityCountForDayStub.resolves(0);
 		var daoError = new DaoError("read the baby", new Error("foo"));
 		babyDaoReadBabyStub.rejects(daoError);
 		return activityController.addActivity('MOCK_USER_ID', 'unit testing', new Date()).should.be.rejectedWith(daoError);
@@ -266,6 +274,24 @@ describe('ActivityController', function() {
 		var expectedResponse = new Response(expectedResponseMsg, "Activity", expectedResponseMsg);
 		return activityController.removeLastActivity("MOCK_USER_ID")
 			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Activity Limit Errors
+	it('addActivity100()', function() {
+		activityDaoCreateActivityStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		activityDaoGetActivityCountForDayStub.resolves(40);
+		return activityController.addActivity("MOCK_USER_ID", "unit testing", new Date())
+			.should.be.rejectedWith(ActivityLimitError);
 	});
 });
 

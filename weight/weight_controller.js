@@ -32,6 +32,7 @@ var Weight = require('./weight');
 var WeightPercentileDao = require('./weight_percentile_dao');
 var Utils = require('../common/utils');
 var IllegalStateError = require('../common/illegal_state_error');
+var ActivityLimitError = require('../common/activity_limit_error');
 var ValidationUtils = require('../common/validation_utils');
 var Winston = require('winston');
 
@@ -49,6 +50,12 @@ var logger = new (Winston.Logger)({
       })
     ]
   });
+
+//Constants
+/**
+ * The maximum number of sleep entries that can be added in any given day
+ */
+var ADD_LIMIT = 5;
 
 //http://stackoverflow.com/questions/20425771/how-to-replace-1-with-first-2-with-second-3-with-third-etc
 var special = ['zeroth','first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelvth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth'];
@@ -158,6 +165,13 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 			loadedBaby = readBabyResult.Item;
 			return ValidationUtils.validateDateAfter("weight date", date, new Date(loadedBaby.birthdate));
 		}).then(function(result) {
+			return self.weightDao.getWeightCountForDay(weight.userId, date);
+		})
+		.then(function(weightCountResult) {
+			if( weightCountResult + 1 > ADD_LIMIT ) {
+				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
+					" weight entries in any given day"));
+			}
 			return self.weightDao.createWeight(weight);
 		}).then(function(createWeightResult) {
 			return self.weightPercentileDao.getWeightPercentile(

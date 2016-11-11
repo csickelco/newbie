@@ -32,6 +32,7 @@ var Feed = require('./feed');
 var Utils = require('../common/utils');
 var ValidationUtils = require('../common/validation_utils');
 var IllegalStateError = require('../common/illegal_state_error');
+var ActivityLimitError = require('../common/activity_limit_error');
 var Winston = require('winston');
 var rp = require('request-promise');
 
@@ -49,6 +50,12 @@ var logger = new (Winston.Logger)({
       })
     ]
   });
+
+//Constants
+/**
+ * The maximum number of feeds that can be added in any given day
+ */
+var ADD_LIMIT = 40;
 
 /**
  * Represents business logic for feed-related operations.
@@ -122,27 +129,38 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 			return self.babyDao.readBaby(userId);
 		})
 		.then( function(readBabyResult) {
-			//Then, create the feed in the datastore provided the baby exists
+			//Provided the baby exists, get all feeds for the day to provide cumulative day count in response
+			//and to make sure the user has not exceeded their limits
 			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
 				loadedBaby = readBabyResult.Item;
 			} else {
 				return Promise.reject(new IllegalStateError("Before recording feeds, you must first add a baby"));
 			}
-			return self.feedDao.createFeed(feed)
-		})
-		.then( function(result) {
-			//Then, get all feeds for the day to provide cumultive day count in response
 			return self.feedDao.getFeeds(userId, dateTime);
 		})
-		.then( function(feedsForDayResult) 
-		{
-			//Finally, put it all together in a response
+		.then( function(feedsForDayResult) {
+			//Get all the previous feeds
 			feedsForDayResult.Items.forEach(function(item) {
 	            logger.debug(" -", item.dateTime + ": " + item.feedAmount);
 	            totalFeedAmt += parseInt(item.feedAmount);
 	            numFeeds++;
 	        });
 			
+			//Add the current
+			numFeeds++;
+			totalFeedAmt += feedAmount;
+			
+			//Make sure the user is within their limits
+			if( numFeeds > ADD_LIMIT ) {
+				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
+						" feeds in any given day"));
+			}
+			
+			//Finally, persist the current in the data store
+			return self.feedDao.createFeed(feed)
+		})
+		.then( function(createFeedResult) {
+			//Finally, put it all together in a response
 			var babyName = loadedBaby.name;
 			var responseMsg = template(
 			{

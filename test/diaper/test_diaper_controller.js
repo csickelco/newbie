@@ -29,6 +29,7 @@ var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
+var ActivityLimitError = require('../../common/activity_limit_error');
 var DaoError = require('../../common/dao_error');
 var sinon = require('sinon');
 var sinonAsPromised = require('sinon-as-promised');
@@ -92,11 +93,6 @@ describe('DiaperController', function() {
 					"dateTime":"2016-06-01T00:00:00.000Z",
 					"isWet":true,
 					"isDirty":false
-				},
-				{
-					"dateTime":"2016-06-01T00:00:00.000Z",
-					"isWet":true,
-					"isDirty":true
 				}
 				]
 			};
@@ -131,12 +127,6 @@ describe('DiaperController', function() {
 				{
 					"dateTime":"2016-06-01T00:00:00.000Z",
 					"isWet":true,
-					"isDirty":true
-				},
-				,
-				{
-					"dateTime":"2016-06-01T00:00:00.000Z",
-					"isWet":false,
 					"isDirty":true
 				}
 				]
@@ -236,11 +226,27 @@ describe('DiaperController', function() {
 	//Illegal state tests
 	it('adddiaper12()', function() {
 		diaperDaoCreateDiaperStub.resolves();
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetDiapersStub.resolves(diaperItem);
 		babyDaoReadBabyStub.resolves(); //No baby returned
 		return diaperController.addDiaper('MOCK_USER_ID', new Date(), true, true).should.be.rejectedWith(IllegalStateError);
 	});
 	//DAO Errors
-	it('adddiaper12()', function() {
+	it('adddiaper12b()', function() {
 		var daoError = new DaoError("create the diaper table", new Error("foo"));
 		diaperDaoCreateDiaperStub.rejects(daoError);
 		var item = {
@@ -253,6 +259,22 @@ describe('DiaperController', function() {
 				}
 			};
 		babyDaoReadBabyStub.resolves(item);
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetDiapersStub.resolves(diaperItem);
 		return diaperController.addDiaper('MOCK_USER_ID', new Date(), true, true).should.be.rejectedWith(daoError);
 	});
 	it('adddiaper13()', function() {
@@ -440,6 +462,229 @@ describe('DiaperController', function() {
 		var expectedResponse = new Response(expectedResponseMsg, "Diaper", expectedResponseMsg);
 		return diaperController.removeLastDiaper("MOCK_USER_ID")
 			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Test activity limits - user has 40 diapers already
+	it('adddiaper100()', function() {
+		diaperDaoCreateDiaperStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var diaperItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetDiapersStub.resolves(diaperItem);
+		return diaperController.addDiaper("MOCK_USER_ID", new Date(), true, true)
+			.should.be.rejectedWith(ActivityLimitError);
 	});
 });
 

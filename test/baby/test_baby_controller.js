@@ -30,6 +30,7 @@ var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
+var ActivityLimitError = require('../../common/activity_limit_error');
 var DaoError = require('../../common/dao_error');
 var sinon = require('sinon');
 var sinonAsPromised = require('sinon-as-promised');
@@ -49,6 +50,7 @@ describe('BabyController', function() {
 	 */
 	var babyDaoCreateTableStub;
 	var babyDaoCreateBabyStub;
+	var babyDaoGetBabyCountStub;
 	
 	//When we need a mock birthdate
 	var birthdate = new Date();
@@ -57,17 +59,20 @@ describe('BabyController', function() {
 	beforeEach(function() {	    	
 		babyDaoCreateTableStub = sinon.stub(babyController.babyDao, 'createTable');
 		babyDaoCreateBabyStub = sinon.stub(babyController.babyDao, 'createBaby');
+		babyDaoGetBabyCountStub = sinon.stub(babyController.babyDao, 'getBabyCount');
 	});
 	
 	afterEach(function() {
 		babyController.babyDao.createTable.restore();
 		babyController.babyDao.createBaby.restore();
+		babyController.babyDao.getBabyCount.restore();
 	});
 	
 	//addBaby tests
 	//Happy path test 1
 	it('addBaby1()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true)
@@ -77,6 +82,7 @@ describe('BabyController', function() {
 	//Happy path test 2
 	it('addBaby2()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby boy john. He is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate, "eastern", true)
@@ -136,6 +142,7 @@ describe('BabyController', function() {
 	//Timezone test 1
 	it('addBaby14()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -152,6 +159,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby15()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -168,6 +176,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby16()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -184,6 +193,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby16()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -200,6 +210,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby17()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -216,6 +227,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby18()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -232,6 +244,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby19()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -248,6 +261,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby20()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -264,6 +278,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby21()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -280,6 +295,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby22()', function() {
 		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(0);
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -307,6 +323,16 @@ describe('BabyController', function() {
 		var daoError = new DaoError("create the table", new Error("foo"));
 		babyDaoCreateTableStub.rejects(daoError);
 		return babyController.initBabyData().should.be.rejectedWith(daoError);
+	});
+	
+	//ADD Limits
+	it('addBaby100()', function() {
+		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves(20);
+		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true)
+			.should.be.rejectedWith(ActivityLimitError);
 	});
 });
 
