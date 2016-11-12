@@ -67,6 +67,11 @@ var logger = new (Winston.Logger)({
     ]
   });
 
+//Constants
+var HELP_TEXT = "Add 5 ounce bottle. Add wet and dirty diaper. The baby is sleeping. The baby woke up. " +
+		"Add activity reading. Add weight 12 pounds 2 ounces. How long has the baby been awake? " +
+		"When did the baby last eat?";
+
 //Helper functions
 /**
  * @return true if the spoken diaper type indicates a wet diaper
@@ -157,9 +162,9 @@ app.pre = function(request, response, type) {
  */
 app.launch(function(req, res) {
 	logger.debug('launch: Starting...');
-    var prompt = 'You can ask Newbie to track information about your baby. To begin, say Add baby';
+	var prompt = 'You can ask Newbie to track information about your baby. To begin, say Add baby. ' +
+		"If you've already added your baby, say ''Help'' to find out what else you can do with Newbie";
     res.say(prompt).shouldEndSession(false);
-    logger.debug('launch: Successfully completed');
 });
 
 /**
@@ -750,6 +755,7 @@ app.intent('addBabyIntent', {
 var exitFunction = function(request, response) {
 	var speechOutput = 'Goodbye.';
 	response.say(speechOutput);
+	response.shouldEndSession(true);
 };
 
 app.intent('AMAZON.StopIntent', exitFunction);
@@ -757,11 +763,10 @@ app.intent('AMAZON.StopIntent', exitFunction);
 app.intent('AMAZON.CancelIntent', exitFunction);
 
 app.intent('AMAZON.HelpIntent', function(request, response) {
-	var speechOutput = "To first set up Newbie, say 'add baby'. After that, here are some examples of things you can tell Newbie: " +
-		"Add 5 ounce bottle. Add wet and dirty diaper. The baby is sleeping. The baby woke up. " +
-		"Add activity reading. Add weight 12 pounds 2 ounces. How long has the baby been awake? " +
-		"When did the baby last eat?";
+	var speechOutput = "To first set up Newbie, say 'Alexa, tell newbie to add baby'. After that, here are some examples of things you can tell Newbie: " +
+		HELP_TEXT;
 	response.say(speechOutput);
+	response.shouldEndSession(true);
 });
 
 module.exports = app;

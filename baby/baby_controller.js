@@ -207,4 +207,22 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 		});
 };
 
+/**
+ * Asynchronous operation to check if a user has any babies registered with newbie.
+ * @param {string} userId the userId whose baby it is. Non-nullable.
+ * @return {Promise<Boolean> True if the user has 1 or more registered babies, false otherwise} 		
+ */
+BabyController.prototype.babyExists = function(userId) {
+	var self = this;
+	logger.debug('babyExists: Checking baby for user %s', userId);
+	return self.babyDao.getBabyCount(userId)
+		.then(function(babyCount) {
+			if(babyCount > 0 ) {
+				return Promise.resolve(true);
+			} else {
+				return Promise.resolve(false);
+			}
+		});
+};
+
 module.exports = BabyController;
