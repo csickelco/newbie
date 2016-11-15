@@ -93,7 +93,7 @@ describe('WeightController', function() {
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(22);
 		
-		var expectedResponseMsg = "Added weight 12 pounds, 8 ounces for jane. She is in the twenty-second percentile";
+		var expectedResponseMsg = "Added weight 12 pounds, 8 ounces for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, 8)
 			.should.eventually.deep.equal(expectedResponse);
@@ -114,7 +114,7 @@ describe('WeightController', function() {
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(60);
 		
-		var expectedResponseMsg = "Added weight 6 pounds, 1 ounce for henry. He is in the sixtieth percentile";
+		var expectedResponseMsg = "Added weight 6 pounds, 1 ounce for henry.";
 		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 6, 1)
 			.should.eventually.deep.equal(expectedResponse);
@@ -135,7 +135,7 @@ describe('WeightController', function() {
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(5);
 		
-		var expectedResponseMsg = "Added weight 1 pound, 15 ounces for jane. She is in the fifth percentile";
+		var expectedResponseMsg = "Added weight 1 pound, 15 ounces for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 1, 15)
 			.should.eventually.deep.equal(expectedResponse);
@@ -253,7 +253,7 @@ describe('WeightController', function() {
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(60);
 		
-		var expectedResponseMsg = "Added weight 6 pounds, 0 ounces for henry. He is in the sixtieth percentile";
+		var expectedResponseMsg = "Added weight 6 pounds, 0 ounces for henry.";
 		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 6)
 			.should.eventually.deep.equal(expectedResponse);
@@ -440,7 +440,7 @@ describe('WeightController', function() {
 		weightDaoGetWeightCountForDayStub.resolves(5);
 		weightPercentileGetPercentileStub.resolves(22);
 		
-		var expectedResponseMsg = "Added weight 12 pounds, 8 ounces for jane. She is in the twenty-second percentile";
+		var expectedResponseMsg = "Added weight 12 pounds, 8 ounces for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "Weight", expectedResponseMsg);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, 8)
 			.should.be.rejectedWith(ActivityLimitError);

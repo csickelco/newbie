@@ -122,7 +122,7 @@ WeightController.prototype.initWeightData = function() {
 WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 	logger.debug("pounds - " + pounds + ", ounces - " + ounces);
 	logger.debug("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d", userId, date, pounds, ounces);
-	var template = _.template('Added weight ${pounds} pound${poundsPlural}, ${ounces} ounce${ouncePlural} for ${babyName}. ${pronoun} is in the ${percentile} percentile');
+	var template = _.template('Added weight ${pounds} pound${poundsPlural}, ${ounces} ounce${ouncePlural} for ${babyName}.');
 	if( !ounces ) {
 		ounces = 0;
 	}
@@ -174,9 +174,6 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 			}
 			return self.weightDao.createWeight(weight);
 		}).then(function(createWeightResult) {
-			return self.weightPercentileDao.getWeightPercentile(
-					pounds, ounces, loadedBaby.birthdate, new Date(), loadedBaby.sex);
-		}).then(function(weightPercentileResult) {
 			var dobValue = loadedBaby.birthdate.toString('yyyy-MM-dd');
 			var responseMsg = template(
 			{
@@ -184,9 +181,7 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 				poundsPlural: Utils.pluralizeIfNeeded(pounds),
 				ounces: ounces,
 				ouncePlural: Utils.pluralizeIfNeeded(ounces),
-				babyName: loadedBaby.name,
-				percentile: stringifyNumber(weightPercentileResult),
-				pronoun: Utils.heShe(loadedBaby.sex, true)
+				babyName: loadedBaby.name
 			});
 			logger.debug("addWeight: Response %s", responseMsg);
 			return new Response(responseMsg, "Weight", responseMsg);
