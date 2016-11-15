@@ -131,8 +131,12 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            if( !feedSummary ) {
 	            	feedSummary = new FeedSummary();
 	            } 
-	            feedSummary.totalFeedAmount += parseInt(item.feedAmount);
-	            feedSummary.numFeedings++;
+	            if( item.feedAmount ) {
+	            	feedSummary.totalFeedAmount += parseInt(item.feedAmount);
+	            	feedSummary.numSpecifiedFeedings++;
+	            } else {
+	            	feedSummary.numUnspecifiedFeedings++;
+	            }
 	            feedMap.set(dateKey, feedSummary);
 	            logger.debug("getWeeklySummary: Put in feedMap %s - %s", dateKey, feedSummary.toString());
 	        });
@@ -188,16 +192,20 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	        });
 			
 			//Calculate feeding averages
-			var totalNumFeedings = 0;
+			var totalNumSpecifiedFeedings = 0;
+			var totalNumUnspecifiedFeedings = 0;
 			var totalFeedAmount = 0;
 			feedMap.forEach(function(value, key) 
 			{
-				totalNumFeedings += value.numFeedings;
-				totalFeedAmount += value.totalFeedAmount;
+				totalNumSpecifiedFeedings += value.numSpecifiedFeedings;
+				totalNumUnspecifiedFeedings += value.numUnspecifiedFeedings;
+				if( value.totalFeedAmount ) {
+					totalFeedAmount += value.totalFeedAmount;
+				}
 			}, feedMap);
 			var numDaysWithFeedsRecorded = feedMap.size;
 			weeklySummary.totalFeedAmount = Math.round(totalFeedAmount/numDaysWithFeedsRecorded);
-			weeklySummary.numFeedings = Math.round(totalNumFeedings/numDaysWithFeedsRecorded);
+			weeklySummary.numFeedings = Math.round((totalNumSpecifiedFeedings+totalNumUnspecifiedFeedings)/numDaysWithFeedsRecorded);
 			
 			//Calculate diaper averages
 			var totalNumWetDiapers = 0;
@@ -263,12 +271,17 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 				responseMsg += ". " + Utils.heShe(weeklySummary.sex, true) + " gained " + weightDifferenceInOunces + " ounce" + Utils.pluralizeIfNeeded(weightDifferenceInOunces) + " in " + weightDifferenceNumDays + " day" + Utils.pluralizeIfNeeded(weightDifferenceNumDays);
 				responseCard += "Weight gain: " + weightDifferenceInOunces + " ounces over " + weightDifferenceNumDays + " days\n";
 			}
-			responseMsg += ". On average, " + Utils.heShe(weeklySummary.sex) + " ate " + weeklySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(weeklySummary.numFeedings) + " for a total of " +
-				weeklySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(weeklySummary.totalFeedAmount) +
+			responseMsg += ". On average, " + Utils.heShe(weeklySummary.sex) + " ate " + weeklySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(weeklySummary.numFeedings);
+			if( weeklySummary.totalFeedAmount ) {
+				responseMsg += " for a total of " + weeklySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(weeklySummary.totalFeedAmount);
+			}
+			responseMsg +=
 				" and had " + weeklySummary.numWetDiapers + " wet and " +
 				weeklySummary.numDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(weeklySummary.numDirtyDiapers) + " per day. ";
 			responseCard += "Average number of feedings per day: " + weeklySummary.numFeedings + "\n";
-			responseCard += "Average feeding amount per day: " + weeklySummary.totalFeedAmount + " ounces\n";
+			if( weeklySummary.totalFeedAmount ) {
+				responseCard += "Average feeding amount per day: " + weeklySummary.totalFeedAmount + " ounces\n";
+			}
 			responseCard += "Average number of wet diapers per day: " + weeklySummary.numWetDiapers + "\n";
 			responseCard += "Average number of dirty diapers per day: " + weeklySummary.numDirtyDiapers + "\n";
 			if( weeklySummary.sleep ) {
@@ -327,8 +340,12 @@ SummaryController.prototype.getDailySummary = function(userId) {
 		.then( function(feedsForDayResult) {
 			feedsForDayResult.Items.forEach(function(item) {
 	            logger.debug("getDailySummary: %s - %s", item.dateTime, item.feedAmount);
-	            dailySummary.totalFeedAmount += parseInt(item.feedAmount);
-	            dailySummary.numFeedings++;
+	            if( item.feedAmount ) {
+	            	dailySummary.totalFeedAmount += parseInt(item.feedAmount);
+	            	dailySummary.numSpecifiedFeedings++;
+	            } else {
+	            	dailySummary.numUnspecifiedFeedings++;
+	            }
 	        });
 			return self.weightDao.getWeight(userId, today);
 		})
@@ -395,12 +412,24 @@ SummaryController.prototype.getDailySummary = function(userId) {
 				responseMsg += " and weighs " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces);
 				responseCard += "Weight: " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces) + "\n";
 			}
-			responseMsg += ". " + Utils.heShe(dailySummary.sex, true) + " ate " + dailySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(dailySummary.numFeedings) + " for a total of " +
-				dailySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(dailySummary.totalFeedAmount) + " " +
-				"and had " + dailySummary.numWetDiapers + " wet diaper" + Utils.pluralizeIfNeeded(dailySummary.numWetDiapers) + " and " +
+			responseMsg += ". " + Utils.heShe(dailySummary.sex, true) + " ate " + (dailySummary.numSpecifiedFeedings+dailySummary.numUnspecifiedFeedings) + 
+				" time" + Utils.pluralizeIfNeeded(dailySummary.numSpecifiedFeedings+dailySummary.numUnspecifiedFeedings);
+			if( dailySummary.numSpecifiedFeedings > 0 && dailySummary.numUnspecifiedFeedings === 0 ) {
+				responseMsg += " for a total of " + dailySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(dailySummary.totalFeedAmount);
+			} else if( dailySummary.numSpecifiedFeedings > 0 && dailySummary.numUnspecifiedFeedings > 0 ) {
+				responseMsg += ", including " + dailySummary.numSpecifiedFeedings + " feed" + 
+					Utils.pluralizeIfNeeded(dailySummary.numSpecifiedFeedings) + " totaling " +
+					dailySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(dailySummary.totalFeedAmount) + ",";
+			}
+				
+			responseMsg +=	" and had " + dailySummary.numWetDiapers + " wet diaper" + Utils.pluralizeIfNeeded(dailySummary.numWetDiapers) + " and " +
 				dailySummary.numDirtyDiapers + " dirty diaper" + Utils.pluralizeIfNeeded(dailySummary.numDirtyDiapers) + ". ";
-			responseCard += "Number of feedings: " + dailySummary.numFeedings + "\n";
-			responseCard += "Total feeding amount: " + dailySummary.totalFeedAmount + " ounces\n";
+			responseCard += "Number of feedings: " + (dailySummary.numSpecifiedFeedings+dailySummary.numUnspecifiedFeedings) + "\n";
+			if( dailySummary.numSpecifiedFeedings > 0 && dailySummary.numUnspecifiedFeedings === 0 ) {
+				responseCard += "Total feeding amount: " + dailySummary.totalFeedAmount + " ounces\n";
+			} else if( dailySummary.numSpecifiedFeedings > 0  ) {
+				responseCard += "Total (specified) feeding amount: " + dailySummary.totalFeedAmount + " ounces\n";
+			}
 			responseCard += "Number of wet diapers: " + dailySummary.numWetDiapers + "\n";
 			responseCard += "Number of dirty diapers: " + dailySummary.numDirtyDiapers + "\n";
 			if( dailySummary.sleep ) {

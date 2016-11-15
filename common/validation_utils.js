@@ -151,13 +151,13 @@ ValidationUtils.validateBoolean = function(argumentName, argument) {
 /**
  * Checks that a particular argument is of type Number.
  * @param {string} 				argumentName the argument's name, used in the error message
- * 								if invalid. Non-nullable.
+ * 								if invalid. Nullable.
  * @param argument				the argument to check. Nullable.
  * @returns {Promise<empty>|TypeError} If argument is a number, return an empty fulfilled promise,
  * 			else return a TypeError.
  */
 ValidationUtils.validateNumber = function(argumentName, argument) {
-	if( _.isNumber(argument) )
+	if( !argument || _.isNumber(argument) )
 	{
 		return Promise.resolve();
 	} else {

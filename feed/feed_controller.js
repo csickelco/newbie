@@ -95,11 +95,21 @@ FeedController.prototype.initFeedData = function() {
  */
 FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 	logger.debug("addFeed: Adding feed for %s, date: %s, amount: %d ounces", userId, dateTime, feedAmount);
-	var template = _.template("Added ${feedAmount} ounce feed for ${babyName}. " +
-			"Today, ${pronoun} has eaten ${totalFeedAmt} ounce${feedAmtPlural} over ${numFeeds} feed${numFeedsPlural}"); 
+	
+	var specifiedFeedTemplate = _.template("Added ${feedAmount} ounce feed for ${babyName}. ");
+	var unspecifiedFeedTemplate = _.template("Added feed for ${babyName}. ");
+	
+	var allBottleFeedsTemplate = _.template("Today, ${pronoun} has eaten ${totalFeedAmt} ounce${feedAmtPlural} over ${numFeeds} feed${numFeedsPlural}"); 
+	var allBreastFeedsTemplate = _.template("Today, ${pronoun}'s had ${numFeeds} feed${numFeedsPlural}"); 
+	var allButOneBottleFeedTemplate = _.template("Today, ${pronoun}'s had ${numFeeds} feed${numFeedsPlural}, " +
+			"including ${numSpecifiedFeeds} feed of ${totalFeedAmt} ounce${specifiedFeedAmtPlural}"); 
+	var mixedFeedsTemplate = _.template("Today, ${pronoun}'s had ${numFeeds} feed${numFeedsPlural}, " +
+		"including ${numSpecifiedFeeds} feed${numFeedsPlural} totaling ${totalFeedAmt} ounce${specifiedFeedAmtPlural}"); 
+
 	var loadedBaby;
 	var totalFeedAmt = 0;
-	var numFeeds = 0;
+	var numSpecifiedFeeds = 0;
+	var numUnspecifiedFeeds = 0;
 	var feed = new Feed();
 	feed.userId = userId;
 	feed.dateTime = dateTime;
@@ -115,13 +125,10 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 			return ValidationUtils.validateDate("feed date and time", dateTime);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateRequired("feed amount", feedAmount);
-		})
-		.then( function(result) {
 			return ValidationUtils.validateNumber("feed amount", feedAmount);
 		})
 		.then( function(result) {
-			return ValidationUtils.validateNumberGreaterThan("feed amount", feedAmount, 0);
+			return ValidationUtils.validateNumberGreaterThanOrEqualTo("feed amount", feedAmount, 0);
 		})
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
@@ -142,36 +149,95 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 			//Get all the previous feeds
 			feedsForDayResult.Items.forEach(function(item) {
 	            logger.debug(" -", item.dateTime + ": " + item.feedAmount);
-	            totalFeedAmt += parseInt(item.feedAmount);
-	            numFeeds++;
+	            if( item.feedAmount ) {
+	            	totalFeedAmt += parseInt(item.feedAmount);
+	            	numSpecifiedFeeds++;
+	            } else {
+	            	numUnspecifiedFeeds++;
+	            }
 	        });
 			
 			//Add the current
-			numFeeds++;
-			totalFeedAmt += feedAmount;
+			if( feedAmount ) {
+            	totalFeedAmt += parseInt(feedAmount);
+            	numSpecifiedFeeds++;
+            } else {
+            	numUnspecifiedFeeds++;
+            }
 			
 			//Make sure the user is within their limits
-			if( numFeeds > ADD_LIMIT ) {
+			if( numSpecifiedFeeds+numUnspecifiedFeeds > ADD_LIMIT ) {
 				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
 						" feeds in any given day"));
 			}
 			
 			//Finally, persist the current in the data store
-			return self.feedDao.createFeed(feed)
+			return self.feedDao.createFeed(feed);
 		})
 		.then( function(createFeedResult) {
+			logger.debug("FeedAmount %d, NumSpecifiedFeeds %d, NumUnspecifiedFeeds %d", feedAmount, numSpecifiedFeeds, numUnspecifiedFeeds);
 			//Finally, put it all together in a response
 			var babyName = loadedBaby.name;
-			var responseMsg = template(
-			{
-				feedAmount: feedAmount,
-				feedAmtPlural: Utils.pluralizeIfNeeded(feedAmount),
-				babyName: loadedBaby.name,
-				totalFeedAmt: totalFeedAmt,
-				numFeeds: numFeeds,
-				pronoun: Utils.heShe(loadedBaby.sex),
-				numFeedsPlural: Utils.pluralizeIfNeeded(numFeeds)
-			});
+			var responseMsg;
+			//First part of the message...
+			if( feedAmount ) {
+				responseMsg = specifiedFeedTemplate(
+						{
+							feedAmount: feedAmount,
+							babyName: loadedBaby.name
+						}
+				);
+			} else {
+				responseMsg = unspecifiedFeedTemplate(
+						{
+							babyName: loadedBaby.name
+						}
+				);
+			}
+			//Second part of the message...
+			if( numUnspecifiedFeeds === 0 ) {
+				responseMsg += allBottleFeedsTemplate(
+				{
+					feedAmtPlural: Utils.pluralizeIfNeeded(feedAmount),
+					totalFeedAmt: totalFeedAmt,
+					numFeeds: numSpecifiedFeeds,
+					pronoun: Utils.heShe(loadedBaby.sex),
+					numFeedsPlural: Utils.pluralizeIfNeeded(numSpecifiedFeeds)
+				});
+			} else if( numSpecifiedFeeds === 0 ) {
+				responseMsg += allBreastFeedsTemplate(
+				{
+					numFeeds: numUnspecifiedFeeds,
+					pronoun: Utils.heShe(loadedBaby.sex),
+					numFeedsPlural: Utils.pluralizeIfNeeded(numUnspecifiedFeeds)
+				});
+			} else if( numSpecifiedFeeds === 1 ) {
+				var allButOneBottleFeedTemplate = _.template("Today, ${pronoun}'s had ${numFeeds} feed${numFeedsPlural}, " +
+				"including ${numSpecifiedFeeds} feed of ${totalFeedAmt} ounce${specifiedFeedAmtPlural}"); 
+
+				responseMsg += allButOneBottleFeedTemplate(
+				{
+					totalFeedAmt: totalFeedAmt,
+					numSpecifiedFeeds: numSpecifiedFeeds,
+					numFeeds: numSpecifiedFeeds+numUnspecifiedFeeds,
+					pronoun: Utils.heShe(loadedBaby.sex),
+					numFeedsPlural: Utils.pluralizeIfNeeded(numSpecifiedFeeds+numUnspecifiedFeeds),
+					specifiedFeedAmtPlural: Utils.pluralizeIfNeeded(totalFeedAmt)
+				});
+			} else {
+				var mixedFeedsTemplate = _.template("Today, ${pronoun}'s had ${numFeeds} feed${numFeedsPlural}, " +
+				"including ${numSpecifiedFeeds} feed${numFeedsPlural} totaling ${totalFeedAmt} ounce${specifiedFeedAmtPlural}"); 
+
+				responseMsg += mixedFeedsTemplate(
+				{
+					totalFeedAmt: totalFeedAmt,
+					numFeeds: numSpecifiedFeeds+numUnspecifiedFeeds,
+					pronoun: Utils.heShe(loadedBaby.sex),
+					numFeedsPlural: Utils.pluralizeIfNeeded(numSpecifiedFeeds+numUnspecifiedFeeds),
+					numSpecifiedFeeds: numSpecifiedFeeds,
+					specifiedFeedAmtPlural: Utils.pluralizeIfNeeded(totalFeedAmt)
+				});
+			}
 			logger.debug("addFeed: Response %s", responseMsg);
 			return new Response(responseMsg, "Feed", responseMsg);
 		});
@@ -224,8 +290,11 @@ FeedController.prototype.getLastFeed = function(userId) {
 			if(lastFeedDate) {
 				var today = new Date();
 				var timeDiff = Utils.calculateDuration(lastFeedDate, today);
-				response.message = babyName + " last ate " + lastFeedAmt + " ounce" + 
-					Utils.pluralizeIfNeeded(lastFeedAmt) + " " + timeDiff + " ago";
+				response.message = babyName + " last ate ";
+				if( lastFeedAmt ) {
+					response.message += lastFeedAmt + " ounce" + Utils.pluralizeIfNeeded(lastFeedAmt) + " ";
+				} 
+				response.message += timeDiff + " ago";
 			} else {
 				response.message = "No previous feeding recorded";
 			}
@@ -292,7 +361,13 @@ FeedController.prototype.removeLastFeed = function(userId) {
 			var babyName = loadedBaby.name;
 			var responseMsg;
 			if( lastFeedDateTime ) {
-				responseMsg = "Removed " + feedAmount + " ounce feed for " + babyName + "."; 
+				responseMsg = "Removed ";
+				if( feedAmount ) {
+					responseMsg += feedAmount + " ounce ";
+				} else {
+					responseMsg += "last ";
+				}
+				responseMsg += "feed for " + babyName + "."; 
 			} else {
 				responseMsg =  "No previous feed entries recorded for " + babyName;
 			}

@@ -128,6 +128,124 @@ describe('FeedController', function() {
 			.should.eventually.deep.equal(expectedResponse);
 	});
 	
+	it('addfeed1c()', function() {
+		feedDaoCreateFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				}
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		var expectedResponseMsg = "Added feed for jane. " +
+			"Today, she's had 2 feeds, including 1 feed of 6 ounces";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.addFeed("MOCK_USER_ID", new Date())
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	it('addfeed1d()', function() {
+		feedDaoCreateFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":5
+				}
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		var expectedResponseMsg = "Added feed for jane. " +
+			"Today, she's had 3 feeds, including 2 feeds totaling 11 ounces";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.addFeed("MOCK_USER_ID", new Date())
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	it('addfeed1e()', function() {
+		feedDaoCreateFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z"
+				}
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		var expectedResponseMsg = "Added feed for jane. " +
+			"Today, she's had 3 feeds";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.addFeed("MOCK_USER_ID", new Date())
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	it('addfeed1f()', function() {
+		feedDaoCreateFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		var expectedResponseMsg = "Added 6 ounce feed for jane. " +
+			"Today, she has eaten 6 ounces over 1 feed";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.addFeed("MOCK_USER_ID", new Date(), 6)
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
 	//Illegal argument tests - no user ID
 	it('addfeed3()', function() {
 		return feedController.addFeed(null, new Date(), 5).should.be.rejectedWith(IllegalArgumentError);
@@ -143,15 +261,6 @@ describe('FeedController', function() {
 		return feedController.addFeed("MOCK_USER_ID", '', 5).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument tests - invalid feedAmount
-	it('addfeed7()', function() {
-		return feedController.addFeed("MOCK_USER_ID", new Date()).should.be.rejectedWith(IllegalArgumentError);
-	});
-	it('addfeed8()', function() {
-		return feedController.addFeed("MOCK_USER_ID", new Date(), null).should.be.rejectedWith(IllegalArgumentError);
-	});
-	it('addfeed9()', function() {
-		return feedController.addFeed("MOCK_USER_ID", new Date(), 0).should.be.rejectedWith(RangeError);
-	});
 	it('addfeed10()', function() {
 		return feedController.addFeed("MOCK_USER_ID", new Date(), -1).should.be.rejectedWith(RangeError);
 	});
@@ -382,6 +491,35 @@ describe('FeedController', function() {
 		return feedController.getLastFeed('MOCK_USER_ID').should.eventually.deep.equal(expectedResponse);
 	});
 	
+	it('getLastFeed4c()', function() {
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		
+		var d = new Date();
+		d.setHours(d.getHours()-2);
+		d.setMinutes(d.getMinutes()-1);
+		var feedItems = {
+				"Items" :
+				[
+					{
+						"dateTime":d.toISOString()
+					}
+				]
+			};
+		feedDaoGetLastFeedStub.resolves(feedItems);
+		var expectedResponseMsg = "jane last ate 2 hours and 1 minute ago";
+		var expectedResponse = new Response(expectedResponseMsg);
+		return feedController.getLastFeed('MOCK_USER_ID').should.eventually.deep.equal(expectedResponse);
+	});
+	
 	//Invalid argument
 	it('getLastFeed5()', function() {
 		babyDaoReadBabyStub.resolves(); //No baby returned
@@ -422,6 +560,32 @@ describe('FeedController', function() {
 			};
 		feedDaoGetLastFeedStub.resolves(feedItem);
 		var expectedResponseMsg = "Removed 5 ounce feed for jane.";
+		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
+		return feedController.removeLastFeed("MOCK_USER_ID")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	it('removeLastfeed1b()', function() {
+		feedDaoDeleteFeedStub.resolves();
+		var item = {
+			"Item" :
+			{
+				"birthdate":"2016-06-01T00:00:00.000Z",
+				"sex":"girl",
+				"userId":"MOCK_USER_ID",
+				"name":"jane"  
+			}
+		};
+		babyDaoReadBabyStub.resolves(item);
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z"
+				}
+				]
+			};
+		feedDaoGetLastFeedStub.resolves(feedItem);
+		var expectedResponseMsg = "Removed last feed for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "Feed", expectedResponseMsg);
 		return feedController.removeLastFeed("MOCK_USER_ID")
 			.should.eventually.deep.equal(expectedResponse);

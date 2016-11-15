@@ -32,7 +32,8 @@ module.change_code = 1;
  */
 function FeedSummary (obj) {
 	this.totalFeedAmount = 0;
-	this.numFeedings = 0;
+	this.numSpecifiedFeedings = 0;
+	this.numUnspecifiedFeedings = 0;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -47,7 +48,8 @@ function FeedSummary (obj) {
  */
 function FeedSummary () {
 	this.totalFeedAmount = 0;
-	this.numFeedings = 0;
+	this.numSpecifiedFeedings = 0;
+	this.numUnspecifiedFeedings = 0;
 }
 
 /**
@@ -55,7 +57,8 @@ function FeedSummary () {
  */
 FeedSummary.prototype.toString = function feedSummaryToString() {
 	  var ret = "FeedSummary-- " +
-	  	  "numFeedings: " + this.numFeedings +
+	  	  "numSpecifiedFeedings: " + this.numSpecifiedFeedings +
+	  	 ", numUnspecifiedFeedings: " + this.numUnspecifiedFeedings +
 		  ", totalFeedAmount: " + this.totalFeedAmount;
 	  return ret;
 };

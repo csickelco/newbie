@@ -391,12 +391,15 @@ app.intent('addFeedIntent', {
 	'slots': {
 		'NUM_OUNCES': 'AMAZON.NUMBER'
 	},
-	'utterances': ['{|add|record} {-|NUM_OUNCES} {|ounce} {|feed|bottle}']
+	'utterances': ['{|add|record} {-|NUM_OUNCES} {|ounce} {|feed|bottle|breastfeeding|nursing}']
 }, function(request, response) {
-	var feedAmount = parseInt(request.slot('NUM_OUNCES'));
 	var now = new Date();
-	logger.debug('addFeedIntent: %d ounces for %s', feedAmount, now.toString());
+	var feedAmount;
+	logger.debug('addFeedIntent: %d ounces for %s', request.slot('NUM_OUNCES'), now.toString());
 	
+	if( request.slot('NUM_OUNCES') ) {
+		feedAmount = parseInt(request.slot('NUM_OUNCES'));
+	}
 	feedController.addFeed(request.userId, now, feedAmount)
 		.then(function(responseRetval) {
 			logger.info('addFeedIntent: %s', responseRetval.toString());

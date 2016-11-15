@@ -43,24 +43,24 @@ getLastFeedIntent	when did {NAME} last eat
 getLastFeedIntent	when did baby {NAME} last eat
 getLastFeedIntent	when did the baby {NAME} last eat
 getLastFeedIntent	when did baby the baby {NAME} last eat
-addFeedIntent	{NUM_OUNCES}
-addFeedIntent	add {NUM_OUNCES}
-addFeedIntent	record {NUM_OUNCES}
-addFeedIntent	{NUM_OUNCES} ounce
-addFeedIntent	add {NUM_OUNCES} ounce
-addFeedIntent	record {NUM_OUNCES} ounce
-addFeedIntent	{NUM_OUNCES} feed
+addFeedIntent	add feed
+addFeedIntent	add bottle
 addFeedIntent	add {NUM_OUNCES} feed
 addFeedIntent	record {NUM_OUNCES} feed
-addFeedIntent	{NUM_OUNCES} ounce feed
 addFeedIntent	add {NUM_OUNCES} ounce feed
 addFeedIntent	record {NUM_OUNCES} ounce feed
-addFeedIntent	{NUM_OUNCES} bottle
 addFeedIntent	add {NUM_OUNCES} bottle
 addFeedIntent	record {NUM_OUNCES} bottle
-addFeedIntent	{NUM_OUNCES} ounce bottle
 addFeedIntent	add {NUM_OUNCES} ounce bottle
 addFeedIntent	record {NUM_OUNCES} ounce bottle
+addFeedIntent	add breastfeeding
+addFeedIntent	record breastfeeding
+addFeedIntent	add breastfeeding
+addFeedIntent	record breastfeeding
+addFeedIntent	add nursing
+addFeedIntent	record nursing
+addFeedIntent	add nursing
+addFeedIntent	record nursing
 removeFeedIntent	remove feed
 removeFeedIntent	delete feed
 removeFeedIntent	undo feed
