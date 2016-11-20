@@ -83,6 +83,9 @@ SleepController.prototype.initSleepData = function() {
  * @param 	userId {string}		the userId whose baby is sleeping. Non-nullable.
  * @param	dateTime {Date}		the date/time the sleep started. Non-nullable.
  * 								Must be now or a date in the past.
+ * @param 	{string} baby				the name of the baby to add the sleep for. Nullable.
+ * 										If not specified, the sleep is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -92,7 +95,7 @@ SleepController.prototype.initSleepData = function() {
  * 			if an error occurred interacting with DynamoDB,
  * 			an IllegalArgumentException if userId or dateTime are invalid
  */
-SleepController.prototype.startSleep = function(userId, dateTime) {
+SleepController.prototype.startSleep = function(userId, dateTime, baby) {
 	logger.debug("addSleep: Adding sleep for %s, dateTime: %s,", userId, dateTime);
 	var template = _.template("Recording sleep for ${babyName}.");
 	var loadedBaby;
@@ -114,18 +117,30 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("startSleep: Retrieving baby %s...", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, create the sleep in the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
+				sleep.seq = loadedBaby.seq;
 			} else {
-				return Promise.reject(new IllegalStateError("Before recording sleep, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before recording sleep for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before recording sleep, you must first add a baby"));
+				}
 			}
 			
 			//Next, check to make sure activity limits haven't been exceeded
-			return self.sleepDao.getSleepCountForDay(userId, sleep.sleepDateTime);
+			return self.sleepDao.getSleepCountForDay(userId, loadedBaby.seq, sleep.sleepDateTime);
 		})
 		.then( function(sleepCountResult) {
 			if( sleepCountResult + 1 > ADD_LIMIT ) {
@@ -154,6 +169,9 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
  * @param 	userId {string}		the userId whose baby is sleeping. Non-nullable.
  * @param	dateTime {Date}		the date/time the sleep ended. Non-nullable. Must
  * 								be the current date or a date in the past.
+ * @param 	{string} baby				the name of the baby to end the sleep for. Nullable.
+ * 										If not specified, the sleep is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError/IllegalArgumentError/IllegalStateError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -164,7 +182,7 @@ SleepController.prototype.startSleep = function(userId, dateTime) {
  * 			IllegalStateError if no baby is registered or no current sleep has been recorded.
  * 			IllegalArgumentError if one of the arguments is invalid.
  */
-SleepController.prototype.endSleep = function(userId, dateTime) {
+SleepController.prototype.endSleep = function(userId, dateTime, baby) {
 	logger.debug("endSleep: Ending sleep for %s, dateTime: %s,", userId, dateTime);
 	var lastSleep;
 	var self = this;
@@ -183,16 +201,27 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 	.then( function(result) {
 		//Next, get this user's baby (to make sure it exists and to use the
 		//name in the response)
-		return self.babyDao.readBaby(userId);
+		if( baby ) {
+			logger.debug("endSleep: Retrieving baby %s...", baby);
+			return self.babyDao.readBabyByName(userId, baby);
+		} else {
+			return self.babyDao.readBaby(userId);
+		}
 	})
 	.then( function(readBabyResult) {
 		//Then, get the last sleep in the datastore provided the baby exists
-		if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-			loadedBaby = readBabyResult.Item;
+		if(readBabyResult) {
+			loadedBaby = readBabyResult;
 		} else {
-			return Promise.reject(new IllegalStateError("Before recording wake, you must first add a baby"));
+			if(baby) {
+				return Promise.reject(new IllegalStateError(
+						"Before recording wake for " + baby + ", you must first add " + baby + 
+						" by saying 'tell Newbie to add baby'"));
+			} else {
+				return Promise.reject(new IllegalStateError("Before recording wake, you must first add a baby"));
+			}
 		}
-		return self.sleepDao.getLastSleep(userId);
+		return self.sleepDao.getLastSleep(userId, loadedBaby.seq);
 	})
 	.then( function(result) 
 	{
@@ -201,6 +230,8 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
 		result.Items.forEach(function(item) {
             logger.debug("endSleep: lastSleep %s", item.sleepDateTime);
             lastSleep = item;
+            lastSleep.userId = item.sleepKey.substring(0, item.sleepKey.indexOf("-"));
+            lastSleep.seq = loadedBaby.seq;
             lastSleep.sleepDateTime = new Date(lastSleep.sleepDateTime); //TODO: this is a bit kludgy. Should DAO do this?
             foundSleepRecord = true;
         });
@@ -234,6 +265,9 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
  * or the fact that the baby is sleeping if they are still asleep.
  * 
  * @param 	userId {string}		the userId whose baby to get awake time for. Non-nullable.
+ * @param 	{string} baby				the name of the baby to get the sleep for. Nullable.
+ * 										If not specified, the sleep is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -243,7 +277,7 @@ SleepController.prototype.endSleep = function(userId, dateTime) {
  * 			if an error occurred interacting with DynamoDB
  * 			or an IllegalArgumentError if userId is not specified.
  */
-SleepController.prototype.getAwakeTime = function(userId) {
+SleepController.prototype.getAwakeTime = function(userId, baby) {
 	var lastSleepDate;
 	var lastWakeDate;
 	var response = new Response();
@@ -254,16 +288,27 @@ SleepController.prototype.getAwakeTime = function(userId) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("getAwakeTime: Retrieving baby %s...", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get this user's baby's last sleep
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 			} else {
-				return Promise.reject(new IllegalStateError("Before recording sleep, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before getting awake time for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before getting awake time, you must first add a baby"));
+				}
 			}
-			return self.sleepDao.getLastSleep(userId);
+			return self.sleepDao.getLastSleep(userId, loadedBaby.seq);
 		})
 	.then( function(result) 
 	{
@@ -298,7 +343,9 @@ SleepController.prototype.getAwakeTime = function(userId) {
  * and return a response.
  * 
  * @param 	userId {string}		the userId whose last sleep entry to remove. Non-nullable.
- * 
+ * @param 	{string} baby				the name of the baby to remove the sleep for. Nullable.
+ * 										If not specified, the sleep is assumed to be for the most
+ * 										recently added baby.
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
  * 			where the response has both a verbal message and written card
@@ -306,7 +353,7 @@ SleepController.prototype.getAwakeTime = function(userId) {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-SleepController.prototype.removeLastSleep = function(userId) {
+SleepController.prototype.removeLastSleep = function(userId, baby) {
 	logger.debug("removeLastSleep: Removing sleep for %s", userId);
 	var loadedBaby;	
 	var self = this;
@@ -317,16 +364,27 @@ SleepController.prototype.removeLastSleep = function(userId) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("removeLastSleep: Removing sleep for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get the most recent sleep entry from the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 			} else {
-				return Promise.reject(new IllegalStateError("Before removing sleeps, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before removing sleep for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before removing sleep, you must first add a baby"));
+				}
 			}
-			return self.sleepDao.getLastSleep(userId);
+			return self.sleepDao.getLastSleep(userId, loadedBaby.seq);
 		})
 		.then( function(getLastSleepResult) {
 			//TODO: Handle the case where there are no sleep entries
@@ -338,7 +396,7 @@ SleepController.prototype.removeLastSleep = function(userId) {
 			//Then delete that sleep
 			if( lastSleepDateTime ) {
 				logger.debug("Deleting sleep");
-				return self.sleepDao.deleteSleep(userId, new Date(lastSleepDateTime));
+				return self.sleepDao.deleteSleep(userId, loadedBaby.seq, new Date(lastSleepDateTime));
 			} else {
 				return Promise.resolve();
 			}

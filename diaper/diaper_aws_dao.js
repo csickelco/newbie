@@ -93,11 +93,11 @@ DiaperAWSDao.prototype.createTable = function() {
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
-			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
+			        { AttributeName: "diaperKey", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "dateTime", KeyType: "RANGE" }  //Sort key
 			    ],
 			    AttributeDefinitions: [       
-			        { AttributeName: "userId", AttributeType: "S" },
+			        { AttributeName: "diaperKey", AttributeType: "S" },
 			        { AttributeName: "dateTime", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
@@ -152,7 +152,7 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: diaper.userId,
+	    	diaperKey: diaper.userId + "-" + diaper.seq,
 	    	dateTime: dateTimeString,
 			isWet: diaper.isWet,
 			isDirty: diaper.isDirty
@@ -169,6 +169,7 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
  * for the specified date or later for a given user.
  * 
  * @param userId {string}	AWS user ID whose diapers to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose diapers to retrieve. Non-nullable.
  * @param date {Date}		Date/time after which to retrieve all diapers. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -177,16 +178,16 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-DiaperAWSDao.prototype.getDiapers = function(userId, date) {
+DiaperAWSDao.prototype.getDiapers = function(userId, seq, date) {
 	logger.debug("getDiapers: Starting get diapers for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			KeyConditionExpression: "diaperKey = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {
 				"#dt": "dateTime" //This is needed because dateTime is a reserved word
 			},
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
@@ -201,6 +202,7 @@ DiaperAWSDao.prototype.getDiapers = function(userId, date) {
  * from the datastore.
  * 
  * @param userId {string}	AWS user ID whose diaper to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose diapers to retrieve. Non-nullable.
  * @param date {Date}		The date/time of the diaper entry to delete. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -209,12 +211,12 @@ DiaperAWSDao.prototype.getDiapers = function(userId, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-DiaperAWSDao.prototype.deleteDiaper = function(userId, dateTime) {
-	logger.debug("deleteDiaper: Starting delete diaper for %s %s", userId, dateTime.toISOString() );
+DiaperAWSDao.prototype.deleteDiaper = function(userId, seq, dateTime) {
+	logger.info("deleteDiaper: Starting delete diaper for %s %s", userId, dateTime );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
-	        "userId":userId,
+	        "diaperKey":userId + "-" + seq,
 	        "dateTime":dateTime.toISOString() 
 	    }
 	};
@@ -229,20 +231,20 @@ DiaperAWSDao.prototype.deleteDiaper = function(userId, dateTime) {
  * the given userId, or null if no feeds exist.
  * 
  * @param userId {string} 	AWS user ID whose most recent diaper entry to retrieve. Non-nullable.
- * 
+ * @param {number} seq		the sequence number of the baby whose diapers to retrieve. Non-nullable.
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB. 
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-DiaperAWSDao.prototype.getLastDiaper = function(userId) {
+DiaperAWSDao.prototype.getLastDiaper = function(userId, seq) {
 	logger.debug("getLastDiaper: Starting get last diaper for user %s", userId);
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1",
+			KeyConditionExpression: "diaperKey = :val1",
 		    ExpressionAttributeValues: {
-		    	":val1":userId
+		    	":val1":userId + "-" + seq
 		    },
 		    ScanIndexForward: false,
 		    Limit: 1

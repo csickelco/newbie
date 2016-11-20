@@ -178,10 +178,14 @@ app.launch(function(req, res) {
  * 					as well as a card with similar information.
  */
 app.intent('dailySummaryIntent', {
-	'utterances': ['{daily summary}']
+	'slots': {
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{daily summary} {|for} {-|NAME}']
 }, function(request, response) {
+	var babyName = request.slot('NAME');
 	logger.debug('dailySummaryIntent: Getting summary for userId %s', request.userId);
-	summaryController.getDailySummary(request.userId)
+	summaryController.getDailySummary(request.userId, babyName)
 		.then(function(responseRetval) {
 			logger.info('dailySummaryIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -211,10 +215,14 @@ app.intent('dailySummaryIntent', {
  * 					as well as a card with similar information.
  */
 app.intent('weeklySummaryIntent', {
-	'utterances': ['{weekly summary}']
+	'slots': {
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{weekly summary} {|for} {-|NAME}']
 }, function(request, response) {
+	var babyName = request.slot('NAME');
 	logger.debug('weeklySummaryIntent: Getting summary for userId %s', request.userId);
-	summaryController.getWeeklySummary(request.userId)
+	summaryController.getWeeklySummary(request.userId, babyName)
 		.then(function(responseRetval) {
 			logger.info('weeklySummaryIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -244,10 +252,11 @@ app.intent('startSleepIntent', {
 	},
 	'utterances': ['{|the baby} {-|NAME} {|is|started} {|sleeping|went to sleep|taking a nap|napping}']
 }, function(request, response) {
+	var babyName = request.slot('NAME');
 	logger.debug('startSleepIntent: started sleep');
 	var userId = request.userId;
 	var now = new Date();
-	sleepController.startSleep(userId, now)
+	sleepController.startSleep(userId, now, babyName)
 		.then(function(responseRetval) {
 			logger.info('startSleepIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();
@@ -276,9 +285,10 @@ app.intent('endSleepIntent', {
 	'utterances': ['{|the baby} {-|NAME} {|is awake|woke up|finished sleeping|finished napping}']
 }, function(request, response) {
 	logger.debug('endSleepIntent: ended sleep');
+	var babyName = request.slot('NAME');
 	var userId = request.userId;
 	var now = new Date();
-	sleepController.endSleep(userId, now)
+	sleepController.endSleep(userId, now, babyName)
 		.then(function(responseRetval) {
 			logger.info('endSleepIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();
@@ -300,11 +310,15 @@ app.intent('endSleepIntent', {
  * 					the sleep change recorded.
  */
 app.intent('removeSleepIntent', {
-	'utterances': ['{|remove|delete|undo} sleep']
+	'slots': {
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{|remove|delete|undo} sleep {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeSleepIntent");
-	sleepController.removeLastSleep(request.userId)
+	var babyName = request.slot('NAME');
+	sleepController.removeLastSleep(request.userId, babyName)
 		.then(function(responseRetval) {
 			logger.info('removeSleepIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -334,7 +348,8 @@ app.intent('getAwakeTimeIntent', {
 	//When did {baby|Natalie} last eat?
 	'utterances': ['how long has {|baby} {|the baby} {-|NAME} been awake']
 	}, function(request, response) {
-		sleepController.getAwakeTime(request.userId)
+		var babyName = request.slot('NAME');
+		sleepController.getAwakeTime(request.userId, babyName)
 			.then(function(responseRetval) {
 				logger.info('getAwakeTimeIntent: Response %s', responseRetval);
 				response.say(responseRetval.message).send();	
@@ -364,7 +379,8 @@ app.intent('getLastFeedIntent', {
 	//When did {baby|Natalie} last eat?
 	'utterances': ['when did {|baby} {|the baby} {-|NAME} last eat']
 	}, function(request, response) {
-		feedController.getLastFeed(request.userId)
+		var babyName = request.slot('NAME');
+		feedController.getLastFeed(request.userId, babyName)
 			.then(function(responseRetval) {
 				logger.info('getLastFeedIntent: Response %s', responseRetval);
 				response.say(responseRetval.message).send();	
@@ -389,18 +405,20 @@ app.intent('getLastFeedIntent', {
  */
 app.intent('addFeedIntent', {
 	'slots': {
-		'NUM_OUNCES': 'AMAZON.NUMBER'
+		'NUM_OUNCES': 'AMAZON.NUMBER',
+		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|add|record} {-|NUM_OUNCES} {|ounce} {|feed|bottle|breastfeeding|nursing}']
+	'utterances': ['{|add|record} {-|NUM_OUNCES} {|ounce} {|feed|bottle|breastfeeding|nursing} {|for} {-|NAME}']
 }, function(request, response) {
 	var now = new Date();
 	var feedAmount;
+	var babyName = request.slot('NAME');
 	logger.debug('addFeedIntent: %d ounces for %s', request.slot('NUM_OUNCES'), now.toString());
 	
 	if( request.slot('NUM_OUNCES') ) {
 		feedAmount = parseInt(request.slot('NUM_OUNCES'));
 	}
-	feedController.addFeed(request.userId, now, feedAmount)
+	feedController.addFeed(request.userId, now, feedAmount, babyName)
 		.then(function(responseRetval) {
 			logger.info('addFeedIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -424,11 +442,15 @@ app.intent('addFeedIntent', {
  * 					the feed change recorded.
  */
 app.intent('removeFeedIntent', {
-	'utterances': ['{|remove|delete|undo} feed']
+	'slots': {
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{|remove|delete|undo} feed {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeFeedIntent");
-	feedController.removeLastFeed(request.userId)
+	var babyName = request.slot('NAME');
+	feedController.removeLastFeed(request.userId, babyName)
 		.then(function(responseRetval) {
 			logger.info('removeFeedIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -453,14 +475,16 @@ function(request, response) {
  */
 app.intent('addActivityIntent', {
 	'slots': {
-		'ACTIVITY': 'ACTIVITY_TYPE'
+		'ACTIVITY': 'ACTIVITY_TYPE',
+		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|add|record} activity {-|ACTIVITY}']
+	'utterances': ['{|add|record} activity {-|ACTIVITY} {|for} {-|NAME}']
 }, function(request, response) {
 	var activity = request.slot('ACTIVITY');
+	var babyName = request.slot('NAME');
 	logger.debug('addActivityIntent: %s', activity);
 	
-	activityController.addActivity(request.userId, activity)
+	activityController.addActivity(request.userId, activity, new Date(), babyName)
 		.then(function(responseRetval) {
 			logger.info('addActivityIntent: Response %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -485,11 +509,16 @@ app.intent('addActivityIntent', {
  * 					the activity change recorded.
  */
 app.intent('removeActivityIntent', {
-	'utterances': ['{|remove|delete|undo} activity']
+	'slots': {
+		'ACTIVITY': 'ACTIVITY_TYPE',
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{|remove|delete|undo} activity {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeActivityIntent");
-	activityController.removeLastActivity(request.userId)
+	var babyName = request.slot('NAME');
+	activityController.removeLastActivity(request.userId, babyName)
 		.then(function(responseRetval) {
 			logger.info('removeActivityIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -515,19 +544,21 @@ function(request, response) {
 app.intent('addDiaperIntent', {
 	'slots': {
 		'FIRST_DIAPER_TYPE': 'DIAPER_TYPE',
-		'SECOND_DIAPER_TYPE': 'DIAPER_TYPE'
+		'SECOND_DIAPER_TYPE': 'DIAPER_TYPE',
+		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|add|record} {-|FIRST_DIAPER_TYPE} {|AND} {-|SECOND_DIAPER_TYPE} diaper']
+	'utterances': ['{|add|record} {-|FIRST_DIAPER_TYPE} {|AND} {-|SECOND_DIAPER_TYPE} diaper {|for} {-|NAME}']
 },
 function(request, response) {
 	var diaperType1 = request.slot('FIRST_DIAPER_TYPE');
 	var diaperType2 = request.slot('SECOND_DIAPER_TYPE');
+	var babyName = request.slot('NAME');
 	logger.debug("addDiaperIntent: %s diaper AND %s diaper", diaperType1, diaperType2);
 	var isWet = determineIfWetDiaper(diaperType1) || determineIfWetDiaper(diaperType2);
 	var isDirty = determineIfDirtyDiaper(diaperType1) || determineIfDirtyDiaper(diaperType2);
 	logger.debug("addDiaperIntent: wet -- %s, dirty -- %s", isWet, isDirty);
 	var now = new Date();
-	diaperController.addDiaper(request.userId, now, isWet, isDirty)
+	diaperController.addDiaper(request.userId, now, isWet, isDirty, babyName)
 		.then(function(responseRetval) {
 			logger.info('addDiaperIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -551,11 +582,15 @@ function(request, response) {
  * 					the diaper change recorded.
  */
 app.intent('removeDiaperIntent', {
-	'utterances': ['{|remove|delete|undo} diaper']
+	'slots': {
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{|remove|delete|undo} diaper {|for} {-|NAME}']
 },
 function(request, response) {
+	var babyName = request.slot('NAME');
 	logger.debug("removeDiaperIntent");
-	diaperController.removeLastDiaper(request.userId)
+	diaperController.removeLastDiaper(request.userId, babyName)
 		.then(function(responseRetval) {
 			logger.info('removeDiaperIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -581,9 +616,10 @@ function(request, response) {
 app.intent('addWeightIntent', {
     'slots': {
         'NUM_POUNDS': 'AMAZON.NUMBER',
-        'NUM_OUNCES': 'AMAZON.NUMBER'
+        'NUM_OUNCES': 'AMAZON.NUMBER',
+        'NAME': 'AMAZON.US_FIRST_NAME'
     },
-    'utterances': ['{|add|record} {|weight} {-|NUM_POUNDS} {|pounds} {-|NUM_OUNCES} {|ounces}']
+    'utterances': ['{|add|record} {|weight} {-|NUM_POUNDS} {|pounds} {-|NUM_OUNCES} {|ounces} {|for} {-|NAME}']
 	},
 
 	function(request, response) {
@@ -591,6 +627,7 @@ app.intent('addWeightIntent', {
 		//TODO: Should the integer parsing really be done in the controller, where we're already type checking?
 	    var pounds = parseInt(request.slot('NUM_POUNDS'));
 	    var ounces = parseInt(request.slot('NUM_OUNCES'));
+	    var babyName = request.slot('NAME');
 	    logger.debug("addWeightIntent: %d pounds, %d ounces, request %s", pounds, ounces, JSON.stringify(request));
 	    var now = new Date();
 	    
@@ -599,7 +636,8 @@ app.intent('addWeightIntent', {
 					request.userId, 
 					now,
 					pounds,
-					ounces
+					ounces,
+					babyName
 				);
 			addWeightPromise.then(function(responseRetval) {
 				logger.debug('addWeightIntent: %s', responseRetval);
@@ -631,11 +669,15 @@ app.intent('addWeightIntent', {
  * 					the weight recorded.
  */
 app.intent('removeWeightIntent', {
-	'utterances': ['{|remove|delete|undo} weight']
+	'slots': {
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{|remove|delete|undo} weight {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeWeightIntent");
-	weightController.removeLastWeight(request.userId)
+	var babyName = request.slot('NAME');
+	weightController.removeLastWeight(request.userId, babyName)
 		.then(function(responseRetval) {
 			logger.info('removeWeightIntent: %s', responseRetval.toString());
 			response.say(responseRetval.message).send();	
@@ -766,7 +808,7 @@ app.intent('AMAZON.StopIntent', exitFunction);
 app.intent('AMAZON.CancelIntent', exitFunction);
 
 app.intent('AMAZON.HelpIntent', function(request, response) {
-	var speechOutput = "To first set up Newbie, say 'Alexa, tell newbie to add baby'. After that, here are some examples of things you can tell Newbie: " +
+	var speechOutput = "To first set up Newbie, say 'tell newbie to add baby'. After that, here are some examples of things you can tell Newbie: " +
 		HELP_TEXT;
 	response.say(speechOutput);
 	response.shouldEndSession(true);

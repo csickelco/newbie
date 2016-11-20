@@ -94,11 +94,11 @@ WeightAWSDao.prototype.createTable = function() {
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
-			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
+			        { AttributeName: "weightKey", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "date", KeyType: "RANGE" }  //Sort key
 			    ],
 			    AttributeDefinitions: [       
-			        { AttributeName: "userId", AttributeType: "S" },
+			        { AttributeName: "weightKey", AttributeType: "S" },
 			        { AttributeName: "date", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
@@ -154,7 +154,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: weight.userId,
+	    	weightKey: weight.userId + "-" + weight.seq,
 			date: dateString,
 			weight: weight.weight
 	    }
@@ -170,6 +170,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
  * for the specified date or later for a given user.
  * 
  * @param userId {string}	AWS user ID whose weight records to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose weight to retrieve. Non-nullable.
  * @param date	{Date}		Date after which to retrieve all weight records. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -178,16 +179,16 @@ WeightAWSDao.prototype.createWeight = function(weight) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-WeightAWSDao.prototype.getWeight = function(userId, date) {
+WeightAWSDao.prototype.getWeight = function(userId, seq, date) {
 	logger.debug("getWeight: Starting get weight for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			KeyConditionExpression: "weightKey = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {
 				"#dt": "date" //This is needed because date is a reserved word
 			},
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
@@ -202,6 +203,7 @@ WeightAWSDao.prototype.getWeight = function(userId, date) {
  * the given userId, or null if no weights exist.
  * 
  * @param userId {string} 	AWS user ID whose most recent weight to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose weight to retrieve. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -209,13 +211,13 @@ WeightAWSDao.prototype.getWeight = function(userId, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-WeightAWSDao.prototype.getLastWeight = function(userId) {
+WeightAWSDao.prototype.getLastWeight = function(userId, seq) {
 	logger.debug("getLastWeight: Starting get last weight for user %s", userId);
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1",
+			KeyConditionExpression: "weightKey = :val1",
 		    ExpressionAttributeValues: {
-		    	":val1":userId
+		    	":val1":userId+"-"+seq
 		    },
 		    ScanIndexForward: false,
 		    Limit: 1
@@ -231,6 +233,7 @@ WeightAWSDao.prototype.getLastWeight = function(userId) {
  * from the datastore.
  * 
  * @param userId {string}	AWS user ID whose weight to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose weight to delete. Non-nullable.
  * @param date {Date}		The date/time of the weight entry to delete. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -239,12 +242,12 @@ WeightAWSDao.prototype.getLastWeight = function(userId) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-WeightAWSDao.prototype.deleteWeight = function(userId, date) {
+WeightAWSDao.prototype.deleteWeight = function(userId, seq, date) {
 	logger.debug("deleteWeight: Starting delete weight for %s %s", userId, date.toISOString() );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
-	        "userId":userId,
+	        "weightKey":userId + "-" + seq,
 	        "date":date.toISOString() 
 	    }
 	};
@@ -259,6 +262,7 @@ WeightAWSDao.prototype.deleteWeight = function(userId, date) {
  * for the specified date or later for a given user.
  * 
  * @param {string} userId 	AWS user ID whose weight count to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose weight to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to count weight. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
@@ -267,16 +271,16 @@ WeightAWSDao.prototype.deleteWeight = function(userId, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-WeightAWSDao.prototype.getWeightCountForDay = function(userId, date) {
+WeightAWSDao.prototype.getWeightCountForDay = function(userId, seq, date) {
 	logger.debug("getWeightCountForDay: Starting get weight count for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			KeyConditionExpression: "weightKey = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {
 				"#dt": "date" //This is needed because date is a reserved word
 			},
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    },
 		    ProjectionExpression: "noattribute"

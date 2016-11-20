@@ -108,6 +108,9 @@ WeightController.prototype.initWeightData = function() {
  * @param	pounds {number}		the number of pounds the baby is. Non-nullable.  Must be an integer >= 0.
  * @param	ounces {number}		number of ounces after pounds the baby is. Nullable (if null, assumed to be 0).
  * 								Must be an integer between 0 and 15.
+ * @param 	{string} baby				the name of the baby to add the weight for. Nullable.
+ * 										If not specified, the weight is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError, IllegalArgumentError, TypeError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -119,9 +122,9 @@ WeightController.prototype.initWeightData = function() {
  * 			or TypeError if one of the specified arguments was of the wrong type,
  * 			or RangeError if pounds or ounces fall outside the range.
  */
-WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
+WeightController.prototype.addWeight = function(userId, date, pounds, ounces, baby) {
 	logger.debug("pounds - " + pounds + ", ounces - " + ounces);
-	logger.debug("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d", userId, date, pounds, ounces);
+	logger.debug("addWeight: Adding weight for %s, date: %s, pounds: %d, ounces: %d, baby: %s", userId, date, pounds, ounces, baby);
 	var template = _.template('Added weight ${pounds} pound${poundsPlural}, ${ounces} ounce${ouncePlural} for ${babyName}.');
 	if( !ounces ) {
 		ounces = 0;
@@ -159,13 +162,29 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
 			return ValidationUtils.validateNumberLessThan("weight ounces", ounces, 16);
 		})
 		.then( function(result) {
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("addWeight: Adding weight for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then(function(readBabyResult) {
-			loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
+				weight.seq = loadedBaby.seq;
+			} else {
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before adding weight for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before adding weight, you must first add a baby"));
+				}
+			}
 			return ValidationUtils.validateDateAfter("weight date", date, new Date(loadedBaby.birthdate));
 		}).then(function(result) {
-			return self.weightDao.getWeightCountForDay(weight.userId, date);
+			return self.weightDao.getWeightCountForDay(weight.userId, loadedBaby.seq, date);
 		})
 		.then(function(weightCountResult) {
 			if( weightCountResult + 1 > ADD_LIMIT ) {
@@ -193,7 +212,9 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
  * and return a response.
  * 
  * @param 	userId {string}		the userId whose last weight entry to remove. Non-nullable.
- * 
+ * @param 	{string} baby				the name of the baby to get the weight for. Nullable.
+ * 										If not specified, the weight is assumed to be for the most
+ * 										recently added baby.
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
  * 			where the response has both a verbal message and written card
@@ -201,7 +222,7 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces) {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-WeightController.prototype.removeLastWeight = function(userId) {
+WeightController.prototype.removeLastWeight = function(userId, baby) {
 	logger.debug("removeLastWeight: Removing weight for %s", userId);
 	var loadedBaby;	
 	var self = this;
@@ -213,16 +234,27 @@ WeightController.prototype.removeLastWeight = function(userId) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("removeLastWeight: Removing weight for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get the most recent weight entry from the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 			} else {
-				return Promise.reject(new IllegalStateError("Before removing activities, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before removing weight for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before removing weight, you must first add a baby"));
+				}
 			}
-			return self.weightDao.getLastWeight(userId);
+			return self.weightDao.getLastWeight(userId, loadedBaby.seq);
 		})
 		.then( function(getLastWeightResult) {
 			//TODO: Handle the case where there are no weight entries
@@ -235,7 +267,7 @@ WeightController.prototype.removeLastWeight = function(userId) {
 			//Then delete that weight
 			if( lastWeightDate ) {
 				logger.debug("Deleting weight");
-				return self.weightDao.deleteWeight(userId, new Date(lastWeightDate));
+				return self.weightDao.deleteWeight(userId, loadedBaby.seq, new Date(lastWeightDate));
 			} else {
 				return Promise.resolve();
 			}

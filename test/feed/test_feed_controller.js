@@ -27,6 +27,7 @@ var FeedController = require('../../feed/feed_controller');
 var FeedDao = require('../../feed/feed_aws_dao');
 var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
+var Baby = require('../../baby/baby');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
 var ActivityLimitError = require('../../common/activity_limit_error');
@@ -76,16 +77,12 @@ describe('FeedController', function() {
 	//Happy path test 1
 	it('addfeed1()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -105,16 +102,12 @@ describe('FeedController', function() {
 	
 	it('addfeed1b()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -130,16 +123,12 @@ describe('FeedController', function() {
 	
 	it('addfeed1c()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -159,16 +148,12 @@ describe('FeedController', function() {
 	
 	it('addfeed1d()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -192,16 +177,12 @@ describe('FeedController', function() {
 	
 	it('addfeed1e()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -223,16 +204,12 @@ describe('FeedController', function() {
 	
 	it('addfeed1f()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -267,16 +244,12 @@ describe('FeedController', function() {
 	//Invalid types
 	it('addfeed11()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 					[
@@ -295,16 +268,12 @@ describe('FeedController', function() {
 	});
 	it('addfeed12()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 					[
@@ -331,16 +300,12 @@ describe('FeedController', function() {
 	it('addfeed14()', function() {
 		var daoError = new DaoError("create the feed", new Error("foo"));
 		feedDaoCreateFeedStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -381,37 +346,29 @@ describe('FeedController', function() {
 	
 	//No feeds
 	it('getLastFeed2()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItems = {
 				"Items" : []
 			};
 		feedDaoGetLastFeedStub.resolves(feedItems);
-		var expectedResponseMsg = "No previous feeding recorded";
+		var expectedResponseMsg = "No previous feeding recorded for jane";
 		var expectedResponse = new Response(expectedResponseMsg);
 		return feedController.getLastFeed('MOCK_USER_ID').should.eventually.deep.equal(expectedResponse);
 	});
 	
 	//Last feed exists
 	it('getLastFeed3()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		var d = new Date();
 		d.setHours(d.getHours()-1);
@@ -432,16 +389,12 @@ describe('FeedController', function() {
 	
 	//Last feed exists
 	it('getLastFeed4()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		var d = new Date();
 		d.setHours(d.getHours()-2);
@@ -462,16 +415,12 @@ describe('FeedController', function() {
 	});
 	
 	it('getLastFeed4b()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		var d = new Date();
 		d.setHours(d.getHours()-2);
@@ -492,16 +441,12 @@ describe('FeedController', function() {
 	});
 	
 	it('getLastFeed4c()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		var d = new Date();
 		d.setHours(d.getHours()-2);
@@ -539,16 +484,12 @@ describe('FeedController', function() {
 	//Happy path test 1
 	it('removeLastfeed1()', function() {
 		feedDaoDeleteFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -566,16 +507,12 @@ describe('FeedController', function() {
 	});
 	it('removeLastfeed1b()', function() {
 		feedDaoDeleteFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -618,16 +555,12 @@ describe('FeedController', function() {
 	it('removeLastfeed7()', function() {
 		var daoError = new DaoError("Dao error", new Error("foo"));
 		feedDaoDeleteFeedStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[
@@ -644,16 +577,12 @@ describe('FeedController', function() {
 	//No feed entries exist
 	it('removeLastfeed8()', function() {
 		feedDaoDeleteFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" : []
 			};
@@ -667,16 +596,12 @@ describe('FeedController', function() {
 	//Test activity limits
 	it('addfeed100()', function() {
 		feedDaoCreateFeedStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var feedItem = {
 				"Items" :
 				[

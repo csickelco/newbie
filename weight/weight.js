@@ -32,6 +32,7 @@ function Weight (obj) {
 	this.userId = undefined;
 	this.date = undefined;
 	this.weight = undefined;
+	this.seq = undefined;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -44,7 +45,7 @@ function Weight (obj) {
  * @returns {string} a string representation of this object
  */
 Weight.prototype.toString = function weightToString() {
-	  var ret = "Weight, userId: " + this.userId + ", date: " + this.date + ", weight: " + this.weight;
+	  var ret = "Weight, userId: " + this.userId + ", seq: " + this.seq + ", date: " + this.date + ", weight: " + this.weight;
 	  return ret;
 };
 

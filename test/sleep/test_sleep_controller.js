@@ -27,6 +27,7 @@ var SleepController = require('../../sleep/sleep_controller');
 var SleepDao = require('../../sleep/sleep_aws_dao');
 var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
+var Baby = require('../../baby/baby');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
 var ActivityLimitError = require('../../common/activity_limit_error');
@@ -80,16 +81,12 @@ describe('SleepController', function() {
 	it('startSleep1()', function() {
 		sleepDaoCreateSleepStub.resolves();
 		sleepDaoGetSleepCountForDayStub.resolves(0);
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var expectedResponseMsg = "Recording sleep for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "Started sleep", expectedResponseMsg);
 		return sleepController.startSleep("MOCK_USER_ID", new Date()).should.eventually.deep.equal(expectedResponse);
@@ -112,16 +109,12 @@ describe('SleepController', function() {
 	//Invalid types
 	it('startsleep6()', function() {
 		sleepDaoCreateSleepStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		return sleepController.startSleep("MOCK_USER_ID", "No Date").should.be.rejectedWith(TypeError);
 	});
 	//Date in the future
@@ -142,16 +135,12 @@ describe('SleepController', function() {
 	it('startsleep9()', function() {
 		var daoError = new DaoError("create the sleep", new Error("foo"));
 		sleepDaoCreateSleepStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		return sleepController.startSleep('MOCK_USER_ID', new Date()).should.be.rejectedWith(daoError);
 	});
 	it('startsleep10()', function() {
@@ -186,16 +175,12 @@ describe('SleepController', function() {
 	
 	//No sleeps
 	it('getAwakeTime2()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var sleepItems = {
 				"Items" : []
 			};
@@ -207,16 +192,12 @@ describe('SleepController', function() {
 	
 	//Last sleep exists, baby is awake
 	it('getAwakeTime3()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		var d = new Date();
 		d.setHours(d.getHours()-2);
@@ -239,16 +220,13 @@ describe('SleepController', function() {
 	
 	//Last sleep exists, baby is still sleeping
 	it('getAwakeTime4()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		var d = new Date();
 		d.setHours(d.getHours()-2);
@@ -301,17 +279,13 @@ describe('SleepController', function() {
 	//Invalid types
 	it('endSleep5()', function() {
 		sleepDaoUpdateSleepStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane" ,
-				"timezone": "America/New_York"
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		return sleepController.endSleep("MOCK_USER_ID", "No Date").should.be.rejectedWith(TypeError);
 	});
 	//Date in the future
@@ -332,23 +306,20 @@ describe('SleepController', function() {
 	it('endSleep8()', function() {
 		var daoError = new DaoError("update the sleep", new Error("foo"));
 		sleepDaoUpdateSleepStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane",
-					"timezone": "America/New_York"
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var d = new Date();
 		d.setHours(d.getHours()-2);
 		var sleepItem = {
 				"Items" :
 				[
 					{
+						"sleepKey":"AMZ.MOCK_ID-1",
 						"sleepDateTime":d.toISOString()
 					}
 				]
@@ -384,17 +355,13 @@ describe('SleepController', function() {
 				]
 			};
 		sleepDaoGetLastSleepStub.resolves(sleepItem);
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane",
-				"timezone": "America/New_York"
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		return sleepController.endSleep('MOCK_USER_ID', new Date()).should.be.rejectedWith(IllegalStateError);
 	});
 	
@@ -406,22 +373,19 @@ describe('SleepController', function() {
 				"Items" :
 				[
 					{
+						"sleepKey":"AMZ.MOCK_ID-1",
 						"sleepDateTime":sleepDate.toISOString()
 					}
 				]
 			};
 		sleepDaoGetLastSleepStub.resolves(sleepItem);
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane",
-				"timezone": "America/New_York"
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var wakeDate = new Date(2016, 5, 1, 7, 0, 0);
 		var expectedResponseMsg = "Recorded 1 hour of sleep from 6 oh clock AM to 7 oh clock AM for jane.";
 		var expectedResponse = new Response(expectedResponseMsg, "End Sleep", expectedResponseMsg);
@@ -432,16 +396,13 @@ describe('SleepController', function() {
 	//Happy path test 1
 	it('removeLastsleep1()', function() {
 		sleepDaoDeleteSleepStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var sleepItem = {
 				"Items" :
 				[
@@ -483,16 +444,13 @@ describe('SleepController', function() {
 	it('removeLastsleep7()', function() {
 		var daoError = new DaoError("Dao error", new Error("foo"));
 		sleepDaoDeleteSleepStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var sleepItem = {
 				"Items" :
 				[
@@ -508,16 +466,13 @@ describe('SleepController', function() {
 	//No sleep entries exist
 	it('removeLastsleep8()', function() {
 		sleepDaoDeleteSleepStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var sleepItem = {
 				"Items" : []
 			};
@@ -532,16 +487,13 @@ describe('SleepController', function() {
 	it('startSleep100()', function() {
 		sleepDaoCreateSleepStub.resolves();
 		sleepDaoGetSleepCountForDayStub.resolves(40);
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		return sleepController.startSleep("MOCK_USER_ID", new Date())
 			.should.be.rejectedWith(ActivityLimitError);
 	});

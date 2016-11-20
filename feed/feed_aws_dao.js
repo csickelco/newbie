@@ -93,11 +93,11 @@ FeedAWSDao.prototype.createTable = function() {
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
-			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
+			        { AttributeName: "feedKey", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "dateTime", KeyType: "RANGE" }  //Sort key
 			    ],
 			    AttributeDefinitions: [       
-			        { AttributeName: "userId", AttributeType: "S" },
+			        { AttributeName: "feedKey", AttributeType: "S" },
 			        { AttributeName: "dateTime", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
@@ -135,7 +135,7 @@ FeedAWSDao.prototype.deleteTable = function() {
 /**
  * Asynchronous operation to persist a new feed 
  * (or overwrite the existing feed if one exists for 
- * the same userId, dateTime).
+ * the same userId, seq, dateTime).
  * 
  * @param 	feed {Feed} the feed object to persist. Non-nullable. 
  * 			Must have all properties populated.
@@ -152,7 +152,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: feed.userId,
+	    	feedKey: feed.userId + "-" + feed.seq,
 	    	dateTime: dateTimeString,
 			feedAmount: feed.feedAmount
 	    }
@@ -168,6 +168,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
  * for the specified date or later for a given user.
  * 
  * @param userId {string}	AWS user ID whose feeds to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose feeds to retrieve. Non-nullable.
  * @param date	{Date}		Date/time after which to retrieve all feeds. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -176,16 +177,16 @@ FeedAWSDao.prototype.createFeed = function(feed) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-FeedAWSDao.prototype.getFeeds = function(userId, date) {
+FeedAWSDao.prototype.getFeeds = function(userId, seq, date) {
 	logger.debug("getFeeds: Starting get feeds for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			KeyConditionExpression: "feedKey = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {
 				"#dt": "dateTime" //This is needed because dateTime is a reserved word
 			},
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
@@ -200,6 +201,7 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
  * the given userId, or null if no feeds exist.
  * 
  * @param userId {string} 	AWS user ID whose most recent feed to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose feed to retrieve. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -207,13 +209,13 @@ FeedAWSDao.prototype.getFeeds = function(userId, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-FeedAWSDao.prototype.getLastFeed = function(userId) {
+FeedAWSDao.prototype.getLastFeed = function(userId, seq) {
 	logger.debug("getLastFeed: Starting get last feed for user %s", userId);
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1",
+			KeyConditionExpression: "feedKey = :val1",
 		    ExpressionAttributeValues: {
-		    	":val1":userId
+		    	":val1":userId + "-" + seq
 		    },
 		    ScanIndexForward: false,
 		    Limit: 1
@@ -229,6 +231,7 @@ FeedAWSDao.prototype.getLastFeed = function(userId) {
  * from the datastore.
  * 
  * @param userId {string}	AWS user ID whose feed to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose feed to delete. Non-nullable.
  * @param date {Date}		The date/time of the feed entry to delete. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -237,12 +240,12 @@ FeedAWSDao.prototype.getLastFeed = function(userId) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-FeedAWSDao.prototype.deleteFeed = function(userId, dateTime) {
+FeedAWSDao.prototype.deleteFeed = function(userId, seq, dateTime) {
 	logger.debug("deleteFeed: Starting delete feed for %s %s", userId, dateTime.toISOString() );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
-	        "userId":userId,
+	        "feedKey":userId+"-"+seq,
 	        "dateTime":dateTime.toISOString() 
 	    }
 	};

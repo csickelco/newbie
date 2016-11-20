@@ -76,6 +76,9 @@ function SummaryController () {
  * Asynchronous operation to get a summary of the baby for the week.
  * 
  * @param 	userId	{string}	the userId whose summary to return. Non-nullable.
+ * @param 	{string} baby				the name of the baby to get the summary for. Nullable.
+ * 										If not specified, the summary is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -84,7 +87,7 @@ function SummaryController () {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-SummaryController.prototype.getWeeklySummary = function(userId) {
+SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 	logger.debug("getWeeklySummary: getting weekly summary for userId %s", userId);
 	var response = new Response();
 	var weeklySummary = new Summary();
@@ -101,26 +104,39 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	var diaperMap = new Map();
 	var sleepMap = new Map();
 	var weightMap = new Map();
+	var loadedBaby;
 	
 	//First, check arguments
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("getWeeklySummary: Getting summary for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get feeds from the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				weeklySummary.name = readBabyResult.Item.name;
-				weeklySummary.sex = readBabyResult.Item.sex;
-				weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
+				weeklySummary.name = readBabyResult.name;
+				weeklySummary.sex = readBabyResult.sex;
+				weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.birthdate));
 				logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
 				
 				//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
-				return self.feedDao.getFeeds(userId, aWeekAgo);
+				return self.feedDao.getFeeds(userId, loadedBaby.seq, aWeekAgo);
 			} else {
-				return Promise.reject(new IllegalStateError("Before getting a summary, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before getting a summary for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before getting a summary, you must first add a baby"));
+				}
 			}
 		}).then( function(feedsForWeekResult) {
 			//Process the returned feeds
@@ -141,7 +157,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            logger.debug("getWeeklySummary: Put in feedMap %s - %s", dateKey, feedSummary.toString());
 	        });
 			//Next get diapers
-			return self.diaperDao.getDiapers(userId, aWeekAgo);
+			return self.diaperDao.getDiapers(userId, loadedBaby.seq, aWeekAgo);
 		}).then( function(diapersForWeekResult) {
 			//Process returned diapers
 			diapersForWeekResult.Items.forEach(function(item) {
@@ -161,7 +177,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 	            logger.debug("getWeeklySummary: Put in diaperMap %s - %s", dateKey, diaperSummary.toString());
 	        });
 			//Next get sleep
-			return self.sleepDao.getSleep(userId, aWeekAgo);
+			return self.sleepDao.getSleep(userId, loadedBaby.seq, aWeekAgo);
 		}).then( function(sleepForWeekResult) {
 			//Process returned sleep
 			//TODO: refactor this logic so we're not duplicating
@@ -180,7 +196,7 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 				}
 	        });
 			//Finally get weight
-			return self.weightDao.getWeight(userId, aWeekAgo);
+			return self.weightDao.getWeight(userId, loadedBaby.seq, aWeekAgo);
 		}).then( function(weightForWeekResult) {
 			weightForWeekResult.Items.forEach(function(item) {
 	            if( item.weight ) {
@@ -204,9 +220,10 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 				}
 			}, feedMap);
 			var numDaysWithFeedsRecorded = feedMap.size;
-			weeklySummary.totalFeedAmount = Math.round(totalFeedAmount/numDaysWithFeedsRecorded);
-			weeklySummary.numFeedings = Math.round((totalNumSpecifiedFeedings+totalNumUnspecifiedFeedings)/numDaysWithFeedsRecorded);
-			
+			if(numDaysWithFeedsRecorded > 0) {
+				weeklySummary.totalFeedAmount = Math.round(totalFeedAmount/numDaysWithFeedsRecorded);
+				weeklySummary.numFeedings = Math.round((totalNumSpecifiedFeedings+totalNumUnspecifiedFeedings)/numDaysWithFeedsRecorded);
+			}
 			//Calculate diaper averages
 			var totalNumWetDiapers = 0;
 			var totalNumDirtyDiapers = 0;
@@ -216,8 +233,10 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
 				totalNumDirtyDiapers += value.numDirtyDiapers;
 			}, diaperMap);
 			var numDaysWithDiapersRecorded = diaperMap.size;
-			weeklySummary.numWetDiapers = Math.round(totalNumWetDiapers/numDaysWithDiapersRecorded);
-			weeklySummary.numDirtyDiapers = Math.round(totalNumDirtyDiapers/numDaysWithDiapersRecorded);
+			if( numDaysWithDiapersRecorded > 0 ) {
+				weeklySummary.numWetDiapers = Math.round(totalNumWetDiapers/numDaysWithDiapersRecorded);
+				weeklySummary.numDirtyDiapers = Math.round(totalNumDirtyDiapers/numDaysWithDiapersRecorded);
+			}
 			
 			//Calculate sleep averages
 			var totalSleep = 0;
@@ -302,6 +321,9 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
  * Asynchronous operation to get a summary of the baby for the current day.
  * 
  * @param 	userId	{string}	the userId whose summary to return. Non-nullable.
+ * @param 	{string} baby				the name of the baby to get the summary for. Nullable.
+ * 										If not specified, the summary is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -310,31 +332,44 @@ SummaryController.prototype.getWeeklySummary = function(userId) {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-SummaryController.prototype.getDailySummary = function(userId) {
+SummaryController.prototype.getDailySummary = function(userId, baby) {
 	logger.debug("getDailySummary: getting daily summary for userId %s", userId);
 	var dailySummary = new Summary();
 	var today = new Date();
 	var activities = new Set();
 	var response = new Response();
 	var self = this;
+	var baby;
 	
 	//First, validate all input
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("getDailySummary: Getting summary for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get feeds from the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				dailySummary.name = readBabyResult.Item.name;
-				dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.Item.birthdate));
-				dailySummary.sex = readBabyResult.Item.sex;
+			if(readBabyResult) {
+				baby = readBabyResult;
+				dailySummary.name = readBabyResult.name;
+				dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.birthdate));
+				dailySummary.sex = readBabyResult.sex;
 				logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
-				return self.feedDao.getFeeds(userId, today);
+				return self.feedDao.getFeeds(userId, baby.seq, today);
 			} else {
-				return Promise.reject(new IllegalStateError("Before getting a summary, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before getting a summary for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before getting a summary, you must first add a baby"));
+				}
 			}
 		})
 		.then( function(feedsForDayResult) {
@@ -347,7 +382,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	            	dailySummary.numUnspecifiedFeedings++;
 	            }
 	        });
-			return self.weightDao.getWeight(userId, today);
+			return self.weightDao.getWeight(userId, baby.seq, today);
 		})
 		.then( function(weightForDayResult) {
 			logger.debug("getDailySummary: weightForDayResult.Items %s", JSON.stringify(weightForDayResult));
@@ -357,7 +392,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 			} else {
 				logger.debug("getDailySummary: no weight recorded today");
 			}
-			return self.diaperDao.getDiapers(userId, today);
+			return self.diaperDao.getDiapers(userId, baby.seq, today);
 		})
 		.then( function(diapersForDayResult) {
 			logger.debug("getDailySummary: diapersForDayResult.Items %s", JSON.stringify(diapersForDayResult));
@@ -371,7 +406,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	            	dailySummary.numDirtyDiapers++;
 	            }
 	        });
-			return self.activityDao.getActivitiesForDay(userId, today);
+			return self.activityDao.getActivitiesForDay(userId, baby.seq, today);
 		})
 		.then( function(activitiesForDayResult) {
 			logger.debug("getDailySummary: activitiesForDayResult.Items %s", JSON.stringify(activitiesForDayResult));
@@ -381,7 +416,7 @@ SummaryController.prototype.getDailySummary = function(userId) {
 	            activities.add(item.activity);
 	        });
 			logger.debug("getDailySummary: activities size -- %s", activities.size);
-			return self.sleepDao.getSleep(userId, today);
+			return self.sleepDao.getSleep(userId, baby.seq, today);
 		})
 		.then( function(sleepsForDayResult) {
 			logger.debug("getDailySummary: sleepsForDayResult.Items %s", JSON.stringify(sleepsForDayResult));

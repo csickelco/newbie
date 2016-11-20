@@ -28,6 +28,7 @@ var WeightDao = require('../../weight/weight_aws_dao');
 var WeightPercentileDao = require('../../weight/weight_percentile_dao');
 var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
+var Baby = require('../../baby/baby');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
 var ActivityLimitError = require('../../common/activity_limit_error');
@@ -80,16 +81,13 @@ describe('WeightController', function() {
 	//Happy path test 1
 	it('addweight1()', function() {
 		weightDaoCreateWeightStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(22);
 		
@@ -101,16 +99,13 @@ describe('WeightController', function() {
 	
 	it('addweight2()', function() {
 		weightDaoCreateWeightStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"boy",
-				"userId":"MOCK_USER_ID",
-				"name":"henry"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "boy";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "henry";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(60);
 		
@@ -122,16 +117,13 @@ describe('WeightController', function() {
 	
 	it('addweight3()', function() {
 		weightDaoCreateWeightStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(5);
 		
@@ -143,96 +135,78 @@ describe('WeightController', function() {
 	
 	//Illegal argument - no user id
 	it('addweight4()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("", new Date(), 12, 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
 	//Illegal argument - no date
 	it('addweight5()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", "", 12, 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
 	//Illegal argument - measurement date before birthdate
 	it('addweight6()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(2016, 4, 31), 12, 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
 	//Illegal argument - no pounds
 	it('addweight7()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), "", 8).should.be.rejectedWith(IllegalArgumentError);
 	});
 	
 	//Illegal argument - pounds not an integer
 	it('addweight8()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), "NaN", 8).should.be.rejectedWith(TypeError);
 	});
 	
 	//Illegal argument - pounds not >= 0
 	it('addweight9()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), -1, 8).should.be.rejectedWith(RangeError);
 	});
@@ -240,16 +214,13 @@ describe('WeightController', function() {
 	//Happy path - no ounces
 	it('addweight10()', function() {
 		weightDaoCreateWeightStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"boy",
-				"userId":"MOCK_USER_ID",
-				"name":"henry"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "boy";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "henry";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		weightPercentileGetPercentileStub.resolves(60);
 		
@@ -261,48 +232,39 @@ describe('WeightController', function() {
 	
 	//Illegal argument - ounces not an integer
 	it('addweight11()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, "NaN").should.be.rejectedWith(TypeError);
 	});
 	
 	//Illegal argument - ounces not >= 0
 	it('addweight12()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, -1).should.be.rejectedWith(RangeError);
 	});
 	
 	//Illegal argument - ounces not > 15
 	it('addweight12()', function() {
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(0);
 		return weightController.addWeight("MOCK_USER_ID", new Date(), 12, 16).should.be.rejectedWith(RangeError);
 	});
@@ -325,16 +287,13 @@ describe('WeightController', function() {
 	//Happy path test 1
 	it('removeLastweight1()', function() {
 		weightDaoDeleteWeightStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var weightItem = {
 				"Items" :
 				[
@@ -378,16 +337,13 @@ describe('WeightController', function() {
 	it('removeLastweight7()', function() {
 		var daoError = new DaoError("Dao error", new Error("foo"));
 		weightDaoDeleteWeightStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var weightItem = {
 				"Items" :
 				[
@@ -404,16 +360,13 @@ describe('WeightController', function() {
 	//No weight entries exist
 	it('removeLastweight8()', function() {
 		weightDaoDeleteWeightStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		var weightItem = {
 				"Items" : []
 			};
@@ -427,16 +380,13 @@ describe('WeightController', function() {
 	//Activity Limit Tests
 	it('addweight100()', function() {
 		weightDaoCreateWeightStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		weightDaoGetWeightCountForDayStub.resolves(5);
 		weightPercentileGetPercentileStub.resolves(22);
 		

@@ -41,6 +41,7 @@ chai.should();
 
 describe('BabyController', function() {
 	var babyController = new BabyController();
+	var addedDateTime = new Date();
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,
@@ -152,8 +153,9 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "America/New_York";
-		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true).then(function () {
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -169,8 +171,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "America/Chicago";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "central", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "central", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -186,8 +190,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "America/Puerto_Rico";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "atlantic", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "atlantic", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -203,8 +209,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "America/Denver";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "mountain", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "mountain", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -220,8 +228,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "America/Phoenix";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "mountain", false).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "mountain", false, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -237,8 +247,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "America/Los_Angeles";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "pacific", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "pacific", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -254,8 +266,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "America/Juneau";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "alaska", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "alaska", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -271,8 +285,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "Pacific/Honolulu";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "hawaii", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "hawaii", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -288,8 +304,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "Pacific/Samoa";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "samoa", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "samoa", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});
@@ -305,8 +323,10 @@ describe('BabyController', function() {
 		expectedBaby.sex = "girl";
 		expectedBaby.birthdate = birthdate;
 		expectedBaby.timezone = "Pacific/Guam";
+		expectedBaby.addedDateTime = addedDateTime;
+		expectedBaby.seq = 1;
 		
-		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "chamorro", true).then(function () {
+		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "chamorro", true, addedDateTime).then(function () {
 			sinon.assert.calledWith(babyDaoCreateBabyStub, expectedBaby);
 		});
 	});

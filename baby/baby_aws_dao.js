@@ -28,6 +28,7 @@ module.change_code = 1;
 var Winston = require('winston');
 var AWS = require("aws-sdk");
 var DaoError = require("../common/dao_error");
+var clj_fuzzy = require('clj-fuzzy');
 
 //Check if environment supports native promises
 if (typeof Promise === 'undefined') {
@@ -92,10 +93,12 @@ BabyAWSDao.prototype.createTable = function() {
     		var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
-			        { AttributeName: "userId", KeyType: "HASH"}
+			        { AttributeName: "userId", KeyType: "HASH"},
+			        { AttributeName: "seq", KeyType: "RANGE" }  //Sort key
 			    ],
 			    AttributeDefinitions: [       
-			        { AttributeName: "userId", AttributeType: "S" }
+			        { AttributeName: "userId", AttributeType: "S" },
+			        { AttributeName: "seq", AttributeType: "N" }
 			    ],
 			    ProvisionedThroughput: {       
 			        ReadCapacityUnits: 5, 
@@ -151,7 +154,9 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	    	sex: baby.sex,
 	    	name: baby.name,
 	    	birthdate: baby.birthdate.toISOString(),
-	    	timezone: baby.timezone
+	    	timezone: baby.timezone,
+	    	addedDateTime: baby.addedDateTime.toISOString(),
+	    	seq: baby.seq
 	    }
 	};
 	return this.docClient.put(params).promise()
@@ -161,10 +166,10 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 };
 
 /**
- * Asynchronous operation to retrieve the baby for the given user.
+ * Asynchronous operation to retrieve the last baby for the given user.
  * 
  * @param {string} userId 	AWS user ID whose baby to retrieve. Non-nullable.
- * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * @returns {Promise<Baby|DaoError} Returns a promise with a baby object if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB. 
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
@@ -174,14 +179,83 @@ BabyAWSDao.prototype.readBaby = function(userId) {
 	logger.debug("readBaby: Starting for user %s...", userId);
 	var params = {
 	    TableName: TABLE_NAME,
-	    Key:{
-	        "userId": userId
+	    KeyConditionExpression: "userId = :val1",
+	    ExpressionAttributeValues: {
+	    	":val1":userId
+	    },
+	    ScanIndexForward: false,
+	    Limit: 1
+	};
+	return this.docClient.query(params).promise()
+		.then( function(readBabyResult) {
+			var babyResult;
+			//Then put it all together in a response
+			readBabyResult.Items.forEach(function(item) {
+	           babyResult = item;
+	        });
+			return Promise.resolve(babyResult);
+		})
+		.catch(function(error) {
+			return Promise.reject( new DaoError("read baby", error) );
+		});
+};
+
+/**
+ * Asynchronous operation to retrieve the baby with the given name for the given user.
+ * 
+ * @param {string} userId 	AWS user ID whose baby to retrieve. Non-nullable.
+ * @param {string} babyName the name of the baby to retrieve. Non-nullable. 
+ * @returns {Promise<Baby|DaoError} Returns a promise with a Baby object if the operation succeeded,
+ * 			(or an empty promise if no baby exists for the given userId/name combo)
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException. 
+ */
+BabyAWSDao.prototype.readBabyByName = function(userId, babyName) {
+	logger.debug("readBabyByName: Starting for user %s, babyName %s...", userId, babyName);
+	var params = {
+	    TableName: TABLE_NAME,
+	    KeyConditionExpression: "userId = :val1",
+	    ExpressionAttributeValues: {
+	    	":val1":userId
 	    }
 	};
-	return this.docClient.get(params).promise()
-	.catch(function(error) {
-		return Promise.reject( new DaoError("read baby", error) );
-	});
+	var highScore = 1;
+	var babyWithHighestScore;
+	return this.docClient.query(params).promise()
+		.then( function(readBabyResult) {
+			var babyResult;
+			//Then put it all together in a response
+			readBabyResult.Items.forEach(function(item) {
+				logger.debug("readBabyByName: item.name '%s', babyName '%s'", item.name, babyName);
+				if( item.name === babyName ) {
+					logger.debug("Found baby %s", babyName);
+					babyResult = item;
+				} else if( !babyResult ) {
+					/*
+					 * Exact matches on name are tricky as there can be several alternate spellings
+					 * (e.g. Nathalie vs Natalie) and it's unclear which Amazon will pick.
+					 * Therefore, if there is no exact match, look for one that is close. 
+					 */
+					var similarityScore = clj_fuzzy.metrics.jaccard(item.name, babyName);
+					logger.debug("name %s, score %s", item.name, similarityScore);
+					if( similarityScore < highScore ) {
+						highScore = similarityScore;
+						babyWithHighestScore = item;
+					}
+				} 
+	        });
+			logger.debug("readBabyByName: babyName %s, babyWithHighestScore %s, highScore %d", 
+					babyName, JSON.stringify(babyWithHighestScore), highScore);
+			if(!babyResult && highScore < 0.2) {
+				babyResult = babyWithHighestScore;
+			}
+			return Promise.resolve(babyResult);
+		})
+		.catch(function(error) {
+			return Promise.reject( new DaoError("read baby", error) );
+		});
 };
 
 /**
