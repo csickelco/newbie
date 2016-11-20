@@ -2,11 +2,21 @@
   "intents": [
     {
       "intent": "dailySummaryIntent",
-      "slots": []
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
     },
     {
       "intent": "weeklySummaryIntent",
-      "slots": []
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
     },
     {
       "intent": "startSleepIntent",
@@ -28,7 +38,12 @@
     },
     {
       "intent": "removeSleepIntent",
-      "slots": []
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
     },
     {
       "intent": "getAwakeTimeIntent",
@@ -54,12 +69,21 @@
         {
           "name": "NUM_OUNCES",
           "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
         }
       ]
     },
     {
       "intent": "removeFeedIntent",
-      "slots": []
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
     },
     {
       "intent": "addActivityIntent",
@@ -67,12 +91,25 @@
         {
           "name": "ACTIVITY",
           "type": "ACTIVITY_TYPE"
+        },
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
         }
       ]
     },
     {
       "intent": "removeActivityIntent",
-      "slots": []
+      "slots": [
+        {
+          "name": "ACTIVITY",
+          "type": "ACTIVITY_TYPE"
+        },
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
     },
     {
       "intent": "addDiaperIntent",
@@ -84,12 +121,21 @@
         {
           "name": "SECOND_DIAPER_TYPE",
           "type": "DIAPER_TYPE"
+        },
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
         }
       ]
     },
     {
       "intent": "removeDiaperIntent",
-      "slots": []
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
     },
     {
       "intent": "addWeightIntent",
@@ -101,12 +147,21 @@
         {
           "name": "NUM_OUNCES",
           "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
         }
       ]
     },
     {
       "intent": "removeWeightIntent",
-      "slots": []
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
     },
     {
       "intent": "addBabyIntent",

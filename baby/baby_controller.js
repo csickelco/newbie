@@ -140,7 +140,7 @@ function processTimezone(timezone, daylightSavingsObserved) {
  * 								chamorro
  * @param 	{boolean} 	daylightSavingsObserved For Mountain and Eastern zones, true if daylight savings
  * 						is observed, false otherwise. Nullable.
- * 
+ * @param 	{Date} addedDateTime date/time this baby was added. Nullable. If null, current date/time is used.
  * @return 	{Promise<Response>|IllegalArgumentError, DaoError} 				
  * 										promise containing a response with both a verbal message and written card,
  *  									providing confirmation of the added baby.
@@ -150,7 +150,7 @@ function processTimezone(timezone, daylightSavingsObserved) {
  *  									Rejected promise with DaoError if an error occurred interacting with the 
  *  									data store while attempting to add the baby. 
  */
-BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezone, daylightSavingsObserved) {
+BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezone, daylightSavingsObserved, addedDateTime) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
 	var template = _.template('Added baby ${sex} ${name}. ${pronoun} is ${age} old');
 	
@@ -189,6 +189,12 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 				baby.name = name;
 				baby.birthdate = birthdate;
 				baby.timezone = processTimezone(timezone, daylightSavingsObserved);
+				baby.seq = result+1;
+				if( addedDateTime ) {
+					baby.addedDateTime = addedDateTime;
+				} else {
+					baby.addedDateTime = new Date();
+				}
 			}
 			return self.babyDao.createBaby(baby);
 		})

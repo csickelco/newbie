@@ -26,6 +26,7 @@ var chaiAsPromised = require('chai-as-promised');
 var DiaperController = require('../../diaper/diaper_controller');
 var DiaperDao = require('../../diaper/diaper_aws_dao');
 var Response = require('../../common/response');
+var Baby = require('../../baby/baby');
 var BabyDao = require('../../baby/baby_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
@@ -76,16 +77,12 @@ describe('DiaperController', function() {
 	//Happy path test 1
 	it('adddiaper1()', function() {
 		diaperDaoCreateDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -106,16 +103,12 @@ describe('DiaperController', function() {
 	//Happy path test 1
 	it('adddiaper2()', function() {
 		diaperDaoCreateDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -165,16 +158,12 @@ describe('DiaperController', function() {
 	//Invalid types
 	it('adddiaper10()', function() {
 		diaperDaoCreateDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -195,16 +184,12 @@ describe('DiaperController', function() {
 	});
 	it('adddiaper11()', function() {
 		diaperDaoCreateDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -249,16 +234,12 @@ describe('DiaperController', function() {
 	it('adddiaper12b()', function() {
 		var daoError = new DaoError("create the diaper table", new Error("foo"));
 		diaperDaoCreateDiaperStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -302,16 +283,12 @@ describe('DiaperController', function() {
 	//Happy path test 1
 	it('removeLastdiaper1()', function() {
 		diaperDaoDeleteDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -332,16 +309,12 @@ describe('DiaperController', function() {
 	//Happy path test 2
 	it('removeLastdiaper2()', function() {
 		diaperDaoDeleteDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -362,16 +335,12 @@ describe('DiaperController', function() {
 	//Happy path test 2
 	it('removeLastdiaper3()', function() {
 		diaperDaoDeleteDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -417,16 +386,12 @@ describe('DiaperController', function() {
 	it('removeLastdiaper7()', function() {
 		var daoError = new DaoError("Dao error", new Error("foo"));
 		diaperDaoDeleteDiaperStub.rejects(daoError);
-		var item = {
-				"Item" :
-				{
-					"birthdate":"2016-06-01T00:00:00.000Z",
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[
@@ -444,16 +409,12 @@ describe('DiaperController', function() {
 	//No diaper entries exist
 	it('removeLastdiaper8()', function() {
 		diaperDaoDeleteDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" : []
 			};
@@ -467,16 +428,12 @@ describe('DiaperController', function() {
 	//Test activity limits - user has 40 diapers already
 	it('adddiaper100()', function() {
 		diaperDaoCreateDiaperStub.resolves();
-		var item = {
-			"Item" :
-			{
-				"birthdate":"2016-06-01T00:00:00.000Z",
-				"sex":"girl",
-				"userId":"MOCK_USER_ID",
-				"name":"jane"  
-			}
-		};
-		babyDaoReadBabyStub.resolves(item);
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jane";
+		babyDaoReadBabyStub.resolves(baby);
 		var diaperItem = {
 				"Items" :
 				[

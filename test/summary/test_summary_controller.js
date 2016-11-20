@@ -27,6 +27,7 @@ var SummaryController = require('../../summary/summary_controller');
 var Response = require('../../common/response');
 var FeedDao = require('../../feed/feed_aws_dao');
 var BabyDao = require('../../baby/baby_aws_dao');
+var Baby = require('../../baby/baby');
 var WeightDao = require('../../weight/weight_aws_dao');
 var DiaperDao= require('../../diaper/diaper_aws_dao');
 var ActivityDao = require('../../activity/activity_aws_dao');
@@ -101,16 +102,13 @@ describe('SummaryController', function() {
 		  d.setHours(0);
 		  d.setMinutes(0);
 		//Stub baby return
-		var item = {
-				"Item" :
-				{
-					"birthdate":d.toISOString(),
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		  var baby = new Baby();
+			baby.birthdate = d.toISOString();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		//Stub feed return
 		var feedItem = {
@@ -243,16 +241,13 @@ describe('SummaryController', function() {
 		  d.setHours(0);
 		  d.setMinutes(0);
 		//Stub baby return
-		var item = {
-				"Item" :
-				{
-					"birthdate":d.toISOString(),
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		  var baby = new Baby();
+			baby.birthdate = d.toISOString();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		//Stub feed return
 		var feedItem = {
@@ -399,16 +394,13 @@ describe('SummaryController', function() {
 		  d.setHours(0);
 		  d.setMinutes(0);
 		//Stub baby return
-		var item = {
-				"Item" :
-				{
-					"birthdate":d.toISOString(),
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		  var baby = new Baby();
+			baby.birthdate = d.toISOString();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		//Stub feed return
 		var feedItem = {
@@ -488,16 +480,13 @@ describe('SummaryController', function() {
 		  d.setHours(0);
 		  d.setMinutes(0);
 		//Stub baby return
-		var item = {
-				"Item" :
-				{
-					"birthdate":d.toISOString(),
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		  var baby = new Baby();
+			baby.birthdate = d.toISOString();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		//Stub feed return - no specified feed amounts
 		var feedItem = {
@@ -575,16 +564,13 @@ describe('SummaryController', function() {
 		  d.setHours(0);
 		  d.setMinutes(0);
 		//Stub baby return
-		var item = {
-				"Item" :
-				{
-					"birthdate":d.toISOString(),
-					"sex":"girl",
-					"userId":"MOCK_USER_ID",
-					"name":"jane"  
-				}
-			};
-		babyDaoReadBabyStub.resolves(item);
+		  var baby = new Baby();
+			baby.birthdate = d.toISOString();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
 		
 		//Stub feed return
 		var feedItem = {

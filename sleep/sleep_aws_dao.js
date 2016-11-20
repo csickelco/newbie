@@ -94,11 +94,11 @@ SleepAWSDao.prototype.createTable = function() {
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
-			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
+			        { AttributeName: "sleepKey", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "sleepDateTime", KeyType: "RANGE" }  //Sort key
 			    ],
 			    AttributeDefinitions: [       
-			        { AttributeName: "userId", AttributeType: "S" },
+			        { AttributeName: "sleepKey", AttributeType: "S" },
 			        { AttributeName: "sleepDateTime", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
@@ -154,7 +154,7 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: sleep.userId,
+	    	sleepKey: sleep.userId + "-" + sleep.seq,
 	    	sleepDateTime: sleepDateTimeString,
 			wokeUpDateTime: wokeUpDateTimeString
 	    }
@@ -171,20 +171,20 @@ SleepAWSDao.prototype.createSleep = function(sleep) {
  * the given userId, or null if no sleep records exist.
  * 
  * @param userId {string}	AWS user ID whose most recent sleep record to retrieve. Non-nullable.
- * 
+ * @param {number} seq		the sequence number of the baby whose sleep to retrieve. Non-nullable.
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB. 
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException. 
  */
-SleepAWSDao.prototype.getLastSleep = function(userId) {
+SleepAWSDao.prototype.getLastSleep = function(userId, seq) {
 	logger.debug("getLastSleep: Starting get last sleep for user %s", userId);
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1",
+			KeyConditionExpression: "sleepKey = :val1",
 		    ExpressionAttributeValues: {
-		    	":val1":userId
+		    	":val1":userId + "-" + seq
 		    },
 		    ScanIndexForward: false,
 		    Limit: 1
@@ -200,6 +200,7 @@ SleepAWSDao.prototype.getLastSleep = function(userId) {
  * for the specified date or later for a given user.
  * 
  * @param userId {string} 	AWS user ID whose sleep records to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose sleep to retrieve. Non-nullable.
  * @param date {Date}		Date/time after which to retrieve all sleep records. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -208,13 +209,13 @@ SleepAWSDao.prototype.getLastSleep = function(userId) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException. 
  */
-SleepAWSDao.prototype.getSleep = function(userId, date) {
+SleepAWSDao.prototype.getSleep = function(userId, seq, date) {
 	logger.debug("getSleep: Starting get sleeps for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and sleepDateTime > :val2",
+			KeyConditionExpression: "sleepKey = :val1 and sleepDateTime > :val2",
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
@@ -242,7 +243,7 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
 	var params = {
 		    TableName:TABLE_NAME,
 		    Key:{
-		    	userId: sleep.userId,
+		    	sleepKey: sleep.userId + "-" + sleep.seq,
 		    	sleepDateTime: sleep.sleepDateTime.toISOString()
 		    },
 		    UpdateExpression: "set wokeUpDateTime = :w",
@@ -263,6 +264,7 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
  * from the datastore.
  * 
  * @param userId {string}	AWS user ID whose sleep to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose sleep to delete. Non-nullable.
  * @param date {Date}		The date/time of the sleep entry to delete. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -271,12 +273,12 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-SleepAWSDao.prototype.deleteSleep = function(userId, sleepDateTime) {
+SleepAWSDao.prototype.deleteSleep = function(userId, seq, sleepDateTime) {
 	logger.debug("deleteSleep: Starting delete sleep for %s %s", userId, sleepDateTime.toISOString() );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
-	        "userId":userId,
+	        "sleepKey":userId + "-" + seq,
 	        "sleepDateTime":sleepDateTime.toISOString() 
 	    }
 	};
@@ -291,6 +293,7 @@ SleepAWSDao.prototype.deleteSleep = function(userId, sleepDateTime) {
  * for the specified date or later for a given user.
  * 
  * @param {string} userId 	AWS user ID whose sleep count to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose sleep to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to count sleep. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
@@ -299,16 +302,16 @@ SleepAWSDao.prototype.deleteSleep = function(userId, sleepDateTime) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-SleepAWSDao.prototype.getSleepCountForDay = function(userId, date) {
+SleepAWSDao.prototype.getSleepCountForDay = function(userId, seq, date) {
 	logger.debug("getSleepCountForDay: Starting get sleep count for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			KeyConditionExpression: "sleepKey = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {
 				"#dt": "sleepDateTime" //This is needed because dateTime is a reserved word
 			},
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    },
 		    ProjectionExpression: "noattribute"

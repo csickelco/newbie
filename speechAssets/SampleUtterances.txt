@@ -1,5 +1,7 @@
-dailySummaryIntent	daily summary
-weeklySummaryIntent	weekly summary
+dailySummaryIntent	daily summary {NAME}
+dailySummaryIntent	daily summary for {NAME}
+weeklySummaryIntent	weekly summary {NAME}
+weeklySummaryIntent	weekly summary for {NAME}
 startSleepIntent	{NAME} sleeping
 startSleepIntent	the baby {NAME} sleeping
 startSleepIntent	{NAME} is sleeping
@@ -35,6 +37,12 @@ endSleepIntent	the baby {NAME} finished napping
 removeSleepIntent	remove sleep
 removeSleepIntent	delete sleep
 removeSleepIntent	undo sleep
+removeSleepIntent	remove sleep {NAME}
+removeSleepIntent	delete sleep {NAME}
+removeSleepIntent	undo sleep {NAME}
+removeSleepIntent	remove sleep for {NAME}
+removeSleepIntent	delete sleep for {NAME}
+removeSleepIntent	undo sleep for {NAME}
 getAwakeTimeIntent	how long has {NAME} been awake
 getAwakeTimeIntent	how long has baby {NAME} been awake
 getAwakeTimeIntent	how long has the baby {NAME} been awake
@@ -45,45 +53,93 @@ getLastFeedIntent	when did the baby {NAME} last eat
 getLastFeedIntent	when did baby the baby {NAME} last eat
 addFeedIntent	add feed
 addFeedIntent	add bottle
+addFeedIntent	add feed {NAME}
+addFeedIntent	add bottle {NAME}
+addFeedIntent	add feed for {NAME}
+addFeedIntent	add bottle for {NAME}
 addFeedIntent	add {NUM_OUNCES} feed
 addFeedIntent	record {NUM_OUNCES} feed
+addFeedIntent	add {NUM_OUNCES} feed {NAME}
+addFeedIntent	record {NUM_OUNCES} feed {NAME}
+addFeedIntent	add {NUM_OUNCES} feed for {NAME}
+addFeedIntent	record {NUM_OUNCES} feed for {NAME}
 addFeedIntent	add {NUM_OUNCES} ounce feed
 addFeedIntent	record {NUM_OUNCES} ounce feed
+addFeedIntent	add {NUM_OUNCES} ounce feed {NAME}
+addFeedIntent	record {NUM_OUNCES} ounce feed {NAME}
+addFeedIntent	add {NUM_OUNCES} ounce feed for {NAME}
+addFeedIntent	record {NUM_OUNCES} ounce feed for {NAME}
 addFeedIntent	add {NUM_OUNCES} bottle
 addFeedIntent	record {NUM_OUNCES} bottle
+addFeedIntent	add {NUM_OUNCES} bottle {NAME}
+addFeedIntent	record {NUM_OUNCES} bottle {NAME}
+addFeedIntent	add {NUM_OUNCES} bottle for {NAME}
+addFeedIntent	record {NUM_OUNCES} bottle for {NAME}
 addFeedIntent	add {NUM_OUNCES} ounce bottle
 addFeedIntent	record {NUM_OUNCES} ounce bottle
+addFeedIntent	add {NUM_OUNCES} ounce bottle {NAME}
+addFeedIntent	record {NUM_OUNCES} ounce bottle {NAME}
+addFeedIntent	add {NUM_OUNCES} ounce bottle for {NAME}
+addFeedIntent	record {NUM_OUNCES} ounce bottle for {NAME}
 addFeedIntent	add breastfeeding
 addFeedIntent	record breastfeeding
-addFeedIntent	add breastfeeding
-addFeedIntent	record breastfeeding
+addFeedIntent	add breastfeeding {NAME}
+addFeedIntent	record breastfeeding {NAME}
+addFeedIntent	add breastfeeding for {NAME}
+addFeedIntent	record breastfeeding for {NAME}
 addFeedIntent	add nursing
 addFeedIntent	record nursing
-addFeedIntent	add nursing
-addFeedIntent	record nursing
+addFeedIntent	add nursing {NAME}
+addFeedIntent	record nursing {NAME}
+addFeedIntent	add nursing for {NAME}
+addFeedIntent	record nursing for {NAME}
 removeFeedIntent	remove feed
 removeFeedIntent	delete feed
 removeFeedIntent	undo feed
+removeFeedIntent	remove feed {NAME}
+removeFeedIntent	delete feed {NAME}
+removeFeedIntent	undo feed {NAME}
+removeFeedIntent	remove feed for {NAME}
+removeFeedIntent	delete feed for {NAME}
+removeFeedIntent	undo feed for {NAME}
 addActivityIntent	add activity
 addActivityIntent	activity {ACTIVITY}
 addActivityIntent	add activity {ACTIVITY}
 addActivityIntent	record activity {ACTIVITY}
+addActivityIntent	add activity {ACTIVITY} {NAME}
+addActivityIntent	record activity {ACTIVITY} {NAME}
+addActivityIntent	add activity {ACTIVITY} for {NAME}
+addActivityIntent	record activity {ACTIVITY} for {NAME}
 removeActivityIntent	remove activity
 removeActivityIntent	delete activity
 removeActivityIntent	undo activity
+removeActivityIntent	remove activity {NAME}
+removeActivityIntent	delete activity {NAME}
+removeActivityIntent	undo activity {NAME}
+removeActivityIntent	remove activity for {NAME}
+removeActivityIntent	delete activity for {NAME}
+removeActivityIntent	undo activity for {NAME}
 addDiaperIntent	{FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	{FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	add {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	record {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
+addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper {NAME}
+addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper {NAME}
+addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper for {NAME}
+addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper for {NAME}
+addDiaperIntent	add {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper for {NAME}
+addDiaperIntent	record {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper for {NAME}
 removeDiaperIntent	remove diaper
 removeDiaperIntent	delete diaper
 removeDiaperIntent	undo diaper
-addWeightIntent	{NUM_POUNDS} {NUM_OUNCES}
-addWeightIntent	add {NUM_POUNDS} {NUM_OUNCES}
-addWeightIntent	record {NUM_POUNDS} {NUM_OUNCES}
-addWeightIntent	weight {NUM_POUNDS} {NUM_OUNCES}
+removeDiaperIntent	remove diaper {NAME}
+removeDiaperIntent	delete diaper {NAME}
+removeDiaperIntent	undo diaper {NAME}
+removeDiaperIntent	remove diaper for {NAME}
+removeDiaperIntent	delete diaper for {NAME}
+removeDiaperIntent	undo diaper for {NAME}
 addWeightIntent	add weight {NUM_POUNDS} {NUM_OUNCES}
 addWeightIntent	record weight {NUM_POUNDS} {NUM_OUNCES}
 addWeightIntent	{NUM_POUNDS} pounds {NUM_OUNCES}
@@ -104,12 +160,29 @@ addWeightIntent	record {NUM_POUNDS} pounds {NUM_OUNCES} ounces
 addWeightIntent	weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces
 addWeightIntent	add weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces
 addWeightIntent	record weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces
+addWeightIntent	add weight {NUM_POUNDS} {NUM_OUNCES} {NAME}
+addWeightIntent	record weight {NUM_POUNDS} {NUM_OUNCES} {NAME}
+addWeightIntent	add weight {NUM_POUNDS} pounds {NUM_OUNCES} {NAME}
+addWeightIntent	record weight {NUM_POUNDS} pounds {NUM_OUNCES} {NAME}
+addWeightIntent	add weight {NUM_POUNDS} {NUM_OUNCES} ounces {NAME}
+addWeightIntent	record weight {NUM_POUNDS} {NUM_OUNCES} ounces {NAME}
+addWeightIntent	add weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces {NAME}
+addWeightIntent	record weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces {NAME}
+addWeightIntent	add weight {NUM_POUNDS} {NUM_OUNCES} for {NAME}
+addWeightIntent	record weight {NUM_POUNDS} {NUM_OUNCES} for {NAME}
+addWeightIntent	add weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces for {NAME}
+addWeightIntent	record weight {NUM_POUNDS} pounds {NUM_OUNCES} ounces for {NAME}
 removeWeightIntent	remove weight
 removeWeightIntent	delete weight
 removeWeightIntent	undo weight
+removeWeightIntent	remove weight {NAME}
+removeWeightIntent	delete weight {NAME}
+removeWeightIntent	undo weight {NAME}
+removeWeightIntent	remove weight for {NAME}
+removeWeightIntent	delete weight for {NAME}
+removeWeightIntent	undo weight for {NAME}
 addBabyIntent	add baby
 addBabyIntent	record baby
-addBabyIntent	child
 addBabyIntent	add child
 addBabyIntent	record child
 addBabyIntent	add kid

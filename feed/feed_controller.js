@@ -85,6 +85,9 @@ FeedController.prototype.initFeedData = function() {
  * @param	dateTime {Date}		the date/time the feed occurred. Non-nullable.
  * @param	feedAmount {number}	feed amount (bottle size) in ounces. Non-nullable.
  * 								Must be > 0.
+ * @param 	{string} baby				the name of the baby to add the feed for. Nullable.
+ * 										If not specified, the feed is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -93,8 +96,9 @@ FeedController.prototype.initFeedData = function() {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
-	logger.debug("addFeed: Adding feed for %s, date: %s, amount: %d ounces", userId, dateTime, feedAmount);
+FeedController.prototype.addFeed = function(userId, dateTime, feedAmount, baby) {
+	logger.debug("addFeed: Adding feed for %s, date: %s, amount: %d ounces, baby: %s", 
+			userId, dateTime, feedAmount, baby);
 	
 	var specifiedFeedTemplate = _.template("Added ${feedAmount} ounce feed for ${babyName}. ");
 	var unspecifiedFeedTemplate = _.template("Added feed for ${babyName}. ");
@@ -133,17 +137,29 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("addFeed: Retrieving baby %s...", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Provided the baby exists, get all feeds for the day to provide cumulative day count in response
 			//and to make sure the user has not exceeded their limits
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
+				feed.seq = loadedBaby.seq;
 			} else {
-				return Promise.reject(new IllegalStateError("Before recording feeds, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before recording feeds for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before recording feeds, you must first add a baby"));
+				}
 			}
-			return self.feedDao.getFeeds(userId, dateTime);
+			return self.feedDao.getFeeds(userId, loadedBaby.seq, dateTime);
 		})
 		.then( function(feedsForDayResult) {
 			//Get all the previous feeds
@@ -249,6 +265,9 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
  * a response saying as much is returned.
  * 
  * @param 	userId {string}		the userId whose feeds to return. Non-nullable.
+ * @param 	{string} baby				the name of the baby to get the feed for. Nullable.
+ * 										If not specified, the feed is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -257,7 +276,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount) {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-FeedController.prototype.getLastFeed = function(userId) {
+FeedController.prototype.getLastFeed = function(userId, baby) {
 	var lastFeedAmt;
 	var lastFeedDate;
 	var response = new Response();
@@ -268,16 +287,27 @@ FeedController.prototype.getLastFeed = function(userId) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("getLastFeed: Retrieving baby %s...", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get the last feed in the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 			} else {
-				return Promise.reject(new IllegalStateError("Before checking feeds, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before checking feeds for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before checking feeds, you must first add a baby"));
+				}
 			}
-			return self.feedDao.getLastFeed(userId);
+			return self.feedDao.getLastFeed(userId, loadedBaby.seq);
 		}).then( function(result) {
 			//Then put it all together in a response
 			result.Items.forEach(function(item) {
@@ -296,7 +326,7 @@ FeedController.prototype.getLastFeed = function(userId) {
 				} 
 				response.message += timeDiff + " ago";
 			} else {
-				response.message = "No previous feeding recorded";
+				response.message = "No previous feeding recorded for " + loadedBaby.name;
 			}
 			return response;
 		});
@@ -307,6 +337,9 @@ FeedController.prototype.getLastFeed = function(userId) {
  * and return a response.
  * 
  * @param 	userId {string}		the userId whose last feed entry to remove. Non-nullable.
+ * @param 	{string} baby				the name of the baby to remove the feed for. Nullable.
+ * 										If not specified, the feed is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -315,7 +348,7 @@ FeedController.prototype.getLastFeed = function(userId) {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-FeedController.prototype.removeLastFeed = function(userId) {
+FeedController.prototype.removeLastFeed = function(userId, baby) {
 	logger.debug("removeLastFeed: Removing feed for %s", userId);
 	var loadedBaby;	
 	var self = this;
@@ -327,16 +360,27 @@ FeedController.prototype.removeLastFeed = function(userId) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("removeLastFeed: Removing feed for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get the most recent feed entry from the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 			} else {
-				return Promise.reject(new IllegalStateError("Before removing feeds, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before removing feeds for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before removing feeds, you must first add a baby"));
+				}
 			}
-			return self.feedDao.getLastFeed(userId);
+			return self.feedDao.getLastFeed(userId, loadedBaby.seq);
 		})
 		.then( function(getLastFeedResult) {
 			//TODO: Handle the case where there are no feed entries
@@ -349,7 +393,7 @@ FeedController.prototype.removeLastFeed = function(userId) {
 			//Then delete that feed
 			if( lastFeedDateTime ) {
 				logger.debug("Deleting feed");
-				return self.feedDao.deleteFeed(userId, new Date(lastFeedDateTime));
+				return self.feedDao.deleteFeed(userId, loadedBaby.seq, new Date(lastFeedDateTime));
 			} else {
 				return Promise.resolve();
 			}

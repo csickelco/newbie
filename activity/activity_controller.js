@@ -82,8 +82,10 @@ ActivityController.prototype.initActivityData = function() {
  * 
  * @param 	{string} userId				the userId who owns the activities. Non-nullable.
  * @param	{Activity} activity			text describing the activity (e.g. "visiting grandma"). Non-nullable.					
- * @param	{Date} dateTime				the date/time the activity occurred. Nullable.
- * 										If not specified, the current date/time is used.
+ * @param	{Date} dateTime				the date/time the activity occurred. Non-nullable.
+ * @param 	{string} baby				the name of the baby to add the activity for. Nullable.
+ * 										If not specified, the activity is assumed to be for the most
+ * 										recently added baby.
  * 
  * @return 	{Promise<Response>|IllegalArgumentError, IllegalStateError, DaoError} 				
  * 										promise containing a response with both a verbal message and written card,
@@ -93,8 +95,9 @@ ActivityController.prototype.initActivityData = function() {
  *  									Rejected promise with DaoError if an error occurred interacting with the data store while attempting
  * 										to add the activity. 
  */
-ActivityController.prototype.addActivity = function(userId, activity, dateTime) {
-	logger.debug("addActivity: Adding activity for %s, date: %s, activity: %s", userId, dateTime, activity);
+ActivityController.prototype.addActivity = function(userId, activity, dateTime, baby) {
+	logger.debug("addActivity: Adding activity for %s, date: %s, activity: %s, baby: %s", 
+			userId, dateTime, activity, baby);
 	
 	var template = _.template("Added activity ${activity} for ${babyName}");
 	var loadedBaby;
@@ -110,26 +113,34 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("addActivity: Retrieving baby %s...", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) 
 		{
 			//Provided baby exists, get a count of activities for the day 
 			//to make sure the user has not exceeded their limits
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 				babyName = loadedBaby.name;
-				
-				if( !dateTime ) {
-					dateTime = new Date();
-				}
 				activityObj.userId = userId;
 				activityObj.dateTime = dateTime;
 				activityObj.activity = activity;
+				activityObj.seq = loadedBaby.seq;
 
-				return self.activityDao.getActivityCountForDay(activityObj.userId, activityObj.dateTime);
+				return self.activityDao.getActivityCountForDay(activityObj.userId, loadedBaby.seq, activityObj.dateTime);
 			} else {
-				return Promise.reject(new IllegalStateError("Before recording activities, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before recording activities for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before recording activities, you must first add a baby"));
+				}
 			}
 		})
 		.then( function(activityCountResult) 
@@ -163,7 +174,9 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
  * and return a response.
  * 
  * @param 	userId {string}		the userId whose last activity entry to remove. Non-nullable.
- * 
+ * @param 	{string} baby				the name of the baby to remove the activity for. Nullable.
+ * 										If not specified, the activity is assumed to be for the most
+ * 										recently added baby.
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
  * 			where the response has both a verbal message and written card
@@ -171,28 +184,40 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime) 
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-ActivityController.prototype.removeLastActivity = function(userId) {
-	logger.debug("removeLastActivity: Removing activity for %s", userId);
+ActivityController.prototype.removeLastActivity = function(userId, baby) {
+	logger.debug("removeLastActivity: Removing activity for %s %s", userId, baby);
 	var loadedBaby;	
 	var self = this;
 	var lastActivity;
 	var lastActivityDateTime;
+	var lastActivitySeq;
 
 	//First, validate all input arguments
 	return ValidationUtils.validateRequired("userId", userId)
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("removeLastActivity: Removing activities for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get the most recent activity entry from the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 			} else {
-				return Promise.reject(new IllegalStateError("Before removing activities, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before removing activities for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before removing activities, you must first add a baby"));
+				}
 			}
-			return self.activityDao.getLastActivity(userId);
+			return self.activityDao.getLastActivity(userId, loadedBaby.seq);
 		})
 		.then( function(getLastActivityResult) {
 			//TODO: Handle the case where there are no activity entries
@@ -200,12 +225,13 @@ ActivityController.prototype.removeLastActivity = function(userId) {
 	            logger.debug("getLastActivity: lastActivity %s %d", item.dateTime, item.activityAmount);
 	            lastActivityDateTime = new Date(item.dateTime); //TODO: Can't the DAO do this?
 	            lastActivity = item.activity;
+	            lastActivitySeq = item.seq;
 	        });
 			
 			//Then delete that activity
 			if( lastActivityDateTime ) {
 				logger.debug("Deleting activity");
-				return self.activityDao.deleteActivity(userId, new Date(lastActivityDateTime));
+				return self.activityDao.deleteActivity(userId, lastActivitySeq, new Date(lastActivityDateTime));
 			} else {
 				return Promise.resolve();
 			}

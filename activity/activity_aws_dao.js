@@ -90,11 +90,11 @@ ActivityAWSDao.prototype.createTable = function() {
 			var params = {
 			    TableName : TABLE_NAME,
 			    KeySchema: [       
-			        { AttributeName: "userId", KeyType: "HASH"},  //Partition key
+			        { AttributeName: "activityKey", KeyType: "HASH"},  //Partition key
 			        { AttributeName: "dateTime", KeyType: "RANGE" }  //Sort key
 			    ],
 			    AttributeDefinitions: [       
-			        { AttributeName: "userId", AttributeType: "S" },
+			        { AttributeName: "activityKey", AttributeType: "S" },
 			        { AttributeName: "dateTime", AttributeType: "S" }
 			    ],
 			    ProvisionedThroughput: {       
@@ -131,7 +131,7 @@ ActivityAWSDao.prototype.deleteTable = function() {
 /**
  * Asynchronous operation to persist a new activity 
  * (or overwrite the existing activity if one exists for 
- * the same userId, dateTime).
+ * the same userId, seq, dateTime).
  * 
  * @param 	{Activity} activity the activity object to persist. Non-nullable. 
  * 			Must have all properties populated.
@@ -147,7 +147,7 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
-	    	userId: activity.userId,
+	    	activityKey: activity.userId + "-" + activity.seq,
 	    	dateTime: dateTimeString,
 			activity: activity.activity
 	    }
@@ -163,6 +163,7 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
  * for the specified date or later for a given user.
  * 
  * @param {string} userId 	AWS user ID whose activities to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose activities to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to retrieve all activities. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
@@ -171,16 +172,16 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
+ActivityAWSDao.prototype.getActivitiesForDay = function(userId, seq, date) {
 	logger.debug("getActivitiesForDay: Starting get activities for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			KeyConditionExpression: "activityKey = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {
 				"#dt": "dateTime" //This is needed because dateTime is a reserved word
 			},
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    }
 	};
@@ -192,9 +193,10 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
 
 /**
  * Asynchronous operation to to get a count of all activities created 
- * for the specified date or later for a given user.
+ * for the specified date or later for a given user/baby.
  * 
  * @param {string} userId 	AWS user ID whose activity count to retrieve. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose activities to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to count activities. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
@@ -203,16 +205,16 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-ActivityAWSDao.prototype.getActivityCountForDay = function(userId, date) {
+ActivityAWSDao.prototype.getActivityCountForDay = function(userId, seq, date) {
 	logger.debug("getActivityCountForDay: Starting get activity count for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1 and #dt > :val2",
+			KeyConditionExpression: "activityKey = :val1 and #dt > :val2",
 			ExpressionAttributeNames: {
 				"#dt": "dateTime" //This is needed because dateTime is a reserved word
 			},
 		    ExpressionAttributeValues: {
-		    	":val1":userId,
+		    	":val1":userId + "-" + seq,
 		        ":val2":Utils.formatDateString(date) 
 		    },
 		    ProjectionExpression: "noattribute"
@@ -229,23 +231,23 @@ ActivityAWSDao.prototype.getActivityCountForDay = function(userId, date) {
 
 /**
  * Asynchronous operation to retrieve the most recent activity for 
- * the given userId, or null if no activitys exist.
+ * the given userId/baby, or null if no activitys exist.
  * 
  * @param userId {string} 	AWS user ID whose most recent activity to retrieve. Non-nullable.
- * 
+ * @param {number} seq		the sequence number of the baby whose activities to retrieve. Non-nullable.
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB. 
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-ActivityAWSDao.prototype.getLastActivity = function(userId) {
-	logger.debug("getLastActivity: Starting get last activity for user %s", userId);
+ActivityAWSDao.prototype.getLastActivity = function(userId, seq) {
+	logger.debug("getLastActivity: Starting get last activity for user %s, baby %d", userId, seq);
 	var params = {
 			TableName : TABLE_NAME,
-			KeyConditionExpression: "userId = :val1",
+			KeyConditionExpression: "activityKey = :val1",
 		    ExpressionAttributeValues: {
-		    	":val1":userId
+		    	":val1":userId + "-" + seq
 		    },
 		    ScanIndexForward: false,
 		    Limit: 1
@@ -261,6 +263,7 @@ ActivityAWSDao.prototype.getLastActivity = function(userId) {
  * from the datastore.
  * 
  * @param userId {string}	AWS user ID whose activity to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose activities to retrieve. Non-nullable.
  * @param date {Date}		The date/time of the activity entry to delete. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
@@ -269,12 +272,13 @@ ActivityAWSDao.prototype.getLastActivity = function(userId) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-ActivityAWSDao.prototype.deleteActivity = function(userId, dateTime) {
-	logger.debug("deleteActivity: Starting delete activity for %s %s", userId, dateTime.toISOString() );
+ActivityAWSDao.prototype.deleteActivity = function(userId, seq, dateTime) {
+	logger.debug("deleteActivity: Starting delete activity for %s %d %s", 
+			userId, seq, dateTime.toISOString() );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
-	        "userId":userId,
+	        "activityKey":userId + "-" + seq,
 	        "dateTime":dateTime.toISOString() 
 	    }
 	};

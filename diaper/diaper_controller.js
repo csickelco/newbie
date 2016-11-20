@@ -85,6 +85,9 @@ DiaperController.prototype.initDiaperData = function() {
  * @param	dateTime {Date}		the date/time the diaper change occurred. Non-nullable. 
  * @param	isWet {boolean}		true/false if the diaper was wet. Non-nullable.
  * @param	isDirty	{boolean}	true/false if the diaper was dirty/soiled. Non-nullable.
+ * @param 	{string} baby				the name of the baby to add the diaper for. Nullable.
+ * 										If not specified, the diaper is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -93,8 +96,9 @@ DiaperController.prototype.initDiaperData = function() {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty) {
-	logger.debug("addDiaper: Adding diaper for %s, date: %s, isWet: %s, isDirty: %s", userId, dateTime, isWet, isDirty);
+DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty, baby) {
+	logger.debug("addDiaper: Adding diaper for %s, date: %s, isWet: %s, isDirty: %s, baby: %s", 
+			userId, dateTime, isWet, isDirty, baby);
 	var loadedBaby;
 	var totalWetDiapers = 0;
 	var totalDirtyDiapers = 0;
@@ -129,17 +133,29 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("addDiaper: Retrieving baby %s...", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Provided the baby exists, get all diapers for the day to provide cumultive day count in response
 			//and to make sure the user hasn't exceeded any limits
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
+				diaper.seq = loadedBaby.seq;
 			} else {
-				return Promise.reject(new IllegalStateError("Before recording diapers, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before recording diapers for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before recording diapers, you must first add a baby"));
+				}
 			}
-			return self.diaperDao.getDiapers(userId, dateTime);
+			return self.diaperDao.getDiapers(userId, loadedBaby.seq, dateTime);
 		})
 		.then( function(diapersForDayResult) {
 			var totalDiaperCount = 0;
@@ -199,6 +215,9 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
  * and return a response.
  * 
  * @param 	userId {string}		the userId whose last diaper entry to remove. Non-nullable.
+ * @param 	{string} baby				the name of the baby to remove the diaper for. Nullable.
+ * 										If not specified, the diaper is assumed to be for the most
+ * 										recently added baby.
  * 
  * @returns {Promise<Response|DaoError} Returns a promise with a 
  * 			response if the operation succeeded,
@@ -207,7 +226,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-DiaperController.prototype.removeLastDiaper = function(userId) {
+DiaperController.prototype.removeLastDiaper = function(userId, baby) {
 	logger.debug("removeLastDiaper: Removing diaper for %s", userId);
 	var loadedBaby;	
 	var self = this;
@@ -220,16 +239,27 @@ DiaperController.prototype.removeLastDiaper = function(userId) {
 		.then( function(result) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
-			return self.babyDao.readBaby(userId);
+			if( baby ) {
+				logger.debug("removeLastDiaper: Removing diaper for %s", baby);
+				return self.babyDao.readBabyByName(userId, baby);
+			} else {
+				return self.babyDao.readBaby(userId);
+			}
 		})
 		.then( function(readBabyResult) {
 			//Then, get the most recent diaper entry from the datastore provided the baby exists
-			if(readBabyResult && readBabyResult.Item && readBabyResult.Item.name) {
-				loadedBaby = readBabyResult.Item;
+			if(readBabyResult) {
+				loadedBaby = readBabyResult;
 			} else {
-				return Promise.reject(new IllegalStateError("Before removing diapers, you must first add a baby"));
+				if(baby) {
+					return Promise.reject(new IllegalStateError(
+							"Before removing diapers for " + baby + ", you must first add " + baby + 
+							" by saying 'tell Newbie to add baby'"));
+				} else {
+					return Promise.reject(new IllegalStateError("Before removing diapers, you must first add a baby"));
+				}
 			}
-			return self.diaperDao.getLastDiaper(userId);
+			return self.diaperDao.getLastDiaper(userId, loadedBaby.seq);
 		})
 		.then( function(getLastDiaperResult) {
 			//TODO: Handle the case where there are no diaper entries
@@ -243,7 +273,7 @@ DiaperController.prototype.removeLastDiaper = function(userId) {
 			//Then delete that diaper
 			if( lastDiaperDateTime ) {
 				logger.debug("Deleting diaper");
-				return self.diaperDao.deleteDiaper(userId, new Date(lastDiaperDateTime));
+				return self.diaperDao.deleteDiaper(userId, loadedBaby.seq, new Date(lastDiaperDateTime));
 			} else {
 				return Promise.resolve();
 			}

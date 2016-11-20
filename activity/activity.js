@@ -33,6 +33,7 @@ function Activity (obj) {
 	this.userId = undefined;
 	this.dateTime = undefined;
 	this.activity = undefined;
+	this.seq = undefined;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -45,7 +46,11 @@ function Activity (obj) {
  * @returns {string} a string representation of this object
  */
 Activity.prototype.toString = function activityToString() {
-	  var ret = "Activity, userId: " + this.userId + ", dateTime: " + this.dateTime + ", activity: " + this.activity;
+	  var ret = 
+		  	"Activity, userId: " + this.userId + 
+		  	", seq: " + this.seq + 
+	  		", dateTime: " + this.dateTime + 
+	  		", activity: " + this.activity;
 	  return ret;
 };
 
