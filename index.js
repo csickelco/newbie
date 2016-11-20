@@ -60,7 +60,7 @@ var logger = new (Winston.Logger)({
     		  return new Date();
     	  },
     	  formatter: function(options) {
-    		  return '[' + options.level.toUpperCase() + '] '+ options.timestamp() +' Newbie - '+ (undefined !== options.message ? options.message : '') +
+    		  return '[' + options.level.toUpperCase() + '] '+ options.timestamp() +' Newbie v1.0 - '+ (undefined !== options.message ? options.message : '') +
               (options.meta && Object.keys(options.meta).length ? '\n\t'+ JSON.stringify(options.meta) : '' );
     	  }
       })
@@ -161,7 +161,7 @@ app.pre = function(request, response, type) {
  * 					to Newbie and points the User as to how to start.
  */
 app.launch(function(req, res) {
-	logger.debug('launch: Starting...');
+	logger.info('launch [%s, %s]: Starting ...', req.userId, req.data.request.requestId);
 	var prompt = 'You can ask Newbie to track information about your baby. To begin, say Add baby. ' +
 		"If you've already added your baby, say ''Help'' to find out what else you can do with Newbie";
     res.say(prompt).shouldEndSession(false);
@@ -184,16 +184,20 @@ app.intent('dailySummaryIntent', {
 	'utterances': ['{daily summary} {|for} {-|NAME}']
 }, function(request, response) {
 	var babyName = request.slot('NAME');
-	logger.debug('dailySummaryIntent: Getting summary for userId %s', request.userId);
+	logger.debug('dailySummaryIntent [%s, %s]: Getting summary for userId %s', 
+			request.userId, request.data.request.requestId, request.userId);
 	summaryController.getDailySummary(request.userId, babyName)
 		.then(function(responseRetval) {
-			logger.info('dailySummaryIntent: Response %s', responseRetval.toString());
+			logger.info('dailySummaryIntent [%s, %s]: babyName %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug('dailySummaryIntent: Completed successfully');
+			logger.debug('dailySummaryIntent [%s, %s]: Completed successfully', 
+					request.userId, request.data.request.requestId);
 		}, function (error) {
-			logger.error("An error occurred getting the daily summary: " + error.message + ", " + error.stack);
+			logger.error("dailySummaryIntent [%s, %s]: An error occurred getting the daily summary: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -221,16 +225,20 @@ app.intent('weeklySummaryIntent', {
 	'utterances': ['{weekly summary} {|for} {-|NAME}']
 }, function(request, response) {
 	var babyName = request.slot('NAME');
-	logger.debug('weeklySummaryIntent: Getting summary for userId %s', request.userId);
+	logger.debug('weeklySummaryIntent [%s, %s]: Getting summary for userId %s', 
+			request.userId, request.data.request.requestId, request.userId);
 	summaryController.getWeeklySummary(request.userId, babyName)
 		.then(function(responseRetval) {
-			logger.info('weeklySummaryIntent: Response %s', responseRetval.toString());
+			logger.info('weeklySummaryIntent [%s, %s]: babyName %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug('weeklySummaryIntent: Completed successfully');
+			logger.debug('weeklySummaryIntent [%s, %s]: Completed successfully', 
+					request.userId, request.data.request.requestId);
 		}, function (error) {
-			logger.error("An error occurred getting the weekly summary: " + error.message + ", " + error.stack);
+			logger.error("weeklySummaryIntent [%s, %s]: An error occurred getting the weekly summary: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -253,16 +261,18 @@ app.intent('startSleepIntent', {
 	'utterances': ['{|the baby} {-|NAME} {|is|started} {|sleeping|went to sleep|taking a nap|napping}']
 }, function(request, response) {
 	var babyName = request.slot('NAME');
-	logger.debug('startSleepIntent: started sleep');
+	logger.debug('startSleepIntent [%s, %s]: started sleep', request.userId, request.data.request.requestId );
 	var userId = request.userId;
 	var now = new Date();
 	sleepController.startSleep(userId, now, babyName)
 		.then(function(responseRetval) {
-			logger.info('startSleepIntent: %s', responseRetval.toString());
+			logger.info('startSleepIntent [%s, %s]: babyName %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();
 			response.shouldEndSession(true);
 		}, function (error) {
-			logger.error("startSleepIntent: An error occurred starting sleep: " + error.message + ", " + error.stack);
+			logger.error("startSleepIntent [%s, %s]: An error occurred starting sleep: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -284,17 +294,20 @@ app.intent('endSleepIntent', {
 	},
 	'utterances': ['{|the baby} {-|NAME} {|is awake|woke up|finished sleeping|finished napping}']
 }, function(request, response) {
-	logger.debug('endSleepIntent: ended sleep');
+	logger.debug('endSleepIntent [%s, %s]: ended sleep', 
+			request.userId, request.data.request.requestId);
 	var babyName = request.slot('NAME');
 	var userId = request.userId;
 	var now = new Date();
 	sleepController.endSleep(userId, now, babyName)
 		.then(function(responseRetval) {
-			logger.info('endSleepIntent: %s', responseRetval.toString());
+			logger.info('endSleepIntent [%s, %s]: babyName %s, response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();
 			response.shouldEndSession(true);
 		}, function (error) {
-			logger.error("endSleepIntent: An error occurred ending sleep: " + error.message + ", " + error.stack);
+			logger.error("endSleepIntent [%s, %s]: An error occurred ending sleep: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -316,17 +329,20 @@ app.intent('removeSleepIntent', {
 	'utterances': ['{|remove|delete|undo} sleep {|for} {-|NAME}']
 },
 function(request, response) {
-	logger.debug("removeSleepIntent");
+	logger.debug("removeSleepIntent [%s, %s]", request.userId, request.data.request.requestId);
 	var babyName = request.slot('NAME');
 	sleepController.removeLastSleep(request.userId, babyName)
 		.then(function(responseRetval) {
-			logger.info('removeSleepIntent: %s', responseRetval.toString());
+			logger.info('removeSleepIntent [%s, %s]: babyName %s, response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Sleep successfully removed, response: %s", responseRetval.toString());
+			logger.debug("removeSleepIntent [%s, %s]: Sleep successfully removed, response: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
-			logger.error("An error occurred removing sleep: " + error.message + ", " + error.stack);
+			logger.error("removeSleepIntent [%s, %s]: An error occurred removing sleep: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -351,12 +367,15 @@ app.intent('getAwakeTimeIntent', {
 		var babyName = request.slot('NAME');
 		sleepController.getAwakeTime(request.userId, babyName)
 			.then(function(responseRetval) {
-				logger.info('getAwakeTimeIntent: Response %s', responseRetval);
+				logger.info('getAwakeTimeIntent [%s, %s]: babyName %s, Response %s', 
+						request.userId, request.data.request.requestId, babyName, responseRetval);
 				response.say(responseRetval.message).send();	
 				response.shouldEndSession(true);
-				logger.debug("getAwakeTimeIntent: Successfully completed");
+				logger.debug("getAwakeTimeIntent [%s, %s]: Successfully completed", 
+						request.userId, request.data.request.requestId);
 			}, function (error) {
-				logger.error("getAwakeTimeIntent: An error occurred getting awake time: " + error.message + ", " + error.stack);
+				logger.error("getAwakeTimeIntent [%s, %s]: An error occurred getting awake time: " + error.message + ", " + error.stack, 
+						request.userId, request.data.request.requestId);
 				response.say(error.message).send();
 				response.shouldEndSession(true);
 			});
@@ -382,12 +401,15 @@ app.intent('getLastFeedIntent', {
 		var babyName = request.slot('NAME');
 		feedController.getLastFeed(request.userId, babyName)
 			.then(function(responseRetval) {
-				logger.info('getLastFeedIntent: Response %s', responseRetval);
+				logger.info('getLastFeedIntent [%s, %s]: babyName, Response %s', 
+						request.userId, request.data.request.requestId, babyName, responseRetval);
 				response.say(responseRetval.message).send();	
 				response.shouldEndSession(true);
-				logger.debug("getLastFeedIntent: Successfully completed");
+				logger.debug("getLastFeedIntent [%s, %s]: Successfully completed", 
+						request.userId, request.data.request.requestId);
 			}, function (error) {
-				logger.error("getLastFeedIntent: An error occurred getting last feed: " + error.message + ", " + error.stack);
+				logger.error("getLastFeedIntent [%s, %s]: An error occurred getting last feed: " + error.message + ", " + error.stack, 
+						request.userId, request.data.request.requestId);
 				response.say(error.message).send();
 				response.shouldEndSession(true);
 			});
@@ -413,20 +435,24 @@ app.intent('addFeedIntent', {
 	var now = new Date();
 	var feedAmount;
 	var babyName = request.slot('NAME');
-	logger.debug('addFeedIntent: %d ounces for %s', request.slot('NUM_OUNCES'), now.toString());
+	logger.debug('addFeedIntent [%s, %s]: %d ounces for %s', 
+			request.userId, request.data.request.requestId, request.slot('NUM_OUNCES'), now.toString());
 	
 	if( request.slot('NUM_OUNCES') ) {
 		feedAmount = parseInt(request.slot('NUM_OUNCES'));
 	}
 	feedController.addFeed(request.userId, now, feedAmount, babyName)
 		.then(function(responseRetval) {
-			logger.info('addFeedIntent: %s', responseRetval.toString());
+			logger.info('addFeedIntent [%s, %s]: babyName %s, feedAmount %d, response %s', 
+					request.userId, request.data.request.requestId, babyName, feedAmount, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Feed successfully added, response: %s", responseRetval.toString());
+			logger.debug("addFeedIntent [%s, %s]: Feed successfully added, response: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
-			logger.error("An error occurred adding feed: " + error.message + ", " + error.stack);
+			logger.error("addFeedIntent [%s, %s]: An error occurred adding feed: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -448,17 +474,20 @@ app.intent('removeFeedIntent', {
 	'utterances': ['{|remove|delete|undo} feed {|for} {-|NAME}']
 },
 function(request, response) {
-	logger.debug("removeFeedIntent");
+	logger.debug("removeFeedIntent [%s, %s]", request.userId, request.data.request.requestId);
 	var babyName = request.slot('NAME');
 	feedController.removeLastFeed(request.userId, babyName)
 		.then(function(responseRetval) {
-			logger.info('removeFeedIntent: %s', responseRetval.toString());
+			logger.info('removeFeedIntent [%s, %s]: babyName %s, response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Feed successfully removed, response: %s", responseRetval.toString());
+			logger.debug("removeFeedIntent [%s, %s]: Feed successfully removed, response: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
-			logger.error("An error occurred removing feed: " + error.message + ", " + error.stack);
+			logger.error("removeFeedIntent [%s, %s]: An error occurred removing feed: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -482,18 +511,21 @@ app.intent('addActivityIntent', {
 }, function(request, response) {
 	var activity = request.slot('ACTIVITY');
 	var babyName = request.slot('NAME');
-	logger.debug('addActivityIntent: %s', activity);
+	logger.debug('addActivityIntent [%s, %s]: %s', request.userId, activity);
 	
 	activityController.addActivity(request.userId, activity, new Date(), babyName)
 		.then(function(responseRetval) {
-			logger.info('addActivityIntent: Response %s', responseRetval.toString());
+			logger.info('addActivityIntent [%s, %s]: babyName %s, activity %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, activity, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Activity successfully added: %s", responseRetval.toString());
+			logger.debug("addActivityIntent [%s, %s]: Activity successfully added: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		})
 		.catch(function(error) {
-			logger.error("An error occurred adding activity: " + error.message + ", " + error.stack);
+			logger.error("addActivityIntent [%s, %s]: An error occurred adding activity: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -516,17 +548,20 @@ app.intent('removeActivityIntent', {
 	'utterances': ['{|remove|delete|undo} activity {|for} {-|NAME}']
 },
 function(request, response) {
-	logger.debug("removeActivityIntent");
+	logger.debug("removeActivityIntent [%s, %s]", request.userId, request.data.request.requestId);
 	var babyName = request.slot('NAME');
 	activityController.removeLastActivity(request.userId, babyName)
 		.then(function(responseRetval) {
-			logger.info('removeActivityIntent: %s', responseRetval.toString());
+			logger.info('removeActivityIntent [%s, %s]: babyName %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Activity successfully removed, response: %s", responseRetval.toString());
+			logger.debug("removeActivityIntent [%s, %s]: Activity successfully removed, response: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
-			logger.error("An error occurred removing activity: " + error.message + ", " + error.stack);
+			logger.error("removeActivityIntent [%s, %s]: An error occurred removing activity: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -553,20 +588,25 @@ function(request, response) {
 	var diaperType1 = request.slot('FIRST_DIAPER_TYPE');
 	var diaperType2 = request.slot('SECOND_DIAPER_TYPE');
 	var babyName = request.slot('NAME');
-	logger.debug("addDiaperIntent: %s diaper AND %s diaper", diaperType1, diaperType2);
+	logger.debug("addDiaperIntent [%s, %s]: %s diaper AND %s diaper", 
+			request.userId, request.data.request.requestId, diaperType1, diaperType2);
 	var isWet = determineIfWetDiaper(diaperType1) || determineIfWetDiaper(diaperType2);
 	var isDirty = determineIfDirtyDiaper(diaperType1) || determineIfDirtyDiaper(diaperType2);
-	logger.debug("addDiaperIntent: wet -- %s, dirty -- %s", isWet, isDirty);
+	logger.debug("addDiaperIntent [%s, %s]: wet -- %s, dirty -- %s", 
+			request.userId, request.data.request.requestId, isWet, isDirty);
 	var now = new Date();
 	diaperController.addDiaper(request.userId, now, isWet, isDirty, babyName)
 		.then(function(responseRetval) {
-			logger.info('addDiaperIntent: %s', responseRetval.toString());
+			logger.info('addDiaperIntent [%s, %s]: babyName %s, diaperType1 %s, diaperType2 %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, diaperType1, diaperType2, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Diaper successfully added, response: %s", responseRetval.toString());
+			logger.debug("addDiaperIntent [%s, %s]: Diaper successfully added, response: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
-			logger.error("An error occurred adding diaper: " + error.message + ", " + error.stack);
+			logger.error("addDiaperIntent [%s, %s]: An error occurred adding diaper: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -589,16 +629,19 @@ app.intent('removeDiaperIntent', {
 },
 function(request, response) {
 	var babyName = request.slot('NAME');
-	logger.debug("removeDiaperIntent");
+	logger.debug("removeDiaperIntent [%s, %s]", request.userId, request.data.request.requestId);
 	diaperController.removeLastDiaper(request.userId, babyName)
 		.then(function(responseRetval) {
-			logger.info('removeDiaperIntent: %s', responseRetval.toString());
+			logger.info('removeDiaperIntent [%s, %s]: babyName %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Diaper successfully removed, response: %s", responseRetval.toString());
+			logger.debug("removeDiaperIntent [%s, %s]: Diaper successfully removed, response: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
-			logger.error("An error occurred removing diaper: " + error.message + ", " + error.stack);
+			logger.error("removeDiaperIntent [%s, %s]: An error occurred removing diaper: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -628,7 +671,8 @@ app.intent('addWeightIntent', {
 	    var pounds = parseInt(request.slot('NUM_POUNDS'));
 	    var ounces = parseInt(request.slot('NUM_OUNCES'));
 	    var babyName = request.slot('NAME');
-	    logger.debug("addWeightIntent: %d pounds, %d ounces, request %s", pounds, ounces, JSON.stringify(request));
+	    logger.debug("addWeightIntent [%s, %s]: %d pounds, %d ounces, request %s", 
+	    		request.userId, request.data.request.requestId, pounds, ounces, JSON.stringify(request));
 	    var now = new Date();
 	    
 	    if(pounds !== undefined && pounds !== "?" && ounces !== undefined && ounces !== "?") {
@@ -640,18 +684,22 @@ app.intent('addWeightIntent', {
 					babyName
 				);
 			addWeightPromise.then(function(responseRetval) {
-				logger.debug('addWeightIntent: %s', responseRetval);
+				logger.debug('addWeightIntent [%s, %s]: %s', request.userId, request.data.request.requestId, responseRetval);
 				response.say(responseRetval.message).send();	
 				//TODO: ideally return the percentile and add that to the card as well
 				response.card(responseRetval.cardTitle, responseRetval.cardBody);
 				response.shouldEndSession(true);
-				logger.info("Weight successfully added, %s", responseRetval.toString());
+				logger.info("addWeightIntent [%s, %s]: babyName %s, pounds %d, ounces %d, Weight successfully added, %s", 
+						request.userId, request.data.request.requestId, babyName, pounds, ounces, responseRetval.toString());
 			}, function (error) {
-				logger.error("An error occurred adding weight: " + error.message + ", " + error.stack);
+				logger.error("addWeightIntent [%s, %s]: An error occurred adding weight: " + error.message + ", " + error.stack, 
+						request.userId, request.data.request.requestId);
 				response.say(error.message).send();
 				response.shouldEndSession(true);
 			});
 	    } else {
+	    	logger.error("addWeightIntent [%s, %s]: Couldn't add weight. Both pounds and ounces must be specified, pounds - %d, ounces - %d",
+	    			request.userId, request.data.request.requestId, pounds, ounces);
 	    	response.say("I'm sorry, I couldn't add weight - you must specify both pounds and ounces").send();		
 			response.shouldEndSession(true);
 	    }
@@ -675,17 +723,20 @@ app.intent('removeWeightIntent', {
 	'utterances': ['{|remove|delete|undo} weight {|for} {-|NAME}']
 },
 function(request, response) {
-	logger.debug("removeWeightIntent");
+	logger.debug("removeWeightIntent [%s, %s]", request.userId, request.data.request.requestId);
 	var babyName = request.slot('NAME');
 	weightController.removeLastWeight(request.userId, babyName)
 		.then(function(responseRetval) {
-			logger.info('removeWeightIntent: %s', responseRetval.toString());
+			logger.info('removeWeightIntent [%s, %s]: babyName %s, %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
 			response.say(responseRetval.message).send();	
 			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
-			logger.debug("Weight successfully removed, response: %s", responseRetval.toString());
+			logger.debug("removeWeightIntent [%s, %s]: Weight successfully removed, response: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
-			logger.error("An error occurred removing weight: " + error.message + ", " + error.stack);
+			logger.error("removeWeightIntent [%s, %s]: An error occurred removing weight: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
 			response.say(error.message).send();
 			response.shouldEndSession(true);
 		});
@@ -718,38 +769,38 @@ app.intent('addBabyIntent', {
 			var birthdateValue = request.slot("BIRTHDATE");
 			var timezoneValue = request.slot("TIMEZONE");
 			var daylightSavingsObservedValue = request.slot('DAYLIGHT_SAVINGS_OBSERVED');
-			logger.debug('addBabyIntent: Processing with sexValue: %s, nameValue: %s, birthdateValue: %s, timezoneValue: %s, daylightSavingsObseved: %s', 
-					sexValue, nameValue, birthdateValue, timezoneValue, daylightSavingsObservedValue);
+			logger.debug('addBabyIntent [%s, %s]: Processing with sexValue: %s, nameValue: %s, birthdateValue: %s, timezoneValue: %s, daylightSavingsObseved: %s', 
+					request.userId, request.data.request.requestId, sexValue, nameValue, birthdateValue, timezoneValue, daylightSavingsObservedValue);
 			
 			var babyData = request.session(NEWBIE_SESSION_KEY);
 			if(babyData === undefined) {
-				logger.debug('addBabyIntent: babyData does not yet exist, creating...');
+				logger.debug('addBabyIntent [%s, %s]: babyData does not yet exist, creating...', request.userId, request.data.request.requestId);
 				babyData = {};
 			} else {
-				logger.debug('addBabyIntent: babyData exists - %s', JSON.stringify(babyData));
+				logger.debug('addBabyIntent [%s, %s]: babyData exists - %s', request.userId, request.data.request.requestId, JSON.stringify(babyData));
 			}
 			if( sexValue ) {
-				logger.debug('addBabyIntent: Adding sexValue %s', sexValue);
+				logger.debug('addBabyIntent [%s, %s]: Adding sexValue %s', request.userId, request.data.request.requestId, sexValue);
 				babyData.sex = sexValue;
 			}
 			if( nameValue ) {
-				logger.debug('addBabyIntent: Adding nameValue %s', nameValue);
+				logger.debug('addBabyIntent [%s, %s]: Adding nameValue %s', request.userId, request.data.request.requestId, nameValue);
 				babyData.name = nameValue;
 			}
 			if( birthdateValue ) {
-				logger.debug('addBabyIntent: Adding birthdateValue %s', birthdateValue);
+				logger.debug('addBabyIntent [%s, %s]: Adding birthdateValue %s', request.userId, request.data.request.requestId, birthdateValue);
 				babyData.birthdate = birthdateValue;
 			}
 			if( timezoneValue ) {
-				logger.debug('addBabyIntent: Adding timezoneValue %s', timezoneValue);
+				logger.debug('addBabyIntent [%s, %s]: Adding timezoneValue %s', request.userId, request.data.request.requestId, timezoneValue);
 				babyData.timezone = timezoneValue;
 			}
 			if( daylightSavingsObservedValue ) {
-				logger.debug('addBabyIntent: Adding daylightSavingsObservedValue %s', daylightSavingsObservedValue);
+				logger.debug('addBabyIntent [%s, %s]: Adding daylightSavingsObservedValue %s', request.userId, request.data.request.requestId, daylightSavingsObservedValue);
 				babyData.daylightSavingsObservedValue = daylightSavingsObservedValue;
 			}
 			response.session(NEWBIE_SESSION_KEY, babyData);
-			logger.debug('addBabyIntent: babyData - %s', JSON.stringify(babyData));
+			logger.debug('addBabyIntent [%s, %s]: babyData - %s', request.userId, request.data.request.requestId, JSON.stringify(babyData));
 			
 			if(!babyData.name) {
 				response.say("What is your baby's first name?").send();
@@ -777,19 +828,20 @@ app.intent('addBabyIntent', {
 						daylightSavingsObserved
 					);
 				addBabyPromise.then(function(responseRetval) {
-					logger.debug('addBabyIntent: %s', responseRetval.toString());
+					logger.debug('addBabyIntent [%s, %s]: %s', request.userId, request.data.request.requestId, responseRetval.toString());
 					response.say(responseRetval.message).send();		
 					response.shouldEndSession(true);
-					logger.info("Baby successfully added, response: %s", responseRetval.toString());
+					logger.info("addBabyIntent [%s, %s]: Baby successfully added, response: %s", request.userId, request.data.request.requestId, responseRetval.toString());
 				}, function (error) {
-					logger.error("An error occurred adding baby: " + error.message + ", " + error.stack);
+					logger.error("addBabyIntent [%s, %s]: An error occurred adding baby: " + error.message + ", " + error.stack, 
+							request.userId, request.data.request.requestId);
 					response.say(error.message).send();
 					response.shouldEndSession(true);
 				});
 			} 
 			//TODO: Checking if baby already exists. Right now, it just overwrites, which may be ok.
 		} catch( err ) {
-			logger.error("An error occurred adding baby: " + err.message + ", " + err.stack);
+			logger.error("addBabyIntent [%s, %s]: An error occurred adding baby: " + err.message + ", " + err.stack, request.userId);
 			response.say(err.message).send();
 			response.shouldEndSession(true);
 		}
