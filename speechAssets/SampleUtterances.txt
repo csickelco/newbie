@@ -119,16 +119,20 @@ removeActivityIntent	undo activity {NAME}
 removeActivityIntent	remove activity for {NAME}
 removeActivityIntent	delete activity for {NAME}
 removeActivityIntent	undo activity for {NAME}
-addDiaperIntent	{FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
-addDiaperIntent	{FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
+addDiaperIntent	add {FIRST_DIAPER_TYPE} diaper
+addDiaperIntent	record {FIRST_DIAPER_TYPE} diaper
 addDiaperIntent	add {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	record {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper {NAME}
 addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper {NAME}
+addDiaperIntent	add {FIRST_DIAPER_TYPE} diaper {NAME}
+addDiaperIntent	record {FIRST_DIAPER_TYPE} diaper {NAME}
 addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper for {NAME}
 addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper for {NAME}
+addDiaperIntent	add {FIRST_DIAPER_TYPE} diaper for {NAME}
+addDiaperIntent	record {FIRST_DIAPER_TYPE} diaper for {NAME}
 addDiaperIntent	add {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper for {NAME}
 addDiaperIntent	record {FIRST_DIAPER_TYPE} AND {SECOND_DIAPER_TYPE} diaper for {NAME}
 removeDiaperIntent	remove diaper

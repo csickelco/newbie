@@ -229,7 +229,7 @@ BabyAWSDao.prototype.readBabyByName = function(userId, babyName) {
 			//Then put it all together in a response
 			readBabyResult.Items.forEach(function(item) {
 				logger.debug("readBabyByName: item.name '%s', babyName '%s'", item.name, babyName);
-				if( item.name === babyName ) {
+				if( item.name.toLowerCase() === babyName.toLowerCase() ) {
 					logger.debug("Found baby %s", babyName);
 					babyResult = item;
 				} else if( !babyResult ) {
@@ -238,7 +238,8 @@ BabyAWSDao.prototype.readBabyByName = function(userId, babyName) {
 					 * (e.g. Nathalie vs Natalie) and it's unclear which Amazon will pick.
 					 * Therefore, if there is no exact match, look for one that is close. 
 					 */
-					var similarityScore = clj_fuzzy.metrics.jaccard(item.name, babyName);
+					var similarityScore = clj_fuzzy.metrics.jaccard(
+							item.name.toLowerCase(), babyName.toLowerCase());
 					logger.debug("name %s, score %s", item.name, similarityScore);
 					if( similarityScore < highScore ) {
 						highScore = similarityScore;
