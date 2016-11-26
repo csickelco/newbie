@@ -34,6 +34,7 @@ function Activity (obj) {
 	this.dateTime = undefined;
 	this.activity = undefined;
 	this.seq = undefined;
+	this.timezone = undefined;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -50,7 +51,8 @@ Activity.prototype.toString = function activityToString() {
 		  	"Activity, userId: " + this.userId + 
 		  	", seq: " + this.seq + 
 	  		", dateTime: " + this.dateTime + 
-	  		", activity: " + this.activity;
+	  		", activity: " + this.activity + 
+	  		", timezone: " + this.timezone;
 	  return ret;
 };
 

@@ -128,7 +128,7 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 				logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
 				
 				//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
-				return self.feedDao.getFeeds(userId, loadedBaby.seq, aWeekAgo);
+				return self.feedDao.getFeeds(userId, loadedBaby.seq, aWeekAgo, readBabyResult.timezone);
 			} else {
 				if(baby) {
 					return Promise.reject(new IllegalStateError(
@@ -157,7 +157,7 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 	            logger.debug("getWeeklySummary: Put in feedMap %s - %s", dateKey, feedSummary.toString());
 	        });
 			//Next get diapers
-			return self.diaperDao.getDiapers(userId, loadedBaby.seq, aWeekAgo);
+			return self.diaperDao.getDiapers(userId, loadedBaby.seq, aWeekAgo, loadedBaby.timezone);
 		}).then( function(diapersForWeekResult) {
 			//Process returned diapers
 			diapersForWeekResult.Items.forEach(function(item) {
@@ -177,7 +177,7 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 	            logger.debug("getWeeklySummary: Put in diaperMap %s - %s", dateKey, diaperSummary.toString());
 	        });
 			//Next get sleep
-			return self.sleepDao.getSleep(userId, loadedBaby.seq, aWeekAgo);
+			return self.sleepDao.getSleep(userId, loadedBaby.seq, aWeekAgo, loadedBaby.timezone);
 		}).then( function(sleepForWeekResult) {
 			//Process returned sleep
 			//TODO: refactor this logic so we're not duplicating
@@ -196,7 +196,7 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 				}
 	        });
 			//Finally get weight
-			return self.weightDao.getWeight(userId, loadedBaby.seq, aWeekAgo);
+			return self.weightDao.getWeight(userId, loadedBaby.seq, aWeekAgo, loadedBaby.timezone);
 		}).then( function(weightForWeekResult) {
 			weightForWeekResult.Items.forEach(function(item) {
 	            if( item.weight ) {
@@ -361,7 +361,7 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 				dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.birthdate));
 				dailySummary.sex = readBabyResult.sex;
 				logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
-				return self.feedDao.getFeeds(userId, baby.seq, today);
+				return self.feedDao.getFeeds(userId, baby.seq, today, baby.timezone);
 			} else {
 				if(baby) {
 					return Promise.reject(new IllegalStateError(
@@ -382,7 +382,7 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 	            	dailySummary.numUnspecifiedFeedings++;
 	            }
 	        });
-			return self.weightDao.getWeight(userId, baby.seq, today);
+			return self.weightDao.getWeight(userId, baby.seq, today, baby.timezone);
 		})
 		.then( function(weightForDayResult) {
 			logger.debug("getDailySummary: weightForDayResult.Items %s", JSON.stringify(weightForDayResult));
@@ -392,7 +392,7 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 			} else {
 				logger.debug("getDailySummary: no weight recorded today");
 			}
-			return self.diaperDao.getDiapers(userId, baby.seq, today);
+			return self.diaperDao.getDiapers(userId, baby.seq, today, baby.timezone);
 		})
 		.then( function(diapersForDayResult) {
 			logger.debug("getDailySummary: diapersForDayResult.Items %s", JSON.stringify(diapersForDayResult));
@@ -406,7 +406,7 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 	            	dailySummary.numDirtyDiapers++;
 	            }
 	        });
-			return self.activityDao.getActivitiesForDay(userId, baby.seq, today);
+			return self.activityDao.getActivitiesForDay(userId, baby.seq, today, baby.timezone);
 		})
 		.then( function(activitiesForDayResult) {
 			logger.debug("getDailySummary: activitiesForDayResult.Items %s", JSON.stringify(activitiesForDayResult));
@@ -416,7 +416,7 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 	            activities.add(item.activity);
 	        });
 			logger.debug("getDailySummary: activities size -- %s", activities.size);
-			return self.sleepDao.getSleep(userId, baby.seq, today);
+			return self.sleepDao.getSleep(userId, baby.seq, today, baby.timezone);
 		})
 		.then( function(sleepsForDayResult) {
 			logger.debug("getDailySummary: sleepsForDayResult.Items %s", JSON.stringify(sleepsForDayResult));

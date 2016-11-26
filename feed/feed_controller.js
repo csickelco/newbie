@@ -150,6 +150,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount, baby) 
 			if(readBabyResult) {
 				loadedBaby = readBabyResult;
 				feed.seq = loadedBaby.seq;
+				feed.timezone = loadedBaby.timezone;
 			} else {
 				if(baby) {
 					return Promise.reject(new IllegalStateError(
@@ -159,7 +160,7 @@ FeedController.prototype.addFeed = function(userId, dateTime, feedAmount, baby) 
 					return Promise.reject(new IllegalStateError("Before recording feeds, you must first add a baby"));
 				}
 			}
-			return self.feedDao.getFeeds(userId, loadedBaby.seq, dateTime);
+			return self.feedDao.getFeeds(userId, loadedBaby.seq, dateTime, loadedBaby.timezone);
 		})
 		.then( function(feedsForDayResult) {
 			//Get all the previous feeds
@@ -393,7 +394,7 @@ FeedController.prototype.removeLastFeed = function(userId, baby) {
 			//Then delete that feed
 			if( lastFeedDateTime ) {
 				logger.debug("Deleting feed");
-				return self.feedDao.deleteFeed(userId, loadedBaby.seq, new Date(lastFeedDateTime));
+				return self.feedDao.deleteFeed(userId, loadedBaby.seq, new Date(lastFeedDateTime), loadedBaby.timezone);
 			} else {
 				return Promise.resolve();
 			}

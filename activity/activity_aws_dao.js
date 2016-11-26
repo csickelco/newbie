@@ -142,7 +142,7 @@ ActivityAWSDao.prototype.deleteTable = function() {
  * 			or ResourceNotFoundException).
  */
 ActivityAWSDao.prototype.createActivity = function(activity) {
-	var dateTimeString = activity.dateTime.toISOString();
+	var dateTimeString = Utils.formatDateTimeString(activity.dateTime, activity.timezone);
 	logger.debug("createActivity: Starting activity creation for user %s, dateTimeString %s, activity %s...", activity.userId, dateTimeString, activity.activity);
 	var params = {
 	    TableName: TABLE_NAME,
@@ -165,6 +165,7 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
  * @param {string} userId 	AWS user ID whose activities to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose activities to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to retrieve all activities. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -172,7 +173,7 @@ ActivityAWSDao.prototype.createActivity = function(activity) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-ActivityAWSDao.prototype.getActivitiesForDay = function(userId, seq, date) {
+ActivityAWSDao.prototype.getActivitiesForDay = function(userId, seq, date, timezone) {
 	logger.debug("getActivitiesForDay: Starting get activities for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
@@ -182,7 +183,7 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, seq, date) {
 			},
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    }
 	};
 	return this.docClient.query(params).promise()
@@ -198,6 +199,7 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, seq, date) {
  * @param {string} userId 	AWS user ID whose activity count to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose activities to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to count activities. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -205,7 +207,7 @@ ActivityAWSDao.prototype.getActivitiesForDay = function(userId, seq, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-ActivityAWSDao.prototype.getActivityCountForDay = function(userId, seq, date) {
+ActivityAWSDao.prototype.getActivityCountForDay = function(userId, seq, date, timezone) {
 	logger.debug("getActivityCountForDay: Starting get activity count for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
@@ -215,7 +217,7 @@ ActivityAWSDao.prototype.getActivityCountForDay = function(userId, seq, date) {
 			},
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    },
 		    ProjectionExpression: "noattribute"
 	};
@@ -272,14 +274,15 @@ ActivityAWSDao.prototype.getLastActivity = function(userId, seq) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-ActivityAWSDao.prototype.deleteActivity = function(userId, seq, dateTime) {
+ActivityAWSDao.prototype.deleteActivity = function(userId, seq, dateTime, timezone) {
+	var dateTimeString = Utils.formatDateTimeString(dateTime, timezone);
 	logger.debug("deleteActivity: Starting delete activity for %s %d %s", 
-			userId, seq, dateTime.toISOString() );
+			userId, seq, dateTimeString );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
 	        "activityKey":userId + "-" + seq,
-	        "dateTime":dateTime.toISOString() 
+	        "dateTime": dateTimeString 
 	    }
 	};
 	return this.docClient.delete(params).promise()

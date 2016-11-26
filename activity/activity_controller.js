@@ -34,6 +34,7 @@ var ActivityLimitError = require('../common/activity_limit_error');
 var ValidationUtils = require('../common/validation_utils');
 var Response = require('../common/response');
 var Winston = require('winston');
+var Utils = require('../common/utils');
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -131,8 +132,10 @@ ActivityController.prototype.addActivity = function(userId, activity, dateTime, 
 				activityObj.dateTime = dateTime;
 				activityObj.activity = activity;
 				activityObj.seq = loadedBaby.seq;
+				activityObj.timezone = loadedBaby.timezone;
 
-				return self.activityDao.getActivityCountForDay(activityObj.userId, loadedBaby.seq, activityObj.dateTime);
+				return self.activityDao.getActivityCountForDay(activityObj.userId, loadedBaby.seq, 
+						activityObj.dateTime, activityObj.timezone);
 			} else {
 				if(baby) {
 					return Promise.reject(new IllegalStateError(
@@ -190,7 +193,6 @@ ActivityController.prototype.removeLastActivity = function(userId, baby) {
 	var self = this;
 	var lastActivity;
 	var lastActivityDateTime;
-	var lastActivitySeq;
 
 	//First, validate all input arguments
 	return ValidationUtils.validateRequired("userId", userId)
@@ -225,13 +227,12 @@ ActivityController.prototype.removeLastActivity = function(userId, baby) {
 	            logger.debug("getLastActivity: lastActivity %s %d", item.dateTime, item.activityAmount);
 	            lastActivityDateTime = new Date(item.dateTime); //TODO: Can't the DAO do this?
 	            lastActivity = item.activity;
-	            lastActivitySeq = item.seq;
 	        });
 			
 			//Then delete that activity
 			if( lastActivityDateTime ) {
 				logger.debug("Deleting activity");
-				return self.activityDao.deleteActivity(userId, lastActivitySeq, new Date(lastActivityDateTime));
+				return self.activityDao.deleteActivity(userId, loadedBaby.seq, new Date(lastActivityDateTime), loadedBaby.timezone);
 			} else {
 				return Promise.resolve();
 			}

@@ -129,6 +129,7 @@ SleepController.prototype.startSleep = function(userId, dateTime, baby) {
 			if(readBabyResult) {
 				loadedBaby = readBabyResult;
 				sleep.seq = loadedBaby.seq;
+				sleep.timezone = loadedBaby.timezone;
 			} else {
 				if(baby) {
 					return Promise.reject(new IllegalStateError(
@@ -140,7 +141,7 @@ SleepController.prototype.startSleep = function(userId, dateTime, baby) {
 			}
 			
 			//Next, check to make sure activity limits haven't been exceeded
-			return self.sleepDao.getSleepCountForDay(userId, loadedBaby.seq, sleep.sleepDateTime);
+			return self.sleepDao.getSleepCountForDay(userId, loadedBaby.seq, sleep.sleepDateTime, loadedBaby.timezone);
 		})
 		.then( function(sleepCountResult) {
 			if( sleepCountResult + 1 > ADD_LIMIT ) {
@@ -232,6 +233,7 @@ SleepController.prototype.endSleep = function(userId, dateTime, baby) {
             lastSleep = item;
             lastSleep.userId = item.sleepKey.substring(0, item.sleepKey.indexOf("-"));
             lastSleep.seq = loadedBaby.seq;
+            lastSleep.timezone = loadedBaby.timezone;
             lastSleep.sleepDateTime = new Date(lastSleep.sleepDateTime); //TODO: this is a bit kludgy. Should DAO do this?
             foundSleepRecord = true;
         });
@@ -396,7 +398,7 @@ SleepController.prototype.removeLastSleep = function(userId, baby) {
 			//Then delete that sleep
 			if( lastSleepDateTime ) {
 				logger.debug("Deleting sleep");
-				return self.sleepDao.deleteSleep(userId, loadedBaby.seq, new Date(lastSleepDateTime));
+				return self.sleepDao.deleteSleep(userId, loadedBaby.seq, new Date(lastSleepDateTime), loadedBaby.timezone);
 			} else {
 				return Promise.resolve();
 			}

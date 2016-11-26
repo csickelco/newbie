@@ -35,6 +35,7 @@ function Diaper (obj) {
 	this.isWet = undefined;
 	this.isDirty = undefined;
 	this.seq = undefined;
+	this.timezone = undefined;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -47,7 +48,12 @@ function Diaper (obj) {
  * @returns {string} a string representation of this object
  */
 Diaper.prototype.toString = function diaperToString() {
-	  var ret = "Diaper, userId: " + this.userId + ", seq: " + this.seq + ", dateTime: " + this.dateTime + ", isWet: " + this.Wet + ", isDirty: " + this.isDirty;
+	  var ret = "Diaper, userId: " + this.userId + 
+	  	", seq: " + this.seq + 
+	  	", dateTime: " + this.dateTime + 
+	  	", isWet: " + this.Wet + 
+	  	", isDirty: " + this.isDirty +
+	  	", timezone: " + this.timezone;
 	  return ret;
 };
 

@@ -326,5 +326,11 @@ describe('Utils', function() {
   it('heShe6', function() {
 	  expect(Utils.heShe("girl")).to.equal("she");
   });
+  
+  //formatDateTimeString
+  it('formatDateTimeString1', function() {
+	 expect(Utils.formatDateTimeString(new Date('1995-09-07T14:24:00Z'), "America/New_York")
+	 	).to.equal("1995-09-07T10:24:00-04:00"); 
+  });
 });
 
