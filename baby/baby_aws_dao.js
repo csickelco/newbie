@@ -28,6 +28,7 @@ module.change_code = 1;
 var Winston = require('winston');
 var AWS = require("aws-sdk");
 var DaoError = require("../common/dao_error");
+var SecurityUtils = require('../common/security_utils');
 var clj_fuzzy = require('clj-fuzzy');
 
 //Check if environment supports native promises
@@ -68,6 +69,7 @@ function BabyAWSDao() {
 	//DynamoDB access objects
 	this.dynamodb = new AWS.DynamoDB();
 	this.docClient = new AWS.DynamoDB.DocumentClient();
+	this.securityUtils = new SecurityUtils();
 }
 
 /**
@@ -152,8 +154,8 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	    Item:{
 	    	userId: baby.userId,
 	    	sex: baby.sex,
-	    	name: baby.name,
-	    	birthdate: baby.birthdate.toISOString(),
+	    	name: this.securityUtils.encrypt(baby.name),
+	    	birthdate: this.securityUtils.encrypt(baby.birthdate.toISOString()),
 	    	timezone: baby.timezone,
 	    	addedDateTime: baby.addedDateTime.toISOString(),
 	    	seq: baby.seq
@@ -186,6 +188,7 @@ BabyAWSDao.prototype.readBaby = function(userId) {
 	    ScanIndexForward: false,
 	    Limit: 1
 	};
+	var self = this;
 	return this.docClient.query(params).promise()
 		.then( function(readBabyResult) {
 			var babyResult;
@@ -193,6 +196,11 @@ BabyAWSDao.prototype.readBaby = function(userId) {
 			readBabyResult.Items.forEach(function(item) {
 	           babyResult = item;
 	        });
+			
+			if(babyResult) {
+				babyResult.name = self.securityUtils.decrypt(babyResult.name);
+				babyResult.birthdate = self.securityUtils.decrypt(babyResult.birthdate);
+			}
 			return Promise.resolve(babyResult);
 		})
 		.catch(function(error) {
@@ -223,12 +231,14 @@ BabyAWSDao.prototype.readBabyByName = function(userId, babyName) {
 	};
 	var highScore = 1;
 	var babyWithHighestScore;
+	var self = this;
 	return this.docClient.query(params).promise()
 		.then( function(readBabyResult) {
 			var babyResult;
 			//Then put it all together in a response
 			readBabyResult.Items.forEach(function(item) {
 				logger.debug("readBabyByName: item.name '%s', babyName '%s'", item.name, babyName);
+				item.name = self.securityUtils.decrypt(item.name);
 				if( item.name.toLowerCase() === babyName.toLowerCase() ) {
 					logger.debug("Found baby %s", babyName);
 					babyResult = item;
@@ -251,6 +261,10 @@ BabyAWSDao.prototype.readBabyByName = function(userId, babyName) {
 					babyName, JSON.stringify(babyWithHighestScore), highScore);
 			if(!babyResult && highScore < 0.2) {
 				babyResult = babyWithHighestScore;
+			}
+			
+			if(babyResult) {
+				babyResult.birthdate = self.securityUtils.decrypt(babyResult.birthdate);
 			}
 			return Promise.resolve(babyResult);
 		})
