@@ -173,6 +173,7 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces, ba
 			if(readBabyResult) {
 				loadedBaby = readBabyResult;
 				weight.seq = loadedBaby.seq;
+				weight.timezone = loadedBaby.timezone;
 			} else {
 				if(baby) {
 					return Promise.reject(new IllegalStateError(
@@ -184,7 +185,7 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces, ba
 			}
 			return ValidationUtils.validateDateAfter("weight date", date, new Date(loadedBaby.birthdate));
 		}).then(function(result) {
-			return self.weightDao.getWeightCountForDay(weight.userId, loadedBaby.seq, date);
+			return self.weightDao.getWeightCountForDay(weight.userId, loadedBaby.seq, date, loadedBaby.timezone);
 		})
 		.then(function(weightCountResult) {
 			if( weightCountResult + 1 > ADD_LIMIT ) {
@@ -267,7 +268,7 @@ WeightController.prototype.removeLastWeight = function(userId, baby) {
 			//Then delete that weight
 			if( lastWeightDate ) {
 				logger.debug("Deleting weight");
-				return self.weightDao.deleteWeight(userId, loadedBaby.seq, new Date(lastWeightDate));
+				return self.weightDao.deleteWeight(userId, loadedBaby.seq, new Date(lastWeightDate), loadedBaby.timezone);
 			} else {
 				return Promise.resolve();
 			}

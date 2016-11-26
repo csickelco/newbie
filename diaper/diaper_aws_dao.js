@@ -147,7 +147,7 @@ DiaperAWSDao.prototype.deleteTable = function() {
  * 			or ResourceInUseException. 
  */
 DiaperAWSDao.prototype.createDiaper = function(diaper) {
-	var dateTimeString = diaper.dateTime.toISOString();
+	var dateTimeString = Utils.formatDateTimeString(diaper.dateTime, diaper.timezone);
 	logger.debug("createDiaper: Starting diaper creation for %s...", diaper.toString());
 	var params = {
 	    TableName: TABLE_NAME,
@@ -171,6 +171,7 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
  * @param userId {string}	AWS user ID whose diapers to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose diapers to retrieve. Non-nullable.
  * @param date {Date}		Date/time after which to retrieve all diapers. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -178,7 +179,7 @@ DiaperAWSDao.prototype.createDiaper = function(diaper) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-DiaperAWSDao.prototype.getDiapers = function(userId, seq, date) {
+DiaperAWSDao.prototype.getDiapers = function(userId, seq, date, timezone) {
 	logger.debug("getDiapers: Starting get diapers for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
@@ -188,7 +189,7 @@ DiaperAWSDao.prototype.getDiapers = function(userId, seq, date) {
 			},
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    }
 	};
 	return this.docClient.query(params).promise()
@@ -211,13 +212,13 @@ DiaperAWSDao.prototype.getDiapers = function(userId, seq, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-DiaperAWSDao.prototype.deleteDiaper = function(userId, seq, dateTime) {
+DiaperAWSDao.prototype.deleteDiaper = function(userId, seq, dateTime, timezone) {
 	logger.info("deleteDiaper: Starting delete diaper for %s %s", userId, dateTime );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
 	        "diaperKey":userId + "-" + seq,
-	        "dateTime":dateTime.toISOString() 
+	        "dateTime": Utils.formatDateTimeString(dateTime, timezone) 
 	    }
 	};
 	return this.docClient.delete(params).promise()

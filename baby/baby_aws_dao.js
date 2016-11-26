@@ -30,6 +30,7 @@ var AWS = require("aws-sdk");
 var DaoError = require("../common/dao_error");
 var SecurityUtils = require('../common/security_utils');
 var clj_fuzzy = require('clj-fuzzy');
+var Utils = require('../common/utils');
 
 //Check if environment supports native promises
 if (typeof Promise === 'undefined') {
@@ -155,9 +156,9 @@ BabyAWSDao.prototype.createBaby = function(baby) {
 	    	userId: baby.userId,
 	    	sex: baby.sex,
 	    	name: this.securityUtils.encrypt(baby.name),
-	    	birthdate: this.securityUtils.encrypt(baby.birthdate.toISOString()),
+	    	birthdate: this.securityUtils.encrypt(Utils.formatDateTimeString(baby.birthdate, baby.timezone)),
 	    	timezone: baby.timezone,
-	    	addedDateTime: baby.addedDateTime.toISOString(),
+	    	addedDateTime: Utils.formatDateTimeString(baby.addedDateTime, baby.timezone),
 	    	seq: baby.seq
 	    }
 	};

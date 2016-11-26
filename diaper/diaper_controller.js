@@ -146,6 +146,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 			if(readBabyResult) {
 				loadedBaby = readBabyResult;
 				diaper.seq = loadedBaby.seq;
+				diaper.timezone = loadedBaby.timezone;
 			} else {
 				if(baby) {
 					return Promise.reject(new IllegalStateError(
@@ -155,7 +156,7 @@ DiaperController.prototype.addDiaper = function(userId, dateTime, isWet, isDirty
 					return Promise.reject(new IllegalStateError("Before recording diapers, you must first add a baby"));
 				}
 			}
-			return self.diaperDao.getDiapers(userId, loadedBaby.seq, dateTime);
+			return self.diaperDao.getDiapers(userId, loadedBaby.seq, dateTime, loadedBaby.timezone);
 		})
 		.then( function(diapersForDayResult) {
 			var totalDiaperCount = 0;
@@ -273,7 +274,7 @@ DiaperController.prototype.removeLastDiaper = function(userId, baby) {
 			//Then delete that diaper
 			if( lastDiaperDateTime ) {
 				logger.debug("Deleting diaper");
-				return self.diaperDao.deleteDiaper(userId, loadedBaby.seq, new Date(lastDiaperDateTime));
+				return self.diaperDao.deleteDiaper(userId, loadedBaby.seq, new Date(lastDiaperDateTime), loadedBaby.timezone);
 			} else {
 				return Promise.resolve();
 			}

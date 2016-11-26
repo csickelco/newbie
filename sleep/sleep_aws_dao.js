@@ -149,8 +149,8 @@ SleepAWSDao.prototype.deleteTable = function() {
  */
 SleepAWSDao.prototype.createSleep = function(sleep) {
 	logger.debug("createSleep: Starting sleep creation for %s...", sleep.toString());
-	var sleepDateTimeString = sleep.sleepDateTime ? sleep.sleepDateTime.toISOString() : undefined;
-	var wokeUpDateTimeString = sleep.wokeUpDateTime ? sleep.wokeUpDateTime.toISOString() : undefined;
+	var sleepDateTimeString = sleep.sleepDateTime ? Utils.formatDateTimeString(sleep.sleepDateTime, sleep.timezone) : undefined;
+	var wokeUpDateTimeString = sleep.wokeUpDateTime ? Utils.formatDateTimeString(sleep.wokeUpDateTime, sleep.timezone) : undefined;
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
@@ -202,6 +202,7 @@ SleepAWSDao.prototype.getLastSleep = function(userId, seq) {
  * @param userId {string} 	AWS user ID whose sleep records to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose sleep to retrieve. Non-nullable.
  * @param date {Date}		Date/time after which to retrieve all sleep records. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -209,14 +210,14 @@ SleepAWSDao.prototype.getLastSleep = function(userId, seq) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException. 
  */
-SleepAWSDao.prototype.getSleep = function(userId, seq, date) {
+SleepAWSDao.prototype.getSleep = function(userId, seq, date, timezone) {
 	logger.debug("getSleep: Starting get sleeps for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
 			KeyConditionExpression: "sleepKey = :val1 and sleepDateTime > :val2",
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    }
 	};
 	return this.docClient.query(params).promise()
@@ -244,11 +245,11 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
 		    TableName:TABLE_NAME,
 		    Key:{
 		    	sleepKey: sleep.userId + "-" + sleep.seq,
-		    	sleepDateTime: sleep.sleepDateTime.toISOString()
+		    	sleepDateTime: Utils.formatDateTimeString(sleep.sleepDateTime, sleep.timezone)
 		    },
 		    UpdateExpression: "set wokeUpDateTime = :w",
 		    ExpressionAttributeValues:{
-		        ":w": sleep.wokeUpDateTime.toISOString()
+		        ":w": Utils.formatDateTimeString(sleep.wokeUpDateTime, sleep.timezone)
 		    },
 		    ReturnValues:"UPDATED_NEW"
 		};
@@ -273,13 +274,14 @@ SleepAWSDao.prototype.updateSleep = function(sleep) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-SleepAWSDao.prototype.deleteSleep = function(userId, seq, sleepDateTime) {
-	logger.debug("deleteSleep: Starting delete sleep for %s %s", userId, sleepDateTime.toISOString() );
+SleepAWSDao.prototype.deleteSleep = function(userId, seq, sleepDateTime, timezone) {
+	var dateTimeString = Utils.formatDateTimeString(sleepDateTime, timezone);
+	logger.debug("deleteSleep: Starting delete sleep for %s %s", userId, dateTimeString );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
 	        "sleepKey":userId + "-" + seq,
-	        "sleepDateTime":sleepDateTime.toISOString() 
+	        "sleepDateTime":dateTimeString
 	    }
 	};
 	return this.docClient.delete(params).promise()
@@ -295,6 +297,7 @@ SleepAWSDao.prototype.deleteSleep = function(userId, seq, sleepDateTime) {
  * @param {string} userId 	AWS user ID whose sleep count to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose sleep to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to count sleep. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -302,7 +305,7 @@ SleepAWSDao.prototype.deleteSleep = function(userId, seq, sleepDateTime) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-SleepAWSDao.prototype.getSleepCountForDay = function(userId, seq, date) {
+SleepAWSDao.prototype.getSleepCountForDay = function(userId, seq, date, timezone) {
 	logger.debug("getSleepCountForDay: Starting get sleep count for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
@@ -312,7 +315,7 @@ SleepAWSDao.prototype.getSleepCountForDay = function(userId, seq, date) {
 			},
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    },
 		    ProjectionExpression: "noattribute"
 	};

@@ -147,7 +147,7 @@ FeedAWSDao.prototype.deleteTable = function() {
  * 			or ResourceNotFoundException.
  */
 FeedAWSDao.prototype.createFeed = function(feed) {
-	var dateTimeString = feed.dateTime.toISOString();
+	var dateTimeString = Utils.formatDateTimeString(feed.dateTime, feed.timezone);
 	logger.debug("createFeed: Starting feed creation for %s", feed.toString());
 	var params = {
 	    TableName: TABLE_NAME,
@@ -170,6 +170,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
  * @param userId {string}	AWS user ID whose feeds to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose feeds to retrieve. Non-nullable.
  * @param date	{Date}		Date/time after which to retrieve all feeds. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -177,7 +178,7 @@ FeedAWSDao.prototype.createFeed = function(feed) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-FeedAWSDao.prototype.getFeeds = function(userId, seq, date) {
+FeedAWSDao.prototype.getFeeds = function(userId, seq, date, timezone) {
 	logger.debug("getFeeds: Starting get feeds for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
@@ -187,7 +188,7 @@ FeedAWSDao.prototype.getFeeds = function(userId, seq, date) {
 			},
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    }
 	};
 	return this.docClient.query(params).promise()
@@ -240,13 +241,14 @@ FeedAWSDao.prototype.getLastFeed = function(userId, seq) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-FeedAWSDao.prototype.deleteFeed = function(userId, seq, dateTime) {
-	logger.debug("deleteFeed: Starting delete feed for %s %s", userId, dateTime.toISOString() );
+FeedAWSDao.prototype.deleteFeed = function(userId, seq, dateTime, timezone) {
+	var dateTimeString = Utils.formatDateTimeString(dateTime, timezone);
+	logger.debug("deleteFeed: Starting delete feed for %s %s", userId, dateTimeString );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
 	        "feedKey":userId+"-"+seq,
-	        "dateTime":dateTime.toISOString() 
+	        "dateTime":dateTimeString
 	    }
 	};
 	return this.docClient.delete(params).promise()

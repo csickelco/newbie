@@ -33,6 +33,7 @@ function Feed (obj) {
 	this.dateTime = undefined;
 	this.feedAmount = undefined;
 	this.seq = undefined;
+	this.timezone = undefined;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -45,7 +46,11 @@ function Feed (obj) {
  * @returns {string} a string representation of this object
  */
 Feed.prototype.toString = function feedToString() {
-	  var ret = "Feed, userId: " + this.userId + ", seq: " + this.seq + ", dateTime: " + this.dateTime + ", feedAmount: " + this.feedAmount;
+	  var ret = "Feed, userId: " + this.userId + 
+	  	", seq: " + this.seq + 
+	  	", dateTime: " + this.dateTime + 
+	  	", feedAmount: " + this.feedAmount + 
+	  	", timezone: " + this.timezone;
 	  return ret;
 };
 

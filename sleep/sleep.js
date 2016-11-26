@@ -34,6 +34,7 @@ function Sleep (obj) {
 	this.sleepDateTime = undefined;
 	this.wokeUpDateTime = undefined;
 	this.seq = undefined;
+	this.timezone = undefined;
 	
 	if( obj !== undefined ) {
 		for (var prop in obj) { //TODO: eliminate warning
@@ -46,7 +47,11 @@ function Sleep (obj) {
  * @returns {string} a string representation of this object
  */
 Sleep.prototype.toString = function sleepToString() {
-	  var ret = "Sleep, userId: " + this.userId + ", seq: " + this.seq + ", sleepDateTime: " + this.sleepDateTime + ", wokeUpDateTime: " + this.wokeUpDateTime;
+	  var ret = "Sleep, userId: " + this.userId + 
+	  	", seq: " + this.seq + 
+	  	", sleepDateTime: " + this.sleepDateTime + 
+	  	", wokeUpDateTime: " + this.wokeUpDateTime +
+	  	", timezone: " + this.timezone;
 	  return ret;
 };
 

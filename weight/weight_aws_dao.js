@@ -149,7 +149,7 @@ WeightAWSDao.prototype.deleteTable = function() {
  * 			or ResourceNotFoundException.
  */
 WeightAWSDao.prototype.createWeight = function(weight) {
-	var dateString = weight.date.toISOString();
+	var dateString = Utils.formatDateTimeString(weight.date, weight.timezone);
 	logger.debug("createWeight: Starting weight creation for %s...", weight.toString());
 	var params = {
 	    TableName: TABLE_NAME,
@@ -172,6 +172,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
  * @param userId {string}	AWS user ID whose weight records to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose weight to retrieve. Non-nullable.
  * @param date	{Date}		Date after which to retrieve all weight records. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -179,7 +180,7 @@ WeightAWSDao.prototype.createWeight = function(weight) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException.
  */
-WeightAWSDao.prototype.getWeight = function(userId, seq, date) {
+WeightAWSDao.prototype.getWeight = function(userId, seq, date, timezone) {
 	logger.debug("getWeight: Starting get weight for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
@@ -189,7 +190,7 @@ WeightAWSDao.prototype.getWeight = function(userId, seq, date) {
 			},
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    }
 	};
 	return this.docClient.query(params).promise()
@@ -242,13 +243,14 @@ WeightAWSDao.prototype.getLastWeight = function(userId, seq) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 						or ResourceNotFoundException.   
  */
-WeightAWSDao.prototype.deleteWeight = function(userId, seq, date) {
-	logger.debug("deleteWeight: Starting delete weight for %s %s", userId, date.toISOString() );
+WeightAWSDao.prototype.deleteWeight = function(userId, seq, date, timezone) {
+	var dateTimeString = Utils.formatDateTimeString(date, timezone);
+	logger.debug("deleteWeight: Starting delete weight for %s %s", userId, dateTimeString );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
 	        "weightKey":userId + "-" + seq,
-	        "date":date.toISOString() 
+	        "date":dateTimeString
 	    }
 	};
 	return this.docClient.delete(params).promise()
@@ -264,6 +266,7 @@ WeightAWSDao.prototype.deleteWeight = function(userId, seq, date) {
  * @param {string} userId 	AWS user ID whose weight count to retrieve. Non-nullable.
  * @param {number} seq		the sequence number of the baby whose weight to retrieve. Non-nullable.
  * @param {Date} date		Date/time after which to count weight. Non-nullable.
+ * @param {String} timezone The timezone identifier for the user. Non-nullable.
  * 
  * @returns {Promise<Empty|DaoError} Returns an empty promise if the get succeeded,
  * 			else returns a rejected promise with a DaoError 
@@ -271,7 +274,7 @@ WeightAWSDao.prototype.deleteWeight = function(userId, seq, date) {
  * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
  * 			or ResourceNotFoundException).
  */
-WeightAWSDao.prototype.getWeightCountForDay = function(userId, seq, date) {
+WeightAWSDao.prototype.getWeightCountForDay = function(userId, seq, date, timezone) {
 	logger.debug("getWeightCountForDay: Starting get weight count for day %s", date.toString());
 	var params = {
 			TableName : TABLE_NAME,
@@ -281,7 +284,7 @@ WeightAWSDao.prototype.getWeightCountForDay = function(userId, seq, date) {
 			},
 		    ExpressionAttributeValues: {
 		    	":val1":userId + "-" + seq,
-		        ":val2":Utils.formatDateString(date) 
+		        ":val2":Utils.formatDateString(date, timezone) 
 		    },
 		    ProjectionExpression: "noattribute"
 	};

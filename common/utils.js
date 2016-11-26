@@ -46,22 +46,25 @@ Utils.getPoundsAndOuncesString = function (totalOunces) {
 /**
  * Formats a date string in the yyyy-mm-dd pattern
  * @param	{Date} the date to format. Non-nullable.
+ * @param {String} timezone the timezone string (e.g. America/New_York). Non-nullable.
  * @returns a string representing the date in the format
  * 			yyyy-mm-dd pattern
  */
-Utils.formatDateString = function(date){
-	var dd = date.getDate();
-	var mm = date.getMonth() + 1;
-	var yyyy = date.getFullYear();
-	var retval;
-	if(dd<10) {
-		dd='0'+dd;
-	}
-	if(mm<10) {
-		mm='0'+mm;
-	}
-	retval = yyyy + "-" + mm + "-" + dd;
-	return retval;
+Utils.formatDateString = function(date, timezone){
+	var momentInTime = moment.tz(date, timezone);
+	var momentAsString = momentInTime.format(); 
+	return momentAsString.substring(0, 10); //Return just the YYYY-MM-DD portion
+};
+
+/**
+ * Formats a date/time as an ISO string with the timezone offset
+ * @param {Date} dateTime 	the date/time to format. Non-nullable.
+ * @param {String} timezone the timezone string (e.g. America/New_York). Non-nullable.
+ * @returns {String} a formatted date/time string
+ */
+Utils.formatDateTimeString = function(dateTime, timezone) {
+	var momentInTime = moment.tz(dateTime, timezone);
+	return momentInTime.format(); 
 };
 
 /**
