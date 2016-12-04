@@ -25,9 +25,15 @@ module.change_code = 1;
 //Dependencies
 var _ = require('lodash');
 var BabyDao = require('./baby_aws_dao');
+var FeedDao = require('../feed/feed_aws_dao');
+var WeightDao = require('../weight/weight_aws_dao');
+var DiaperDao= require('../diaper/diaper_aws_dao');
+var ActivityDao = require('../activity/activity_aws_dao');
+var SleepDao = require('../sleep/sleep_aws_dao');
 var Baby = require('./baby');
 var Response = require('../common/response');
 var Utils = require('../common/utils');
+var IllegalStateError = require('../common/illegal_state_error');
 var ValidationUtils = require('../common/validation_utils');
 var ActivityLimitError = require('../common/activity_limit_error');
 var Winston = require('winston');
@@ -56,6 +62,11 @@ var ADD_LIMIT = 20;
  */
 function BabyController () {
 	this.babyDao = new BabyDao();
+	this.feedDao = new FeedDao();
+	this.weightDao = new WeightDao();
+	this.diaperDao = new DiaperDao();
+	this.activityDao = new ActivityDao();
+	this.sleepDao = new SleepDao();
 }
 
 /**
@@ -178,12 +189,13 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 				return self.babyDao.getBabyCount(userId);
 		})
 		.then( function(result) {
+			var baby;
 			//TODO: This is actually future functionality. Right now the app only supports 1 baby anyway
 			//and just overwrites it any time you try to add a new one
 			if( result + 1 > ADD_LIMIT ) {
 				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + " babies"));
 			} else {
-				var baby = new Baby(); 
+				baby = new Baby(); 
 				baby.userId = userId;
 				baby.sex = sex;
 				baby.name = name;
@@ -228,6 +240,66 @@ BabyController.prototype.babyExists = function(userId) {
 			} else {
 				return Promise.resolve(false);
 			}
+		});
+};
+
+/**
+ * Asynchronous operation to remove the given baby.
+ * 
+ * @param 	{string} userId		the userId whose baby it is. Non-nullable.
+ * @param 	{string} name		the baby's name. Non-nullable.
+
+ * @return 	{Promise<Response>|IllegalArgumentError, DaoError} 				
+ * 										promise containing a response with both a verbal message and written card,
+ *  									providing confirmation of the added baby.
+ *  									Rejected promise with IllegalArgumentError if userId, sex, name, or
+ *  									birthdate are not specified, or sex is NOT boy/girl, or birthdate is
+ *  									in the future.
+ *  									Rejected promise with DaoError if an error occurred interacting with the 
+ *  									data store while attempting to add the baby. 
+ */
+BabyController.prototype.removeBaby = function(userId, name ) {
+	logger.debug("removeBaby: Removing baby for %s, name: %s", userId, name);
+	var template = _.template('Removed all data for baby ${name}');
+	
+	var self = this;
+	var baby;
+	return ValidationUtils.validateRequired("userId", userId)
+		.then( function(result) {
+				return ValidationUtils.validateRequired("baby's name", name);
+		})
+		.then( function(result) {
+			return self.babyDao.readBabyByName(userId, name);
+		})
+		.then( function(readBabyResult) {
+			//Provided baby exists, delete all its data
+			if(readBabyResult) {
+				baby = readBabyResult;
+				var promises = [];
+				promises.push(self.activityDao.deleteActivitiesForBaby(userId, baby.seq));
+				promises.push(self.diaperDao.deleteDiapersForBaby(userId, baby.seq));
+				promises.push(self.feedDao.deleteFeedsForBaby(userId, baby.seq));
+				promises.push(self.sleepDao.deleteSleepForBaby(userId, baby.seq));
+				promises.push(self.weightDao.deleteWeightsForBaby(userId, baby.seq));
+				return Promise.all(promises);
+			} else {
+				return Promise.reject(new IllegalStateError(
+						"Cannot remove baby " + name + ". No data exists for this baby" ));
+			}
+		})
+		.then( function(deleteActivitiesResult) {
+			//Finally, once all baby's data has been deleted, delete the baby record itself
+			return self.babyDao.deleteBaby(userId, baby.seq);
+		})
+		.then( function(result) 
+		{
+			logger.debug("removeBaby: Successfully removed baby %s", JSON.stringify(result));
+			var responseMsg = template(
+			{
+				name: name
+			});
+			logger.debug("removeBaby: Response %s", responseMsg);
+			return new Response(responseMsg, "Removed baby", responseMsg);
 		});
 };
 
