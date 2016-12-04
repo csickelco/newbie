@@ -27,6 +27,7 @@ module.change_code = 1;
 //Dependencies
 var Utils = require('../common/utils');
 var DaoError = require('../common/dao_error');
+var DaoUtils = require('../common/dao_utils');
 var Winston = require('winston');
 var AWS = require("aws-sdk");
 
@@ -70,6 +71,7 @@ function DiaperAWSDao() {
 	//DynamoDB access objects
 	this.dynamodb = new AWS.DynamoDB();
 	this.docClient = new AWS.DynamoDB.DocumentClient();
+	this.daoUtils = new DaoUtils(this.dynamodb, this.docClient);
 }
 
 /**
@@ -254,6 +256,20 @@ DiaperAWSDao.prototype.getLastDiaper = function(userId, seq) {
 	.catch(function(error) {
 		return Promise.reject( new DaoError("get last diaper", error) );
 	});
+};
+
+/**
+ * Asynchronous operation to delete all diaper records for the given baby
+ * param userId {string} 	AWS user ID whose records to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose records to delete. Non-nullable.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
+ */
+DiaperAWSDao.prototype.deleteDiapersForBaby = function(userId, seq) {
+	return this.daoUtils.deleteRecordsForBaby(TABLE_NAME, "diaperKey", "dateTime", userId, seq);
 };
 
 module.exports = DiaperAWSDao;

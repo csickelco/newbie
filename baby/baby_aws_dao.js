@@ -305,4 +305,31 @@ BabyAWSDao.prototype.getBabyCount = function(userId) {
 		});
 };
 
+/**
+ * Asynchronous operation to delete the specified baby
+ * 
+ * @param userId {string}	AWS user ID whose baby to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby to delete. Non-nullable.
+ * 
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 						or ResourceNotFoundException.   
+ */
+BabyAWSDao.prototype.deleteBaby = function(userId, seq) {
+	logger.debug("deleteActivitiesForBaby: Starting delete baby for %s %d", userId, seq );
+	var params = {
+	    TableName: TABLE_NAME,
+	    Key:{
+	    	userId: userId,
+	    	seq: seq
+	    }
+	};
+	return this.docClient.delete(params).promise()
+		.catch(function(error) {
+			return Promise.reject( new DaoError("remove baby", error) );
+		});
+};
+
 module.exports = BabyAWSDao;

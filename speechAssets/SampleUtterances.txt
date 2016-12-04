@@ -195,4 +195,9 @@ addBabyIntent	{SEX}
 addBabyIntent	{BIRTHDATE}
 addBabyIntent	{NAME}
 addBabyIntent	{TIMEZONE}
-addBabyIntent	{DAYLIGHT_SAVINGS_OBSERVED}
+removeBabyIntent	remove baby {NAME}
+removeBabyIntent	delete baby {NAME}
+removeBabyIntent	remove child {NAME}
+removeBabyIntent	delete child {NAME}
+removeBabyIntent	remove kid {NAME}
+removeBabyIntent	delete kid {NAME}

@@ -181,13 +181,26 @@
         {
           "name": "TIMEZONE",
           "type": "TIMEZONE"
-        },
-        {
-          "name": "DAYLIGHT_SAVINGS_OBSERVED",
-          "type": "YES_NO"
         }
       ]
     },
+    {
+      "intent": "removeBabyIntent",
+      "slots": [
+        {
+          "name": "NAME",
+          "type": "AMAZON.US_FIRST_NAME"
+        }
+      ]
+    },
+    {
+        "intent": "AMAZON.YesIntent",
+        "slots": []
+      },
+      {
+        "intent": "AMAZON.NoIntent",
+        "slots": []
+      },
     {
       "intent": "AMAZON.StopIntent",
       "slots": []

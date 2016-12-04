@@ -27,6 +27,7 @@ module.change_code = 1;
 //Dependencies
 var Utils = require('../common/utils');
 var DaoError = require('../common/dao_error');
+var DaoUtils = require('../common/dao_utils');
 var Winston = require('winston');
 var AWS = require("aws-sdk");
 
@@ -70,6 +71,7 @@ function SleepAWSDao() {
 	//DynamoDB access objects
 	this.dynamodb = new AWS.DynamoDB();
 	this.docClient = new AWS.DynamoDB.DocumentClient();
+	this.daoUtils = new DaoUtils(this.dynamodb, this.docClient);
 }
 
 /**
@@ -327,6 +329,20 @@ SleepAWSDao.prototype.getSleepCountForDay = function(userId, seq, date, timezone
 		.catch(function(error) {
 			return Promise.reject(new DaoError("get sleep count for the day", error));
 		});
+};
+
+/**
+ * Asynchronous operation to delete all sleep records for the given baby
+ * param userId {string} 	AWS user ID whose records to delete. Non-nullable.
+ * @param {number} seq		the sequence number of the baby whose records to delete. Non-nullable.
+ * @returns {Promise<Empty|DaoError} Returns an empty promise if the operation succeeded,
+ * 			else returns a rejected promise with a DaoError 
+ * 			if an error occurred interacting with DynamoDB. 
+ * 			Could be caused by an InternalServerError, ProvisionedThroughputExceededException, 
+ * 			or ResourceNotFoundException.
+ */
+SleepAWSDao.prototype.deleteSleepForBaby = function(userId, seq) {
+	return this.daoUtils.deleteRecordsForBaby(TABLE_NAME, "sleepKey", "sleepDateTime", userId, seq);
 };
 
 module.exports = SleepAWSDao;
