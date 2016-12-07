@@ -91,16 +91,25 @@ var determineIfDirtyDiaper = function(diaperType) {
 
 /**
  * This function gets executed before every command and is used to
- * setup any needed data.
+ * validate the request and setup any needed data.
  * 
  * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
  * @param response  The spoken Echo response + any cards delivered to the Alexa app.
  * 					This function does not generate a response.
  */
-//Commenting out lines below, all tables exist at this point and have been properly configured
-//so avoiding this overhead
-/*
+
 app.pre = function(request, response, type) {
+	if (request.sessionDetails.application.applicationId !== process.env.applicationId) {
+		logger.error("Invalid applicationId %s, request: %s",
+				request.sessionDetails.application.applicationId,
+				JSON.stringify(request));
+        // Fail ungracefully
+        response.fail("Invalid applicationId");
+    }
+	
+	//Commenting out lines below, all tables exist at this point and have been properly configured
+	//so avoiding this overhead
+	/*
 	logger.debug('pre: Start initialization of newbie data...');	
 	babyController.initBabyData()
 		.then(function(resp) {
@@ -149,8 +158,8 @@ app.pre = function(request, response, type) {
 		.catch(function(error) {
 			logger.error("pre: An error occurred initializing sleep data: " + error.message + ", " + error.stack);
 		});
+		*/
 };
-*/
 
 /**
  * Triggered when the user says "Launch Newbie" - essentially a boot-up/introduction
