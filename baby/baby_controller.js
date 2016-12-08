@@ -183,7 +183,7 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 				return ValidationUtils.validateRequired("baby's birthdate", birthdate);
 		})
 		.then( function(result) {
-				return ValidationUtils.validateDateBefore("baby's birthdate", birthdate, new Date());
+				return ValidationUtils.validateDateBefore("baby's birthdate", birthdate, new Date(), "baby's birthdate cannot be in the future");
 		})
 		.then( function(result) {
 				return self.babyDao.getBabyCount(userId);
