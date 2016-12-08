@@ -79,15 +79,22 @@ ValidationUtils.validateInSet = function(argumentName, argument, validValues) {
  * @param argument				the argument to check. Nullable.
  * @param dateThreshold {Date} 	The date to check against. If greater than or equal
  * 								to this date, it is invalid.
- * @returns {Promise<empty>|IllegalArgumentError} If argument is before or equal to dateThreshold
+ * @param errorMessage {String}	The error message to report back if the date is NOT
+ * 								before dateThreshold. Nullable. If null, this method
+ * 								generates an errorMessage using the argument name.
+ * @returns {Promise<empty>|IllegalArgumentError} If argument is before dateThreshold
  * 			(or is null), returns an
  * 			empty promise. Otherwise, returns a rejected promise with an
  * 			IllegalArgumentError. 
  */
-ValidationUtils.validateDateBefore = function(argumentName, argument, dateThreshold) {
+ValidationUtils.validateDateBefore = function(argumentName, argument, dateThreshold, errorMessage) {
 	if( argument && argument >= dateThreshold ) {
-		return Promise.reject(new IllegalArgumentError(argumentName, argumentName + 
-				" must occur before " + dateThreshold.toString()));
+		if( errorMessage ) {
+			return Promise.reject(new IllegalArgumentError(argumentName, errorMessage));
+		} else {
+			return Promise.reject(new IllegalArgumentError(argumentName, argumentName + 
+					" must occur before " + dateThreshold.toString()));
+		}
 	}
 	return Promise.resolve();
 };
