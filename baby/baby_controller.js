@@ -190,9 +190,8 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 		})
 		.then( function(result) {
 			var baby;
-			//TODO: This is actually future functionality. Right now the app only supports 1 baby anyway
-			//and just overwrites it any time you try to add a new one
-			if( result + 1 > ADD_LIMIT ) {
+			var count = result.count;
+			if( count + 1 > ADD_LIMIT ) {
 				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + " babies"));
 			} else {
 				baby = new Baby(); 
@@ -201,7 +200,7 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 				baby.name = name;
 				baby.birthdate = birthdate;
 				baby.timezone = processTimezone(timezone, daylightSavingsObserved);
-				baby.seq = result+1;
+				baby.seq = result.maxSeq+1;
 				if( addedDateTime ) {
 					baby.addedDateTime = addedDateTime;
 				} else {
@@ -222,24 +221,6 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 			});
 			logger.debug("addBaby: Response %s", responseMsg);
 			return new Response(responseMsg, "Added Baby", responseMsg);
-		});
-};
-
-/**
- * Asynchronous operation to check if a user has any babies registered with newbie.
- * @param {string} userId the userId whose baby it is. Non-nullable.
- * @return {Promise<Boolean> True if the user has 1 or more registered babies, false otherwise} 		
- */
-BabyController.prototype.babyExists = function(userId) {
-	var self = this;
-	logger.debug('babyExists: Checking baby for user %s', userId);
-	return self.babyDao.getBabyCount(userId)
-		.then(function(babyCount) {
-			if(babyCount > 0 ) {
-				return Promise.resolve(true);
-			} else {
-				return Promise.resolve(false);
-			}
 		});
 };
 
