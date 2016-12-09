@@ -293,12 +293,23 @@ BabyAWSDao.prototype.getBabyCount = function(userId) {
 		    ExpressionAttributeValues: {
 		    	":val1":userId
 		    },
-		    ProjectionExpression: "noattribute"
+		    ProjectionExpression: "seq"
 	};
 	return this.docClient.query(params).promise()
 		.then( function(queryResult)  {
 			logger.debug("getBabyCount: query result %s", JSON.stringify(queryResult));
-			return Promise.resolve(queryResult.Count);
+			var maxSeq = 0;
+			//Then put it all together in a response
+			queryResult.Items.forEach(function(item) {
+				if( item.seq > maxSeq ) {
+					maxSeq = item.seq;
+				}
+			});
+			logger.debug("getBabyCount: Max seq: %s", maxSeq);
+			return Promise.resolve({
+				count: queryResult.Count, 
+				maxSeq: maxSeq
+			});
 		})
 		.catch(function(error) {
 			return Promise.reject(new DaoError("get baby count", error));
