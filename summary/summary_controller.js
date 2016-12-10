@@ -124,7 +124,9 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 				loadedBaby = readBabyResult;
 				weeklySummary.name = readBabyResult.name;
 				weeklySummary.sex = readBabyResult.sex;
-				weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.birthdate));
+				if( readBabyResult.birthdate ) {
+					weeklySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.birthdate));
+				}
 				logger.debug("getWeeklySummary: baby name %s, age %s", weeklySummary.name, weeklySummary.age);
 				
 				//TODO: Maybe put an end-bound of today? So we don't get today's partial results?
@@ -198,15 +200,16 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 			//Finally get weight
 			return self.weightDao.getWeight(userId, loadedBaby.seq, aWeekAgo, loadedBaby.timezone);
 		}).then( function(weightForWeekResult) {
-			weightForWeekResult.Items.forEach(function(item) {
-	            if( item.weight ) {
-	            	var dateKey = item.date.substring(0, 10);
-	            	var ounces = item.weight;
-	            	weightMap.set(dateKey, ounces);
-	            	logger.debug("getWeeklySummary: Put in weightMap %s - %s", dateKey, ounces);
-				}
-	        });
-			
+			if( weightForWeekResult ) {
+				weightForWeekResult.Items.forEach(function(item) {
+		            if( item.weight ) {
+		            	var dateKey = item.date.substring(0, 10);
+		            	var ounces = item.weight;
+		            	weightMap.set(dateKey, ounces);
+		            	logger.debug("getWeeklySummary: Put in weightMap %s - %s", dateKey, ounces);
+					}
+		        });
+			}
 			//Calculate feeding averages
 			var totalNumSpecifiedFeedings = 0;
 			var totalNumUnspecifiedFeedings = 0;
@@ -278,19 +281,34 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
 			
 			//TODO: Does this belong in controller?
 			//TODO: This could probably be a method in summary
-			var responseMsg = 
-				weeklySummary.name +
-				" is now " + weeklySummary.age + " old";
-			var responseCard = "Age: " + weeklySummary.age + "\n";
+			var responseMsg = "";
+			var responseCard = "";
+			if( weeklySummary.age ) {
+				responseMsg += 
+					weeklySummary.name +
+					" is now " + weeklySummary.age + " old";
+				responseCard += "Age: " + weeklySummary.age + "\n";
+			}
+			if( weeklySummary.age && weeklySummary.weightInOunces ) {
+				responseMsg += " and";
+			} else if( weeklySummary.weightInOunces ) {
+				responseMsg += weeklySummary.name;
+			} 
 			if( weeklySummary.weightInOunces > 0 ) {
-				responseMsg += " and weighs " + Utils.getPoundsAndOuncesString(weeklySummary.weightInOunces);
+				responseMsg += " weighs " + Utils.getPoundsAndOuncesString(weeklySummary.weightInOunces);
 				responseCard += "Weight: " + Utils.getPoundsAndOuncesString(weeklySummary.weightInOunces) + "\n";
 			}
 			if( weightDifferenceInOunces && weightDifferenceNumDays ) {
 				responseMsg += ". " + Utils.heShe(weeklySummary.sex, true) + " gained " + weightDifferenceInOunces + " ounce" + Utils.pluralizeIfNeeded(weightDifferenceInOunces) + " in " + weightDifferenceNumDays + " day" + Utils.pluralizeIfNeeded(weightDifferenceNumDays);
 				responseCard += "Weight gain: " + weightDifferenceInOunces + " ounces over " + weightDifferenceNumDays + " days\n";
 			}
-			responseMsg += ". On average, " + Utils.heShe(weeklySummary.sex) + " ate " + weeklySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(weeklySummary.numFeedings);
+			
+			if( !weeklySummary.age && !weeklySummary.weightInOunces ) {
+				responseMsg += "On average, " + weeklySummary.name;
+			} else {
+				responseMsg += ". On average, " + Utils.heShe(weeklySummary.sex);
+			}
+			responseMsg += " ate " + weeklySummary.numFeedings + " time" + Utils.pluralizeIfNeeded(weeklySummary.numFeedings);
 			if( weeklySummary.totalFeedAmount ) {
 				responseMsg += " for a total of " + weeklySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(weeklySummary.totalFeedAmount);
 			}
@@ -321,7 +339,7 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
  * Asynchronous operation to get a summary of the baby for the current day.
  * 
  * @param 	userId	{string}	the userId whose summary to return. Non-nullable.
- * @param 	{string} baby				the name of the baby to get the summary for. Nullable.
+ * @param 	{string} babyName				the name of the baby to get the summary for. Nullable.
  * 										If not specified, the summary is assumed to be for the most
  * 										recently added baby.
  * 
@@ -332,7 +350,7 @@ SummaryController.prototype.getWeeklySummary = function(userId, baby) {
  * 			else returns a rejected promise with a DaoError 
  * 			if an error occurred interacting with DynamoDB.
  */
-SummaryController.prototype.getDailySummary = function(userId, baby) {
+SummaryController.prototype.getDailySummary = function(userId, babyName) {
 	logger.debug("getDailySummary: getting daily summary for userId %s", userId);
 	var dailySummary = new Summary();
 	var today = new Date();
@@ -347,8 +365,8 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 			//Next, get this user's baby (to make sure it exists and to use the
 			//name in the response)
 			if( baby ) {
-				logger.debug("getDailySummary: Getting summary for %s", baby);
-				return self.babyDao.readBabyByName(userId, baby);
+				logger.debug("getDailySummary: Getting summary for %s", babyName);
+				return self.babyDao.readBabyByName(userId, babyName);
 			} else {
 				return self.babyDao.readBaby(userId);
 			}
@@ -358,7 +376,9 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 			if(readBabyResult) {
 				baby = readBabyResult;
 				dailySummary.name = readBabyResult.name;
-				dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.birthdate));
+				if( readBabyResult.birthdate ) {
+					dailySummary.age = Utils.calculateAgeFromBirthdate(new Date(readBabyResult.birthdate));
+				}
 				dailySummary.sex = readBabyResult.sex;
 				logger.debug("getDailySummary: baby name %s, age %s", dailySummary.name, dailySummary.age);
 				return self.feedDao.getFeeds(userId, baby.seq, today, baby.timezone);
@@ -386,7 +406,7 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 		})
 		.then( function(weightForDayResult) {
 			logger.debug("getDailySummary: weightForDayResult.Items %s", JSON.stringify(weightForDayResult));
-			if( weightForDayResult.Items.length > 0 ) {
+			if( weightForDayResult && weightForDayResult.Items.length > 0 ) {
 				logger.debug("getDailySummary: weightInOunces %d", weightForDayResult.Items[weightForDayResult.Items.length-1].weight);
 				dailySummary.weightInOunces = weightForDayResult.Items[weightForDayResult.Items.length-1].weight;
 			} else {
@@ -439,15 +459,31 @@ SummaryController.prototype.getDailySummary = function(userId, baby) {
 			//Format message and cards
 			//TODO: Does this belong in controller?
 			//TODO: This could probably be a method in summary or a helper method
-			var responseCard = "Age: " + dailySummary.age + "\n";
-			var responseMsg = 
-				"Today, " + dailySummary.name +
-				" is " + dailySummary.age + " old";
+			var responseCard = "";
+			var responseMsg = "";
+			if( dailySummary.age ) {
+				responseCard += "Age: " + dailySummary.age + "\n";
+				responseMsg += 
+					"Today, " + dailySummary.name +
+					" is " + dailySummary.age + " old";
+			} else {
+				responseMsg += "Today, " + dailySummary.name;
+			}
+			
+			if(dailySummary.age && dailySummary.weightInOunces > 0) {
+				responseMsg += " and";
+			}
+			
 			if( dailySummary.weightInOunces > 0 ) {
-				responseMsg += " and weighs " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces);
+				responseMsg += " weighs " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces);
 				responseCard += "Weight: " + Utils.getPoundsAndOuncesString(dailySummary.weightInOunces) + "\n";
 			}
-			responseMsg += ". " + Utils.heShe(dailySummary.sex, true) + " ate " + (dailySummary.numSpecifiedFeedings+dailySummary.numUnspecifiedFeedings) + 
+			
+			if( dailySummary.age || dailySummary.weightInOunces > 0 ) {
+				responseMsg += ". " + Utils.heShe(dailySummary.sex, true);
+			}
+			
+			responseMsg += " ate " + (dailySummary.numSpecifiedFeedings+dailySummary.numUnspecifiedFeedings) + 
 				" time" + Utils.pluralizeIfNeeded(dailySummary.numSpecifiedFeedings+dailySummary.numUnspecifiedFeedings);
 			if( dailySummary.numSpecifiedFeedings > 0 && dailySummary.numUnspecifiedFeedings === 0 ) {
 				responseMsg += " for a total of " + dailySummary.totalFeedAmount + " ounce" + Utils.pluralizeIfNeeded(dailySummary.totalFeedAmount);

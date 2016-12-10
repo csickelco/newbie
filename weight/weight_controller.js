@@ -183,7 +183,13 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces, ba
 					return Promise.reject(new IllegalStateError("Before adding weight, you must first add a baby"));
 				}
 			}
-			return ValidationUtils.validateDateAfter("weight date", date, new Date(loadedBaby.birthdate));
+			var dateAfter;
+			if(loadedBaby.birthdate) {
+				dateAfter = new Date(loadedBaby.birthdate);
+			} else {
+				dateAfter = new Date(1900, 1, 1);
+			}
+			return ValidationUtils.validateDateAfter("weight date", date, dateAfter);
 		}).then(function(result) {
 			return self.weightDao.getWeightCountForDay(weight.userId, loadedBaby.seq, date, loadedBaby.timezone);
 		})
@@ -194,7 +200,6 @@ WeightController.prototype.addWeight = function(userId, date, pounds, ounces, ba
 			}
 			return self.weightDao.createWeight(weight);
 		}).then(function(createWeightResult) {
-			var dobValue = loadedBaby.birthdate.toString('yyyy-MM-dd');
 			var responseMsg = template(
 			{
 				pounds: pounds,

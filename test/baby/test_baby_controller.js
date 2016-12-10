@@ -73,7 +73,7 @@ describe('BabyController', function() {
 	//Happy path test 1
 	it('addBaby1()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true)
@@ -83,10 +83,20 @@ describe('BabyController', function() {
 	//Happy path test 2
 	it('addBaby2()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby boy john. He is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate, "eastern", true)
+			.should.eventually.deep.equal(expectedResponse);
+	});	
+	
+	//Happy path test 3 - no birthdate
+	it('addBaby2b()', function() {
+		babyDaoCreateBabyStub.resolves();
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
+		var expectedResponseMsg = "Added baby boy john.";
+		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
+		return babyController.addBaby("MOCK_USER_ID", "boy", "john", null, "eastern", true)
 			.should.eventually.deep.equal(expectedResponse);
 	});	
 	
@@ -107,10 +117,6 @@ describe('BabyController', function() {
 	//Illegal argument - invalid sex
 	it('addBaby7()', function() {
 		return babyController.addBaby("MOCK_USER_ID", "unknown", "john", birthdate, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
-	});
-	//Illegal argument - no birthdate
-	it('addBaby8()', function() {
-		return babyController.addBaby("MOCK_USER_ID", "boy", "john", null, "eastern", true).should.be.rejectedWith(IllegalArgumentError);
 	});
 	//Illegal argument - birthdate in future
 	it('addBaby9()', function() {
@@ -135,6 +141,7 @@ describe('BabyController', function() {
 	});
 	//DAO Error
 	it('addBaby13()', function() {
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var daoError = new DaoError("create the baby", new Error("foo"));
 		babyDaoCreateBabyStub.rejects(daoError);
 		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate, "eastern", true).should.be.rejectedWith(daoError);
@@ -143,7 +150,7 @@ describe('BabyController', function() {
 	//Timezone test 1
 	it('addBaby14()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -161,7 +168,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby15()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -180,7 +187,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby16()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -199,7 +206,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby16()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -218,7 +225,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby17()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -237,7 +244,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby18()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -256,7 +263,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby19()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -275,7 +282,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby20()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -294,7 +301,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby21()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -313,7 +320,7 @@ describe('BabyController', function() {
 	});
 	it('addBaby22()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(0);
+		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		
@@ -348,7 +355,7 @@ describe('BabyController', function() {
 	//ADD Limits
 	it('addBaby100()', function() {
 		babyDaoCreateBabyStub.resolves();
-		babyDaoGetBabyCountStub.resolves(20);
+		babyDaoGetBabyCountStub.resolves({count: 20});
 		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true)
