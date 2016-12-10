@@ -138,7 +138,7 @@ function processTimezone(timezone, daylightSavingsObserved) {
  * @param 	{string} userId		the userId whose baby it is. Non-nullable.
  * @param	{string} sex		the baby's sex (girl/boy). Non-nullable.
  * @param 	{string} name		the baby's name (it's ok to be just a first name). Non-nullable.
- * @param	{Date} birthdate	the baby's birthdate (as a Date object). Non-nullable.
+ * @param	{Date} birthdate	the baby's birthdate (as a Date object). Nullable.
  * @param   {string} timezone	Non-nullable. One of the following values:
  * 								hawaii
  * 								alaska
@@ -155,8 +155,8 @@ function processTimezone(timezone, daylightSavingsObserved) {
  * @return 	{Promise<Response>|IllegalArgumentError, DaoError} 				
  * 										promise containing a response with both a verbal message and written card,
  *  									providing confirmation of the added baby.
- *  									Rejected promise with IllegalArgumentError if userId, sex, name, or
- *  									birthdate are not specified, or sex is NOT boy/girl, or birthdate is
+ *  									Rejected promise with IllegalArgumentError if userId, sex, name, is not provided
+ *  									or sex is NOT boy/girl, or birthdate is
  *  									in the future.
  *  									Rejected promise with DaoError if an error occurred interacting with the 
  *  									data store while attempting to add the baby. 
@@ -164,6 +164,7 @@ function processTimezone(timezone, daylightSavingsObserved) {
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezone, daylightSavingsObserved, addedDateTime) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
 	var template = _.template('Added baby ${sex} ${name}. ${pronoun} is ${age} old');
+	var templateNoBirthdate = _.template('Added baby ${sex} ${name}.');
 	
 	var self = this;
 	return ValidationUtils.validateRequired("userId", userId)
@@ -178,9 +179,6 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 		})
 		.then( function(result) {
 				return ValidationUtils.validateRequired("your timezone", timezone);
-		})
-		.then( function(result) {
-				return ValidationUtils.validateRequired("baby's birthdate", birthdate);
 		})
 		.then( function(result) {
 				return ValidationUtils.validateDateBefore("baby's birthdate", birthdate, new Date(), "baby's birthdate cannot be in the future");
@@ -211,14 +209,23 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 		})
 		.then( function(result) 
 		{
+			var responseMsg;
 			logger.debug("addBaby: Successfully added baby %s", JSON.stringify(result));
-			var responseMsg = template(
-			{
-				sex: sex,
-				name: name,
-				age: Utils.calculateAgeFromBirthdate(birthdate),
-				pronoun: Utils.heShe(sex, true)
-			});
+			if(birthdate) {
+				responseMsg = template(
+				{
+					sex: sex,
+					name: name,
+					age: Utils.calculateAgeFromBirthdate(birthdate),
+					pronoun: Utils.heShe(sex, true)
+				});
+			} else {
+				responseMsg = templateNoBirthdate(
+				{
+					sex: sex,
+					name: name
+				});
+			}
 			logger.debug("addBaby: Response %s", responseMsg);
 			return new Response(responseMsg, "Added Baby", responseMsg);
 		});
@@ -233,9 +240,8 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
  * @return 	{Promise<Response>|IllegalArgumentError, DaoError} 				
  * 										promise containing a response with both a verbal message and written card,
  *  									providing confirmation of the added baby.
- *  									Rejected promise with IllegalArgumentError if userId, sex, name, or
- *  									birthdate are not specified, or sex is NOT boy/girl, or birthdate is
- *  									in the future.
+ *  									Rejected promise with IllegalArgumentError if userId or name is 
+ *  									not provided.
  *  									Rejected promise with DaoError if an error occurred interacting with the 
  *  									data store while attempting to add the baby. 
  */

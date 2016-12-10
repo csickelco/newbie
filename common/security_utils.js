@@ -59,10 +59,13 @@ function SecurityUtils() {
  * @return {string} encrypted text
  */
 SecurityUtils.prototype.encrypt = function(text){
-  var cipher = crypto.createCipher(ALGORITHM, this.key);
-  var crypted = cipher.update(text,'utf8','hex');
-  crypted += cipher.final('hex');
-  return crypted;
+	var crypted;
+	if(text) {
+		var cipher = crypto.createCipher(ALGORITHM, this.key);
+		crypted = cipher.update(text,'utf8','hex');
+		crypted += cipher.final('hex');
+	}
+	return crypted;
 };
 
 /**
@@ -71,10 +74,13 @@ SecurityUtils.prototype.encrypt = function(text){
  * @returns decrypted text
  */
 SecurityUtils.prototype.decrypt = function(text){
-  var decipher = crypto.createDecipher(ALGORITHM, this.key);
-  var dec = decipher.update(text,'hex','utf8');
-  dec += decipher.final('utf8');
-  return dec;
+	var dec;
+	if(text) {
+		var decipher = crypto.createDecipher(ALGORITHM, this.key);
+		dec = decipher.update(text,'hex','utf8');
+		dec += decipher.final('utf8');
+	}
+	return dec;
 };
 
 module.exports = SecurityUtils;

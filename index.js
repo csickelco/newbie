@@ -754,11 +754,15 @@ function(request, response) {
 });
 
 var addBabyFunction = function(request, response, babyName, babySex, babyBirthdate, timezone, daylightSavingsObserved) {
+	var birthdateDateValue;
+	if(babyBirthdate) {
+		birthdateDateValue = new Date(babyBirthdate);
+	}
 	var addBabyPromise = babyController.addBaby(
 			request.userId, 
 			babySex, 
 			babyName, 
-			new Date(babyBirthdate),
+			birthdateDateValue,
 			timezone,
 			daylightSavingsObserved
 		);
@@ -913,6 +917,12 @@ function(request, response) {
 });
 
 var exitFunction = function(request, response) {
+	//Clear sessions
+	var data = {};
+	response.session(NEWBIE_ADD_BABY_SESSION_KEY, data);
+	response.session(NEWBIE_REMOVE_BABY_SESSION_KEY, data);
+	
+	//Say goodbye
 	var speechOutput = 'Goodbye.';
 	response.say(speechOutput);
 	response.shouldEndSession(true);

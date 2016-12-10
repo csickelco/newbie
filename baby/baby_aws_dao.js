@@ -150,13 +150,17 @@ BabyAWSDao.prototype.deleteTable = function() {
  */
 BabyAWSDao.prototype.createBaby = function(baby) {
 	logger.log('info', "createBaby: Starting baby creation for user %s, baby %s...", baby.toString());
+	var birthdateToStore;
+	if(baby.birthdate) {
+		birthdateToStore = this.securityUtils.encrypt(Utils.formatDateTimeString(baby.birthdate, baby.timezone));
+	}
 	var params = {
 	    TableName: TABLE_NAME,
 	    Item:{
 	    	userId: baby.userId,
 	    	sex: baby.sex,
 	    	name: this.securityUtils.encrypt(baby.name),
-	    	birthdate: this.securityUtils.encrypt(Utils.formatDateTimeString(baby.birthdate, baby.timezone)),
+	    	birthdate: birthdateToStore,
 	    	timezone: baby.timezone,
 	    	addedDateTime: Utils.formatDateTimeString(baby.addedDateTime, baby.timezone),
 	    	seq: baby.seq
@@ -264,7 +268,7 @@ BabyAWSDao.prototype.readBabyByName = function(userId, babyName) {
 				babyResult = babyWithHighestScore;
 			}
 			
-			if(babyResult) {
+			if(babyResult && babyResult.birthdate) {
 				babyResult.birthdate = self.securityUtils.decrypt(babyResult.birthdate);
 			}
 			return Promise.resolve(babyResult);

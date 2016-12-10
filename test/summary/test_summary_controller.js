@@ -367,6 +367,253 @@ describe('SummaryController', function() {
 			.should.eventually.deep.equal(expectedResponse);
 	});
 	
+	//No birthdate
+	it('getWeeklySummary4c()', function() {
+		//Stub baby return
+		  var baby = new Baby();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
+		
+		//Stub feed return
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z"
+				},
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		
+		//Stub diaper return
+		var diaperItems = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				]
+			};
+		diaperDaoGetDiapersStub.resolves(diaperItems);
+		
+		//Stub sleep
+		var sleepItems = {
+				"Items" :
+				[
+					{
+						"sleepDateTime":"2016-06-01T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-01T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T07:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-02T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-02T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-02T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-02T07:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-03T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-03T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-03T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-03T07:00:00.000Z"
+					}
+				]
+			};
+		sleepDaoGetSleepStub.resolves(sleepItems);
+		
+		//Stub weight
+		var weightItems = {
+				"Items" :
+				[
+					{
+						"date":"2016-06-01T00:00:00.000Z",
+						"weight": 200
+					}
+				]  
+			};
+		weightDaoGetWeightStub.resolves(weightItems);
+		
+		var expectedResponseMsg = "jane weighs 12 pounds, 8 ounces. On average, she ate " +
+			"2 times and had 2 wet and 1 dirty diaper per day. Each day, she generally slept about 4 hours";
+		var expectedCardBody = "Weight: 12 pounds, 8 ounces\nAverage number of feedings per day: 2\n" +
+			"Average number of wet diapers per day: 2\nAverage number of dirty diapers per day: 1\n" +
+			"Average amount of sleep per day: 4 hours\n";
+		var expectedResponse = new Response(expectedResponseMsg, "Weekly Summary", expectedCardBody);
+		return summaryController.getWeeklySummary('MOCK_USER_ID')
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//No birthdate or weight
+	it('getWeeklySummary4c()', function() {
+		//Stub baby return
+		  var baby = new Baby();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
+		
+		//Stub feed return
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z"
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z"
+				},
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		
+		//Stub diaper return
+		var diaperItems = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-02T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-03T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				},
+				]
+			};
+		diaperDaoGetDiapersStub.resolves(diaperItems);
+		
+		//Stub sleep
+		var sleepItems = {
+				"Items" :
+				[
+					{
+						"sleepDateTime":"2016-06-01T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-01T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T07:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-02T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-02T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-02T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-02T07:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-03T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-03T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-03T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-03T07:00:00.000Z"
+					}
+				]
+			};
+		sleepDaoGetSleepStub.resolves(sleepItems);
+		
+		//Stub weight
+		weightDaoGetWeightStub.resolves();
+		
+		var expectedResponseMsg = "On average, jane ate " +
+			"2 times and had 2 wet and 1 dirty diaper per day. Each day, she generally slept about 4 hours";
+		var expectedCardBody = "Average number of feedings per day: 2\n" +
+			"Average number of wet diapers per day: 2\nAverage number of dirty diapers per day: 1\n" +
+			"Average amount of sleep per day: 4 hours\n";
+		var expectedResponse = new Response(expectedResponseMsg, "Weekly Summary", expectedCardBody);
+		return summaryController.getWeeklySummary('MOCK_USER_ID')
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
 	//Daily summary tests...
 	
 	//Invalid argument
@@ -637,6 +884,161 @@ describe('SummaryController', function() {
 			"2 times, including 1 feed totaling 5 ounces, and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
 		var expectedCardBody = "Age: 12 weeks\nWeight: 12 pounds, 8 ounces\nNumber of feedings: 2\n" +
 			"Total (specified) feeding amount: 5 ounces\nNumber of wet diapers: 2\nNumber of dirty diapers: 1\n" +
+			"Sleep: 4 hours\n";
+		var expectedResponse = new Response(expectedResponseMsg, "Daily Summary", expectedCardBody);
+		return summaryController.getDailySummary('MOCK_USER_ID')
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//No birthdate
+	it('getDailySummary4d()', function() {
+		//Stub baby return
+		  var baby = new Baby();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
+		
+		//Stub feed return
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":5
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				}
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		
+		//Stub diaper return
+		var diaperItems = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetDiapersStub.resolves(diaperItems);
+		
+		//Stub sleep
+		var sleepItems = {
+				"Items" :
+				[
+					{
+						"sleepDateTime":"2016-06-01T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-01T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T07:00:00.000Z"
+					}
+				]
+			};
+		sleepDaoGetSleepStub.resolves(sleepItems);
+		
+		//Stub weight
+		var weightItems = {
+				"Items" :
+				[
+					{
+						"date":"2016-06-01T00:00:00.000Z",
+						"weight": 200
+					}
+				]
+			};
+		weightDaoGetWeightStub.resolves(weightItems);
+		
+		var expectedResponseMsg = "Today, jane weighs 12 pounds, 8 ounces. She ate " +
+			"2 times for a total of 11 ounces and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
+		var expectedCardBody = "Weight: 12 pounds, 8 ounces\nNumber of feedings: 2\n" +
+			"Total feeding amount: 11 ounces\nNumber of wet diapers: 2\nNumber of dirty diapers: 1\n" +
+			"Sleep: 4 hours\n";
+		var expectedResponse = new Response(expectedResponseMsg, "Daily Summary", expectedCardBody);
+		return summaryController.getDailySummary('MOCK_USER_ID')
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//No birthdate or weight
+	it('getDailySummary4e()', function() {
+		//Stub baby return
+		  var baby = new Baby();
+			baby.sex = "girl";
+			baby.userId = "MOCK_USER_ID";
+			baby.name = "jane";
+			baby.timezone = "America/New_York";
+		babyDaoReadBabyStub.resolves(baby);
+		
+		//Stub feed return
+		var feedItem = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":5
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"feedAmount":6
+				}
+				]
+			};
+		feedDaoGetFeedsStub.resolves(feedItem);
+		
+		//Stub diaper return
+		var diaperItems = {
+				"Items" :
+				[
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":false
+				},
+				{
+					"dateTime":"2016-06-01T00:00:00.000Z",
+					"isWet":true,
+					"isDirty":true
+				}
+				]
+			};
+		diaperDaoGetDiapersStub.resolves(diaperItems);
+		
+		//Stub sleep
+		var sleepItems = {
+				"Items" :
+				[
+					{
+						"sleepDateTime":"2016-06-01T00:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T02:00:00.000Z"
+					},
+					{
+						"sleepDateTime":"2016-06-01T05:00:00.000Z",
+						"wokeUpDateTime":"2016-06-01T07:00:00.000Z"
+					}
+				]
+			};
+		sleepDaoGetSleepStub.resolves(sleepItems);
+		
+		//Stub weight
+		weightDaoGetWeightStub.resolves();
+		
+		var expectedResponseMsg = "Today, jane ate " +
+			"2 times for a total of 11 ounces and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
+		var expectedCardBody = "Number of feedings: 2\n" +
+			"Total feeding amount: 11 ounces\nNumber of wet diapers: 2\nNumber of dirty diapers: 1\n" +
 			"Sleep: 4 hours\n";
 		var expectedResponse = new Response(expectedResponseMsg, "Daily Summary", expectedCardBody);
 		return summaryController.getDailySummary('MOCK_USER_ID')
