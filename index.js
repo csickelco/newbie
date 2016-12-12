@@ -63,7 +63,8 @@ var logger = new (Winston.Logger)({
     	  formatter: function(options) {
     		  return '[' + options.level.toUpperCase() + '] '+ options.timestamp() +' Newbie v1.0 - '+ (undefined !== options.message ? options.message : '') +
               (options.meta && Object.keys(options.meta).length ? '\n\t'+ JSON.stringify(options.meta) : '' );
-    	  }
+    	  },
+    	  level: 'info'
       })
     ]
   });
@@ -758,27 +759,26 @@ var addBabyFunction = function(request, response, babyName, babySex, babyBirthda
 	if(babyBirthdate) {
 		birthdateDateValue = new Date(babyBirthdate);
 	}
-	var addBabyPromise = babyController.addBaby(
+	babyController.addBaby(
 			request.userId, 
 			babySex, 
 			babyName, 
 			birthdateDateValue,
 			timezone,
 			daylightSavingsObserved
-		);
-	addBabyPromise.then(function(responseRetval) {
-		logger.debug('addBabyIntent [%s, %s]: %s', request.userId, request.data.request.requestId, responseRetval.toString());
-		
-		//Send response
-		response.say(responseRetval.message).send();		
-		response.shouldEndSession(true);
-		logger.info("addBabyIntent [%s, %s]: Baby successfully added, response: %s", request.userId, request.data.request.requestId, responseRetval.toString());
-	}, function (error) {
-		logger.error("addBabyIntent [%s, %s]: An error occurred adding baby: " + error.message + ", " + error.stack, 
-				request.userId, request.data.request.requestId);
-		response.say(error.message).send();
-		response.shouldEndSession(true);
-	});
+		).then(function(responseRetval) {
+			logger.debug('addBabyIntent [%s, %s]: %s', request.userId, request.data.request.requestId, responseRetval.toString());
+			
+			//Send response
+			response.say(responseRetval.message).send();		
+			response.shouldEndSession(true);
+			logger.info("addBabyIntent [%s, %s]: Baby successfully added, response: %s", request.userId, request.data.request.requestId, responseRetval.toString());
+		}, function (error) {
+			logger.error("addBabyIntent [%s, %s]: An error occurred adding baby: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
 };
 
 /**
@@ -815,6 +815,7 @@ app.intent('addBabyIntent', {
 			} else {
 				logger.debug('addBabyIntent [%s, %s]: babyData exists - %s', request.userId, request.data.request.requestId, JSON.stringify(babyData));
 			}
+			
 			if( sexValue ) {
 				logger.debug('addBabyIntent [%s, %s]: Adding sexValue %s', request.userId, request.data.request.requestId, sexValue);
 				babyData.sex = sexValue;
@@ -835,33 +836,70 @@ app.intent('addBabyIntent', {
 			response.session(NEWBIE_ADD_BABY_SESSION_KEY, babyData);
 			logger.debug('addBabyIntent [%s, %s]: babyData - %s', request.userId, request.data.request.requestId, JSON.stringify(babyData));
 			
-			if(!babyData.name) {
-				response.say("What is your baby's first name?").send();
-				response.shouldEndSession(false);
-			} else if(!babyData.sex) {
-				response.say('Is ' + babyData.name + ' a boy or girl?').send();
-				response.shouldEndSession(false);
-			} else if(!babyData.birthdate) {
-				response.say("What is " + Utils.hisHer(babyData.sex, false) + " birthdate?").send();
+			/*
+			 * The dialog should go as follows:
+			 * To add your baby, I'll just need to ask you a few questions.
+			 * 1. First, what is your timezone?
+			 * 2. [Only if the user is in a timezone that may observe daylight savings]: Is daylight savings observed?
+			 * 3. Is your baby a boy or girl?
+			 * The last two questions are optional. If you 
+			 * don't want to answer, just say no.
+			 * 4. What is your baby's first name?
+			 * 5. What is your baby's birthdate?
+			 * Added baby [sex] [name - if provided]. [he/she is [age] - if birthdate provided].
+			 * 
+			 * (the no responses are handled in the yes and no intent handlers)
+			 */
+			if(!babyData.introPrompt) {
+				babyData.introPrompt = true;
+				response.session(NEWBIE_ADD_BABY_SESSION_KEY, babyData);
+				response.say("To add your baby, I'll just need to ask you a few questions. " +
+					"First, what is your timezone?").send();
 				response.shouldEndSession(false);
 			} else if(!babyData.timezone) {
-				response.say('What is your timezone? For example: Eastern, Central, Mountain, Pacific').send();
+				response.say("What is your timezone? For example: Eastern, Central, Mountain, Pacific").send();
 				response.shouldEndSession(false);
-			} else if(babyData.timezone === "mountain") {
+			} else if(babyData.timezone === "mountain" && !babyData.promptedDaylightSavingsObserved) {
+				babyData.promptedDaylightSavingsObserved = true;
+				response.session(NEWBIE_ADD_BABY_SESSION_KEY, babyData);
 				response.say('Is daylight savings time observed in your location?').send();
+				response.shouldEndSession(false);
+			} else if(!babyData.sex) {
+				logger.debug("addBabyIntent: asking if boy or girl");
+				response.say('Is your baby a boy or girl?').send();
+				response.shouldEndSession(false);
+			} else if(!babyData.promptedName) {
+				logger.debug("addBabyIntent: asking if want to specify name and birthdate");
+				babyData.promptedName = true;
+				response.session(NEWBIE_ADD_BABY_SESSION_KEY, babyData);
+				response.say("The last two questions are optional. If you don't want to answer, just say skip. " + 
+						"What is your baby's first name?").send();
+				response.shouldEndSession(false);
+			} else if(babyData.promptedName && !babyData.name) {
+				logger.debug("addBabyIntent: reprompting for name");
+				response.say("Hmm, I didn't catch baby's name. Please say " +
+						Utils.hisHer(babyData.sex, false) +  
+						" first name or 'skip' to move on").send();
+				response.shouldEndSession(false);
+			} else if(!babyData.promptedBirthdate) {
+				logger.debug("addBabyIntent: asking if they want to specify birthdate");
+				babyData.promptedBirthdate = true;
+				response.session(NEWBIE_ADD_BABY_SESSION_KEY, babyData);
+				response.say("What is " + babyData.name + "'s birthdate?").send();
 				response.shouldEndSession(false);
 			} else {
 				var babyName = babyData.name;
 				var babySex = babyData.sex;
 				var babyBirthdate = babyData.birthdate;
 				var babyTimezone = babyData.timezone;
+				var daylightSavingsObserved = babyData.daylightSavingsObserved;
 				
 				//Clear session
 				babyData = {};
 				response.session(NEWBIE_ADD_BABY_SESSION_KEY, babyData);
 				
 				//Process request
-				addBabyFunction(request, response, babyName, babySex, babyBirthdate, babyTimezone, false);
+				addBabyFunction(request, response, babyName, babySex, babyBirthdate, babyTimezone, daylightSavingsObserved);
 			} 
 			//TODO: Checking if baby already exists. Right now, it just overwrites, which may be ok.
 		} catch( err ) {
@@ -928,28 +966,8 @@ var exitFunction = function(request, response) {
 	response.shouldEndSession(true);
 };
 
-var removeBabyFunction = function(request, response, babyName) {
-	logger.debug('removeBabyFunction [%s, %s]: removing baby data...', request.userId, request.data.request.requestId);
-	babyController.removeBaby(request.userId, babyName)
-		.then(function(responseRetval) {
-			logger.info('removeBabyIntent [%s, %s]: babyName %s, %s', 
-					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
-						
-			//Send response
-			response.say(responseRetval.message).send();	
-			response.card(responseRetval.cardTitle, responseRetval.cardBody);
-			response.shouldEndSession(true);
-			logger.debug("removeBabyIntent [%s, %s]: Baby successfully removed, response: %s", 
-					request.userId, request.data.request.requestId, responseRetval.toString());
-		}, function (error) {
-			logger.error("removeBabyIntent [%s, %s]: An error occurred removing baby: " + error.message + ", " + error.stack, 
-					request.userId, request.data.request.requestId);
-			response.say(error.message).send();
-			response.shouldEndSession(true);
-		});
-};
-
 app.intent('AMAZON.YesIntent', function(request, response) {
+	var retval = false;
 	var removeBabyData = request.session(NEWBIE_REMOVE_BABY_SESSION_KEY);
 	var addBabyData = request.session(NEWBIE_ADD_BABY_SESSION_KEY);
 	
@@ -963,35 +981,51 @@ app.intent('AMAZON.YesIntent', function(request, response) {
 		response.session(NEWBIE_REMOVE_BABY_SESSION_KEY, removeBabyData);
 	
 		//Perform operation
-		removeBabyFunction(request, response, removeBabyName);
-	} else if( addBabyData && addBabyData.name ) {
+		logger.debug('removeBabyFunction [%s, %s]: removing baby data...', request.userId, request.data.request.requestId);
+		babyController.removeBaby(request.userId, removeBabyName)
+			.then(function(responseRetval) {
+				logger.info('removeBabyIntent [%s, %s]: babyName %s, %s', 
+						request.userId, request.data.request.requestId, removeBabyName, responseRetval.toString());
+							
+				//Send response
+				response.say(responseRetval.message).send();	
+				response.card(responseRetval.cardTitle, responseRetval.cardBody);
+				response.shouldEndSession(true);
+				logger.debug("removeBabyIntent [%s, %s]: Baby successfully removed, response: %s", 
+						request.userId, request.data.request.requestId, responseRetval.toString());
+			}, function (error) {
+				logger.error("removeBabyIntent [%s, %s]: An error occurred removing baby: " + error.message + ", " + error.stack, 
+						request.userId, request.data.request.requestId);
+				response.say(error.message).send();
+				response.shouldEndSession(true);
+			});
+	} else if( addBabyData && addBabyData.promptedDaylightSavingsObserved ) {
+		logger.debug("YesIntent: User answered question about daylights savings as Yes");
+		retval = true;
+		
 		//User was in the middle of an add request and answering the question
 		//about daylight savings
-		var babyName = addBabyData.name;
-		var babySex = addBabyData.sex;
-		var babyBirthdate = addBabyData.birthdate;
-		var babyTimezone = addBabyData.timezone;
-		
-		//Clear session
-		addBabyData = {};
+		addBabyData.daylightSavingsObserved = true;
 		response.session(NEWBIE_ADD_BABY_SESSION_KEY, addBabyData);
-		
-		//Process request
-		addBabyFunction(request, response, babyName, babySex, babyBirthdate, babyTimezone, true);
+		response.say('Is your baby a boy or girl?').send();
+		response.shouldEndSession(false);
 	} else {
 		logger.error("YesIntent [%s, %s]: Unclear what user is responding yes to");
+		retval = true;
 		response.say("I'm sorry, I didn't understand your request").send();
 		response.shouldEndSession(true);
 	}
-	return false;
+	return retval;
 });
 
 app.intent('AMAZON.NoIntent', function(request, response) {
+	var retval = false;
 	var removeBabyData = request.session(NEWBIE_REMOVE_BABY_SESSION_KEY);
 	var addBabyData = request.session(NEWBIE_ADD_BABY_SESSION_KEY);
 
 	if( removeBabyData && removeBabyData.name) {
 		//User was in the middle of a delete request
+		retval = true;
 	
 		//Clear session
 		removeBabyData = {};
@@ -1000,25 +1034,67 @@ app.intent('AMAZON.NoIntent', function(request, response) {
 		//Report cancel
 		response.say("Ok, cancelling delete request").send();
 		response.shouldEndSession(true);
-	} else if( addBabyData && addBabyData.name ) {
+	} else if( addBabyData && addBabyData.promptedDaylightSavingsObserved ) {
+		logger.debug("NoIntent: User answered question about daylights savings as No");
+		retval = true;
+		
 		//User was in the middle of an add request and answering the question
 		//about daylight savings
+		addBabyData.daylightSavingsObserved = false;
+		response.session(NEWBIE_ADD_BABY_SESSION_KEY, addBabyData);
+		logger.debug("NoIntent: asking if boy or girl");
+		response.say('Is your baby a boy or girl?').send();
+		response.shouldEndSession(false);
+	} else {
+		logger.error("NoIntent [%s, %s]: Unclear what user is responding no to");
+		retval = true;
+		response.say("I'm sorry, I didn't understand your request").send();
+		response.shouldEndSession(true);
+	}
+	
+	return retval;
+});
+
+app.intent('AMAZON.NextIntent', function(request, response) {
+	var retval = false;
+	var addBabyData = request.session(NEWBIE_ADD_BABY_SESSION_KEY);
+
+	if( addBabyData && addBabyData.promptedBirthdate ) {
+		//User was in the middle of an add baby request and
+		//responding that they didn't want to provide a birthdate
+		//At this point, the dialog is complete so clear the session
+		//and process the request
 		var babyName = addBabyData.name;
 		var babySex = addBabyData.sex;
-		var babyBirthdate = addBabyData.birthdate;
+		var babyBirthdate = null;
 		var babyTimezone = addBabyData.timezone;
+		var daylightSavingsObserved = addBabyData.daylightSavingsObserved;
+		logger.debug("NextIntent: babyName - %s, babySex - %s, babyBirthdate - %s, babyTimezone - %s, daylightSavingsObserved %s",
+				babyName, babySex, babyBirthdate, babyTimezone, daylightSavingsObserved);
 		
-		//Clear session
 		addBabyData = {};
 		response.session(NEWBIE_ADD_BABY_SESSION_KEY, addBabyData);
 		
 		//Process request
-		addBabyFunction(request, response, babyName, babySex, babyBirthdate, babyTimezone, false);
+		addBabyFunction(request, response, babyName, babySex, babyBirthdate, babyTimezone, daylightSavingsObserved);
+	} else if( addBabyData && addBabyData.promptedName) {
+		retval = true;
+		
+		//User was in the middle of an add baby request and
+		//responding that they didn't want to provide a name
+		addBabyData.promptedBirthdate = true;
+		addBabyData.name = "Baby";
+		response.session(NEWBIE_ADD_BABY_SESSION_KEY, addBabyData);
+		response.say("Ok, I'll refer to your baby simply as 'Baby'. What is baby's birthdate?").send();
+		response.shouldEndSession(false);
 	} else {
-		logger.error("NoIntent [%s, %s]: Unclear what user is responding no to");
+		logger.error("NextIntent [%s, %s]: Unclear what user is responding no to");
+		retval = true;
 		response.say("I'm sorry, I didn't understand your request").send();
 		response.shouldEndSession(true);
 	}
+	
+	return retval;
 });
 
 app.intent('AMAZON.StopIntent', exitFunction);
