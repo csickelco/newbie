@@ -346,4 +346,27 @@ Utils.hisHer = function(sex, capitalize) {
 	}
 };
 
+/**
+ * Determines which prononun to use (him/her) given the baby's sex.
+ * @param {String} sex The baby's sex (girl/boy). Non-nullable.
+ * @param {Boolean} capitalize True if him/her should be capitalized (Him/Her), 
+ * 					false otherwise. Nullable.
+ * @returns {String} "him" if baby's sex is boy, else "her"
+ */
+Utils.himHer = function(sex, capitalize) {
+	if( sex === "boy" ) {
+		if( capitalize ) {
+			return "Him";
+		} else {
+			return "him";
+		}
+	} else {
+		if( capitalize ) {
+			return "Her";
+		} else {
+			return "her";
+		}
+	}
+};
+
 module.exports = Utils;

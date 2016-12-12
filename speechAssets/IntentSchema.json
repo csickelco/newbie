@@ -194,15 +194,19 @@
       ]
     },
     {
-        "intent": "AMAZON.YesIntent",
-        "slots": []
-      },
-      {
-        "intent": "AMAZON.NoIntent",
-        "slots": []
-      },
+      "intent": "AMAZON.YesIntent",
+      "slots": []
+    },
+    {
+      "intent": "AMAZON.NoIntent",
+      "slots": []
+    },
     {
       "intent": "AMAZON.StopIntent",
+      "slots": []
+    },
+    {
+      "intent": "AMAZON.NextIntent",
       "slots": []
     },
     {

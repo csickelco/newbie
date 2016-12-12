@@ -163,8 +163,8 @@ function processTimezone(timezone, daylightSavingsObserved) {
  */
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezone, daylightSavingsObserved, addedDateTime) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
-	var template = _.template('Added baby ${sex} ${name}. ${pronoun} is ${age} old');
-	var templateNoBirthdate = _.template('Added baby ${sex} ${name}.');
+	var template = _.template('Added baby ${sex} ${name}. You can now begin adding ${pronoun} feeds, diapers, activities, sleep, and weight.');
+	var templateNoName = _.template('Added baby ${sex}. You can now begin adding ${pronoun} feeds, diapers, activities, sleep, and weight.');
 	
 	var self = this;
 	return ValidationUtils.validateRequired("userId", userId)
@@ -211,20 +211,19 @@ BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezo
 		{
 			var responseMsg;
 			logger.debug("addBaby: Successfully added baby %s", JSON.stringify(result));
-			if(birthdate) {
+			if(name !== "Baby") {
 				responseMsg = template(
 				{
 					sex: sex,
 					name: name,
-					age: Utils.calculateAgeFromBirthdate(birthdate),
-					pronoun: Utils.heShe(sex, true)
+					pronoun: Utils.hisHer(sex, false)
 				});
 			} else {
-				responseMsg = templateNoBirthdate(
-				{
-					sex: sex,
-					name: name
-				});
+				responseMsg = templateNoName(
+					{
+						sex: sex,
+						pronoun: Utils.hisHer(sex, false)
+					});
 			}
 			logger.debug("addBaby: Response %s", responseMsg);
 			return new Response(responseMsg, "Added Baby", responseMsg);
