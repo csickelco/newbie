@@ -815,6 +815,7 @@ app.intent('addBabyIntent', {
 			} else {
 				logger.debug('addBabyIntent [%s, %s]: babyData exists - %s', request.userId, request.data.request.requestId, JSON.stringify(babyData));
 			}
+			babyData.beganAddBabySession = true;
 			
 			if( sexValue ) {
 				logger.debug('addBabyIntent [%s, %s]: Adding sexValue %s', request.userId, request.data.request.requestId, sexValue);
@@ -936,6 +937,7 @@ function(request, response) {
 	} else {
 		logger.debug('removeBabyIntent [%s, %s]: babyData exists - %s', request.userId, request.data.request.requestId, JSON.stringify(babyData));
 	}
+	babyData.beganRemoveBabySession = true;
 	
 	if( babyName ) {
 		logger.debug('removeBabyIntent [%s, %s]: Adding babyName %s', request.userId, request.data.request.requestId, babyName);
@@ -955,13 +957,23 @@ function(request, response) {
 });
 
 var exitFunction = function(request, response) {
+	var removeBabyData = request.session(NEWBIE_REMOVE_BABY_SESSION_KEY);
+	var addBabyData = request.session(NEWBIE_ADD_BABY_SESSION_KEY);
+	var speechOutput = "";
+	if( removeBabyData && removeBabyData.beganRemoveBabySession ) {
+		speechOutput = "Ok, cancelling remove baby request";
+	} else if( addBabyData && addBabyData.beganAddBabySession ) {
+		speechOutput = "Ok, cancelling add baby request";
+	} else {
+		speechOutput = "Goodbye";
+	}
+	
 	//Clear sessions
 	var data = {};
 	response.session(NEWBIE_ADD_BABY_SESSION_KEY, data);
 	response.session(NEWBIE_REMOVE_BABY_SESSION_KEY, data);
 	
 	//Say goodbye
-	var speechOutput = 'Goodbye.';
 	response.say(speechOutput);
 	response.shouldEndSession(true);
 };
