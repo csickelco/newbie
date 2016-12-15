@@ -6,5 +6,3 @@ phases:
       - zip -r NewbieLog.zip *
 artifacts:
   type: zip
-  files:
- 	- NewbieLog.zip
