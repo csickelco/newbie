@@ -3,6 +3,8 @@ phases:
   install:
     commands:
       - npm install
-      - zip -r Newbie.zip *
+      - zip -r NewbieLog.zip *
 artifacts:
   type: zip
+  files:
+ 	- NewbieLog.zip
