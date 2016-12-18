@@ -240,30 +240,38 @@ BabyAWSDao.prototype.readBabyByName = function(userId, babyName) {
 	return this.docClient.query(params).promise()
 		.then( function(readBabyResult) {
 			var babyResult;
-			//Then put it all together in a response
-			readBabyResult.Items.forEach(function(item) {
-				logger.debug("readBabyByName: item.name '%s', babyName '%s'", item.name, babyName);
-				item.name = self.securityUtils.decrypt(item.name);
-				if( item.name.toLowerCase() === babyName.toLowerCase() ) {
-					logger.debug("Found baby %s", babyName);
-					babyResult = item;
-				} else if( !babyResult ) {
-					/*
-					 * Exact matches on name are tricky as there can be several alternate spellings
-					 * (e.g. Nathalie vs Natalie) and it's unclear which Amazon will pick.
-					 * Therefore, if there is no exact match, look for one that is close. 
-					 */
-					var similarityScore = clj_fuzzy.metrics.jaccard(
-							item.name.toLowerCase(), babyName.toLowerCase());
-					logger.debug("name %s, score %s", item.name, similarityScore);
-					if( similarityScore < highScore ) {
-						highScore = similarityScore;
-						babyWithHighestScore = item;
-					}
-				} 
-	        });
-			logger.debug("readBabyByName: babyName %s, babyWithHighestScore %s, highScore %d", 
-					babyName, JSON.stringify(babyWithHighestScore), highScore);
+			//If there's exactly 1 result, return that without the name check
+			//as it is almost certainly what the user intended
+			if( readBabyResult.Items.length === 1 ) {
+				babyResult = readBabyResult.Items[0];
+				babyResult.name = self.securityUtils.decrypt(babyResult.name);
+				logger.debug("readBabyByName: babyName %s, babyResult %s", 
+						babyName, JSON.stringify(babyResult));
+			} else {
+				readBabyResult.Items.forEach(function(item) {
+					logger.debug("readBabyByName: item.name '%s', babyName '%s'", item.name, babyName);
+					item.name = self.securityUtils.decrypt(item.name);
+					if( item.name.toLowerCase() === babyName.toLowerCase() ) {
+						logger.debug("Found baby %s", babyName);
+						babyResult = item;
+					} else if( !babyResult ) {
+						/*
+						 * Exact matches on name are tricky as there can be several alternate spellings
+						 * (e.g. Nathalie vs Natalie) and it's unclear which Amazon will pick.
+						 * Therefore, if there is no exact match, look for one that is close. 
+						 */
+						var similarityScore = clj_fuzzy.metrics.jaccard(
+								item.name.toLowerCase(), babyName.toLowerCase());
+						logger.debug("name %s, score %s", item.name, similarityScore);
+						if( similarityScore < highScore ) {
+							highScore = similarityScore;
+							babyWithHighestScore = item;
+						}
+					} 
+		        });
+				logger.debug("readBabyByName: babyName %s, babyWithHighestScore %s, highScore %d", 
+						babyName, JSON.stringify(babyWithHighestScore), highScore);
+			}
 			if(!babyResult && highScore < 0.2) {
 				babyResult = babyWithHighestScore;
 			}
