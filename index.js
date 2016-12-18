@@ -101,7 +101,7 @@ var determineIfDirtyDiaper = function(diaperType) {
 
 app.pre = function(request, response, type) {
 	if (request.sessionDetails.application.applicationId !== process.env.applicationId) {
-		logger.error("Invalid applicationId %s, request: %s",
+		logger.error("app.pre: Invalid applicationId %s, request: %s",
 				request.sessionDetails.application.applicationId,
 				JSON.stringify(request));
         // Fail ungracefully
@@ -163,7 +163,7 @@ app.pre = function(request, response, type) {
 };
 
 /**
- * Triggered when the user says "Launch Newbie" - essentially a boot-up/introduction
+ * Triggered when the user says "Launch Newbie Log" - essentially a boot-up/introduction
  * to the app that describes what it's all about.
  * 
  * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
@@ -173,8 +173,8 @@ app.pre = function(request, response, type) {
  */
 app.launch(function(req, res) {
 	logger.info('launch [%s, %s]: Starting ...', req.userId, req.data.request.requestId);
-	var prompt = 'You can ask Newbie to track information about your baby. To begin, say Add baby. ' +
-		"If you've already added your baby, say ''Help'' to find out what else you can do with Newbie";
+	var prompt = 'You can ask Newbie Log to track information about your baby. To begin, say Add baby, ' +
+		"or, say ''Help'' to find out what else you can do.";
     res.say(prompt).shouldEndSession(false);
 });
 
@@ -192,7 +192,7 @@ app.intent('dailySummaryIntent', {
 	'slots': {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{daily summary} {|for} {-|NAME}']
+	'utterances': ['{|give me|get me|tell me} {|a|my} {daily summary} {|for} {-|NAME}']
 }, function(request, response) {
 	var babyName = request.slot('NAME');
 	logger.debug('dailySummaryIntent [%s, %s]: Getting summary for userId %s', 
@@ -233,7 +233,7 @@ app.intent('weeklySummaryIntent', {
 	'slots': {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{weekly summary} {|for} {-|NAME}']
+	'utterances': ['{|give me|get me|tell me} {|a|my} {weekly summary} {|for} {-|NAME}']
 }, function(request, response) {
 	var babyName = request.slot('NAME');
 	logger.debug('weeklySummaryIntent [%s, %s]: Getting summary for userId %s', 
@@ -337,7 +337,7 @@ app.intent('removeSleepIntent', {
 	'slots': {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|remove|delete|undo} sleep {|for} {-|NAME}']
+	'utterances': ['{|remove|delete|undo|discard} sleep {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeSleepIntent [%s, %s]", request.userId, request.data.request.requestId);
@@ -373,7 +373,7 @@ app.intent('getAwakeTimeIntent', {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
 	//When did {baby|Natalie} last eat?
-	'utterances': ['how long has {|baby} {|the baby} {-|NAME} been awake']
+	'utterances': ['how long {|since} has {|baby} {|the baby} {-|NAME} been {|awake|up}']
 	}, function(request, response) {
 		var babyName = request.slot('NAME');
 		sleepController.getAwakeTime(request.userId, babyName)
@@ -407,7 +407,7 @@ app.intent('getLastFeedIntent', {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
 	//When did {baby|Natalie} last eat?
-	'utterances': ['when did {|baby} {|the baby} {-|NAME} last eat']
+	'utterances': ['when {|did} {|baby|the baby} {-|NAME} {|last} {|eat|ate|had a bottle|have a bottle} {|last}']
 	}, function(request, response) {
 		var babyName = request.slot('NAME');
 		feedController.getLastFeed(request.userId, babyName)
@@ -482,7 +482,7 @@ app.intent('removeFeedIntent', {
 	'slots': {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|remove|delete|undo} feed {|for} {-|NAME}']
+	'utterances': ['{|remove|delete|undo|discard} {|feed|bottle|breastfeeding} {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeFeedIntent [%s, %s]", request.userId, request.data.request.requestId);
@@ -556,7 +556,7 @@ app.intent('removeActivityIntent', {
 		'ACTIVITY': 'ACTIVITY_TYPE',
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|remove|delete|undo} activity {|for} {-|NAME}']
+	'utterances': ['{|remove|delete|undo|discard} activity {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeActivityIntent [%s, %s]", request.userId, request.data.request.requestId);
@@ -636,7 +636,7 @@ app.intent('removeDiaperIntent', {
 	'slots': {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|remove|delete|undo} diaper {|for} {-|NAME}']
+	'utterances': ['{|remove|delete|undo|discard} diaper {|for} {-|NAME}']
 },
 function(request, response) {
 	var babyName = request.slot('NAME');
@@ -731,7 +731,7 @@ app.intent('removeWeightIntent', {
 	'slots': {
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
-	'utterances': ['{|remove|delete|undo} weight {|for} {-|NAME}']
+	'utterances': ['{|remove|delete|undo|discard} weight {|for} {-|NAME}']
 },
 function(request, response) {
 	logger.debug("removeWeightIntent [%s, %s]", request.userId, request.data.request.requestId);
@@ -770,7 +770,8 @@ var addBabyFunction = function(request, response, babyName, babySex, babyBirthda
 			logger.debug('addBabyIntent [%s, %s]: %s', request.userId, request.data.request.requestId, responseRetval.toString());
 			
 			//Send response
-			response.say(responseRetval.message).send();		
+			response.say(responseRetval.message).send();
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
 			response.shouldEndSession(true);
 			logger.info("addBabyIntent [%s, %s]: Baby successfully added, response: %s", request.userId, request.data.request.requestId, responseRetval.toString());
 		}, function (error) {
@@ -797,7 +798,7 @@ app.intent('addBabyIntent', {
 		'BIRTHDATE': 'DATE',
 		'TIMEZONE': 'TIMEZONE'
 	},
-	'utterances': ['{|add|record} {|baby|child|kid}', '{-|SEX}', '{-|BIRTHDATE}', '{-|NAME}', '{-|TIMEZONE}', '{-|DAYLIGHT_SAVINGS_OBSERVED}']
+	'utterances': ['{|add|record} {|new} {|baby|child|kid}', '{-|SEX}', '{-|BIRTHDATE}', '{-|NAME}', '{-|TIMEZONE}', '{-|DAYLIGHT_SAVINGS_OBSERVED}']
 	},
 	function(request, response) {
 		try {
@@ -805,6 +806,7 @@ app.intent('addBabyIntent', {
 			var nameValue = request.slot("NAME");
 			var birthdateValue = request.slot("BIRTHDATE");
 			var timezoneValue = request.slot("TIMEZONE");
+			var removeBabyData = request.session(NEWBIE_REMOVE_BABY_SESSION_KEY);
 			logger.debug('addBabyIntent [%s, %s]: Processing with sexValue: %s, nameValue: %s, birthdateValue: %s, timezoneValue: %s: %s', 
 					request.userId, request.data.request.requestId, sexValue, nameValue, birthdateValue, timezoneValue);
 			
@@ -823,7 +825,13 @@ app.intent('addBabyIntent', {
 			}
 			if( nameValue ) {
 				logger.debug('addBabyIntent [%s, %s]: Adding nameValue %s', request.userId, request.data.request.requestId, nameValue);
-				babyData.name = nameValue;
+				if( removeBabyData && removeBabyData.beganRemoveBabySession ) {
+					//It's possible we got into this intent because the user said "Remove baby"
+					//(without a name), newbie prompted for a name, and they provided it
+					removeBabyData.name = nameValue;
+				} else {
+					babyData.name = nameValue;
+				}
 			}
 			if( birthdateValue ) {
 				logger.debug('addBabyIntent [%s, %s]: Adding birthdateValue %s', request.userId, request.data.request.requestId, birthdateValue);
@@ -851,7 +859,10 @@ app.intent('addBabyIntent', {
 			 * 
 			 * (the no responses are handled in the yes and no intent handlers)
 			 */
-			if(!babyData.introPrompt) {
+			if( removeBabyData && removeBabyData.name) {
+				response.say("Are you sure you want to delete all newbie logs for baby " + removeBabyData.name + "?").send();
+				response.shouldEndSession(false);
+			} else if(!babyData.introPrompt) {
 				babyData.introPrompt = true;
 				response.session(NEWBIE_ADD_BABY_SESSION_KEY, babyData);
 				response.say("To add your baby, I'll just need to ask you a few questions. " +
@@ -950,7 +961,7 @@ function(request, response) {
 		response.say("What is the first name of the baby whose data you want to remove?").send();
 		response.shouldEndSession(false);
 	} else {
-		response.say("Are you sure you want to delete all newbie data for baby " + babyData.name + "?").send();
+		response.say("Are you sure you want to delete all newbie logs for baby " + babyData.name + "?").send();
 		response.shouldEndSession(false);
 	}
 	return false;
@@ -965,7 +976,7 @@ var exitFunction = function(request, response) {
 	} else if( addBabyData && addBabyData.beganAddBabySession ) {
 		speechOutput = "Ok, cancelling add baby request";
 	} else {
-		speechOutput = "Goodbye";
+		speechOutput = "Goodbye.";
 	}
 	
 	//Clear sessions
@@ -1114,7 +1125,7 @@ app.intent('AMAZON.StopIntent', exitFunction);
 app.intent('AMAZON.CancelIntent', exitFunction);
 
 app.intent('AMAZON.HelpIntent', function(request, response) {
-	var speechOutput = "To first set up Newbie, say 'tell newbie to add baby'. After that, here are some examples of things you can tell Newbie: " +
+	var speechOutput = "To first set up Newbie Log, say 'tell newbie log to add baby'. After that, here are some examples of things you can tell Newbie Log: " +
 		HELP_TEXT;
 	response.say(speechOutput);
 	response.shouldEndSession(true);
