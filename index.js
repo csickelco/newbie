@@ -553,7 +553,6 @@ app.intent('addActivityIntent', {
  */
 app.intent('removeActivityIntent', {
 	'slots': {
-		'ACTIVITY': 'ACTIVITY_TYPE',
 		'NAME': 'AMAZON.US_FIRST_NAME'
 	},
 	'utterances': ['{|remove|delete|undo|discard} activity {|for} {-|NAME}']
