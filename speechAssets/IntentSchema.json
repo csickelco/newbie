@@ -102,10 +102,6 @@
       "intent": "removeActivityIntent",
       "slots": [
         {
-          "name": "ACTIVITY",
-          "type": "ACTIVITY_TYPE"
-        },
-        {
           "name": "NAME",
           "type": "AMAZON.US_FIRST_NAME"
         }
