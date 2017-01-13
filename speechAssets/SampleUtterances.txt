@@ -1,3 +1,5 @@
+dailySummaryIntent  a daily summary
+dailySummaryIntent  for a daily summary
 dailySummaryIntent	give me daily summary for {NAME}
 dailySummaryIntent	get me daily summary for {NAME}
 dailySummaryIntent	tell me daily summary for {NAME}
@@ -9,6 +11,8 @@ dailySummaryIntent	my daily summary for {NAME}
 dailySummaryIntent	give me my daily summary for {NAME}
 dailySummaryIntent	get me my daily summary for {NAME}
 dailySummaryIntent	tell me my daily summary for {NAME}
+weeklySummaryIntent	a weekly summary
+weeklySummaryIntent	for a weekly summary
 weeklySummaryIntent	give me weekly summary for {NAME}
 weeklySummaryIntent	get me weekly summary for {NAME}
 weeklySummaryIntent	tell me weekly summary for {NAME}
