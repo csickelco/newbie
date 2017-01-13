@@ -72,7 +72,7 @@ var logger = new (Winston.Logger)({
 //Constants
 var HELP_TEXT = "Add 5 ounce bottle. Add wet and dirty diaper. The baby is sleeping. The baby woke up. " +
 		"Add activity reading. Add weight 12 pounds 2 ounces. How long has the baby been awake? " +
-		"When did the baby last eat?";
+		"Give me a daily summary. You can also say, stop, if you're done. So, how can I help?";
 
 //Helper functions
 /**
@@ -975,7 +975,7 @@ var exitFunction = function(request, response) {
 	} else if( addBabyData && addBabyData.beganAddBabySession ) {
 		speechOutput = "Ok, cancelling add baby request";
 	} else {
-		speechOutput = "Goodbye.";
+		speechOutput = "Okay, goodbye.";
 	}
 	
 	//Clear sessions
@@ -1124,10 +1124,10 @@ app.intent('AMAZON.StopIntent', exitFunction);
 app.intent('AMAZON.CancelIntent', exitFunction);
 
 app.intent('AMAZON.HelpIntent', function(request, response) {
-	var speechOutput = "To first set up Newbie Log, say 'tell newbie log to add baby'. After that, here are some examples of things you can tell Newbie Log: " +
+	var speechOutput = "To first set up Newbie Log, say 'Add baby'. After that, here are some things you can tell Newbie Log: " +
 		HELP_TEXT;
 	response.say(speechOutput);
-	response.shouldEndSession(true);
+	response.shouldEndSession(false);
 });
 
 module.exports = app;
