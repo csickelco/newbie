@@ -5,13 +5,13 @@ Contributions to Newbie Log are welcome and greatly appreciated! Here are a few 
 
 ### Submit Bugs or feature requests
 
-Report bugs or request a new feature through [github issues](https://github.com/csickelco/newbie/issues)
+Report bugs or request a new feature through [github issues](https://github.com/csickeco/newbie/issues)
 
 ### Fix Bugs or Implement features
 
-Ready to contribute? Here’s how to set up newbie log for local development.
+Ready to contribute? Here’s how to set up newbie log for local development. Note that this project follows [Git-Flow](http://nvie.com/posts/a-successful-git-branching-model/), and as such has `master` (latest stable releases), `develop` (latest WIP development) - all pull requests MUST be sent to the `develop` branch.
 
-1. Fork the [newbie repo](https://github.com/csickelco/newbie) on GitHub. 
+1. [Fork](https://guides.github.com/activities/forking/#fork) the [newbie repo](https://github.com/csickelco/newbie) on GitHub. 
 2. Clone your fork locally: ```$ git clone --branch develop git@github.com:your_name_here/newbie.git```
 3. Create a branch for local development with git-flow: ```$ git-flow feature start name-of-your-bugfix-or-feature``` Or without git-flow: ```$ git checkout -b feature/name-of-your-bugfix-or-feature```
 4. Now you can make your changes locally. When finished with your changes, run all unit tests from the project root with: ```$ mocha test --recursive --watch --timeout 10000```
