@@ -22,29 +22,19 @@ To install locally, you can run newbie inside a [Alexa app server](https://www.n
 **Install newbie in the alexa-app-server**
 
 1. Navigate to the alexa-app-server/examples/apps directory inside the alexa-app-server code you just installed.
-2. Run the following command to pull down the newbie code into that directory:
-```
-git clone https://github.com/csickelco/newbie.git
-``` 
-3. Inside the newbie directory, install all required dependencies by running:
-```
-npm install
-``` 
+2. Run the following command to pull down the newbie code into that directory: ```git clone https://github.com/csickelco/newbie.git``` 
+3. Inside the newbie directory, install all required dependencies by running: ```npm install``` 
 4. Navigate to the alexa-app-server/examples directory.
-5. Start the alexa-app-server by running the command:
-```
-node server
-```
-You should see output like:
+5. Start the alexa-app-server by running the command: ```node server```
+You should see output like: ```
 Serving static content from: public_html
 Loading server-side modules from: server
    Loaded ~/alexa-app-server/examples/server/login.js
 Loading apps from: apps
    Loaded app [hello_world] at endpoint: /alexa/helloworld
    Loaded app [newbie] at endpoint: /alexa/newbie
-   Loaded app [number_guessing_game] at endpoint: /alexa/guessinggame
-6. Visit http://localhost:8080/alexa/newbie to test out the application.
-You should see a page that looks like ![this](./alexa-app-server.png?raw=true "Newbie in Alexa App Server")
+   Loaded app [number_guessing_game] at endpoint: /alexa/guessinggame```
+6. Visit http://localhost:8080/alexa/newbie to test out the application. You should see a page that looks like ![this](./alexa-app-server.png?raw=true "Newbie in Alexa App Server")
 7. You can simulate different commands by selecting them from the intents dropdown. For example, the
 addBabyIntent is the intent called when you say "Add Baby" to Alexa. The slots shown are the different
 variables/placeholders the alexa command will accept. Once you select the intent and populate any
