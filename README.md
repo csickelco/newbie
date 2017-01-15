@@ -34,12 +34,11 @@ Loading apps from: apps
    Loaded app [hello_world] at endpoint: /alexa/helloworld
    Loaded app [newbie] at endpoint: /alexa/newbie
    Loaded app [number_guessing_game] at endpoint: /alexa/guessinggame```
-6. Visit http://localhost:8080/alexa/newbie to test out the application. You should see a page that looks like ![this](./alexa-app-server.png?raw=true "Newbie in Alexa App Server")
+6. Visit http://localhost:8080/alexa/newbie to test out the application. 
 7. You can simulate different commands by selecting them from the intents dropdown. For example, the
 addBabyIntent is the intent called when you say "Add Baby" to Alexa. The slots shown are the different
 variables/placeholders the alexa command will accept. Once you select the intent and populate any
-needed slot values, click Send request. You will see the response Alexa generates under the response section:
-![response](./alexa-app-server-response.png?raw=true "Newbie Response in Alexa App Server")
+needed slot values, click Send request. Here are some sample values you can provide for the add baby request - sex: girl, name: Elizabeth, birthdate: 2016-06-01. You will see the response Alexa generates under the response section.
 
 For more details, see the [Big Nerd Ranch Series: Developing Alexa Skills Locally with Node.js](https://developer.amazon.com/public/community/post/Tx1BIPOTYRL82PV/Big-Nerd-Ranch-Series-Developing-Alexa-Skills-Locally-with-Node-js-Implementing)
 
