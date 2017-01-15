@@ -14,7 +14,7 @@ Ready to contribute? Here’s how to set up newbie log for local development.
 1. Fork the [newbie repo](https://github.com/csickelco/newbie) on GitHub. 
 2. Clone your fork locally: ```$ git clone --branch develop git@github.com:your_name_here/newbie.git```
 3. Create a branch for local development with git-flow: ```$ git-flow feature start name-of-your-bugfix-or-feature``` Or without git-flow: ```$ git checkout -b feature/name-of-your-bugfix-or-feature```
-4. Now you can make your changes locally. When finished with your changes, run all unit tests with: ```TODO```
+4. Now you can make your changes locally. When finished with your changes, run all unit tests from the project root with: ```$ mocha test --recursive --watch --timeout 10000```
 5. Commit your changes and push your branch to GitHub with git-flow:
   ```
   $ git add .
