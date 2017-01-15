@@ -16,14 +16,8 @@ To install locally, you can run newbie inside a [Alexa app server](https://www.n
 
 **Get the alexa-app-server**
 
-1. Pull down the alexa-app-server GitHub repo with the following command:
-```
-git clone https://github.com/matt-kruse/alexa-app-server.git
-``` 
-2. Once cloned, install any required dependencies by running:
-```
-npm install
-```
+1. Pull down the alexa-app-server GitHub repo with the following command: ```git clone https://github.com/matt-kruse/alexa-app-server.git ``` 
+2. Once cloned, install any required dependencies by running: ```npm install```
 
 **Install newbie in the alexa-app-server**
 
