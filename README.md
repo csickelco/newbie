@@ -74,7 +74,7 @@ Runtime: Node.js 4.3
 
 ## Contributors
 
-Feature requests and issues are tracked on [trello](https://trello.com/b/8m6eYU5T/newbie)
+Contribution instructions coming soon
 
 ## License
 
