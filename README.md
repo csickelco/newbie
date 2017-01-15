@@ -57,7 +57,7 @@ Runtime: Node.js 4.3
 
 ## Contributors
 
-See the [Contributing instructions](CONTRIBUTING)
+See the [Contributing instructions](CONTRIBUTING.md)
 
 ## License
 
