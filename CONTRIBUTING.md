@@ -32,4 +32,4 @@ Before you submit a pull request, check that it meets these guidelines:
 
 * The pull request should include tests.
 * The pull request should be tied to a feature or bug (if one does not exist, please submit one through github issues)
-
+* The pull request description should follow newbie's [pull request template](PULL_REQUEST_TEMPLATE.md)
