@@ -41,6 +41,7 @@ var SummaryController = require('./summary/summary_controller');
 var DiaperController = require('./diaper/diaper_controller');
 var ActivityController = require('./activity/activity_controller');
 var SleepController = require('./sleep/sleep_controller');
+var WordController = require('./word/word_controller');
 var Utils = require('./common/utils');
 
 //Properties
@@ -52,6 +53,7 @@ var summaryController = new SummaryController();
 var diaperController = new DiaperController();
 var activityController = new ActivityController();
 var sleepController = new SleepController();
+var wordController = new WordController();
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -61,7 +63,7 @@ var logger = new (Winston.Logger)({
     		  return new Date();
     	  },
     	  formatter: function(options) {
-    		  return '[' + options.level.toUpperCase() + '] '+ options.timestamp() +' Newbie v1.0 - '+ (undefined !== options.message ? options.message : '') +
+    		  return '[' + options.level.toUpperCase() + '] '+ options.timestamp() +' Newbie v1.1 - '+ (undefined !== options.message ? options.message : '') +
               (options.meta && Object.keys(options.meta).length ? '\n\t'+ JSON.stringify(options.meta) : '' );
     	  },
     	  level: 'info'
@@ -71,7 +73,8 @@ var logger = new (Winston.Logger)({
 
 //Constants
 var HELP_TEXT = "Add 5 ounce bottle. Add wet and dirty diaper. The baby is sleeping. The baby woke up. " +
-		"Add activity reading. Add weight 12 pounds 2 ounces. How long has the baby been awake? " +
+		"Add activity reading. Add weight 12 pounds 2 ounces. Add word mama. How many words does baby know? " +
+		"How long has the baby been awake? " +
 		"Give me a daily summary. You can also say, stop, if you're done. So, how can I help?";
 
 //Helper functions
@@ -107,59 +110,6 @@ app.pre = function(request, response, type) {
         // Fail ungracefully
         response.fail("Invalid applicationId");
     }
-	
-	//Commenting out lines below, all tables exist at this point and have been properly configured
-	//so avoiding this overhead
-	/*
-	logger.debug('pre: Start initialization of newbie data...');	
-	babyController.initBabyData()
-		.then(function(resp) {
-			logger.debug("pre: Successfully initialized baby data");
-		})
-		.catch(function(error) {
-			logger.error("pre: An error occurred initializing baby data: " + error.message + ", " + error.stack);
-		});
-	
-	weightController.initWeightData()
-		.then(function(resp) {
-			logger.debug("pre: Successfully initialized weight data");
-		})
-		.catch(function(error) {
-			logger.error("pre: An error occurred initializing weight data: " + error.message + ", " + error.stack);
-		});
-	
-	feedController.initFeedData()
-		.then(function(resp) {
-			logger.debug("pre: Successfully initialized feed data");
-		})
-		.catch(function(error) {
-			logger.error("pre: An error occurred initializing feed data: " + error.message + ", " + error.stack);
-		});
-	
-	diaperController.initDiaperData()
-		.then(function(resp) {
-			logger.debug("pre: Successfully initialized diaper data");
-		})
-		.catch(function(error) {
-			logger.error("pre: An error occurred initializing diaper data: " + error.message + ", " + error.stack);
-		});
-	
-	activityController.initActivityData()
-		.then(function(resp) {
-			logger.debug("pre: Successfully initialized activity data");
-		})
-		.catch(function(error) {
-			logger.error("pre: An error occurred initializing activity data: " + error.message + ", " + error.stack);
-		});
-	
-	sleepController.initSleepData()
-		.then(function(resp) {
-			logger.debug("pre: Successfully initialized sleep data");
-		})
-		.catch(function(error) {
-			logger.error("pre: An error occurred initializing sleep data: " + error.message + ", " + error.stack);
-		});
-		*/
 };
 
 /**
@@ -173,7 +123,7 @@ app.pre = function(request, response, type) {
  */
 app.launch(function(req, res) {
 	logger.info('launch [%s, %s]: Starting ...', req.userId, req.data.request.requestId);
-	var prompt = 'You can ask Newbie Log to track information about your baby. To begin, say Add baby, ' +
+	var prompt = 'You can ask Newbie Log version 1.1 to track information about your baby. To begin, say Add baby, ' +
 		"or, say ''Help'' to find out what else you can do.";
     res.say(prompt).shouldEndSession(false);
 });
@@ -963,6 +913,80 @@ function(request, response) {
 		response.say("Are you sure you want to delete all newbie logs for baby " + babyData.name + "?").send();
 		response.shouldEndSession(false);
 	}
+	return false;
+});
+
+/**
+ * This intent handler records a new word for the baby
+ * 
+ * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
+ * @param response  The spoken Echo response + any cards delivered to the Alexa app.
+ * 					This intent handler generates a spoken response and card with 
+ * 					an acknowledgement that the activity was added.
+ */
+app.intent('addWordIntent', {
+	'slots': {
+		'WORD': 'WORD_TYPE',
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{|add|record} word {-|WORD} {|for} {-|NAME}']
+}, function(request, response) {
+	var word = request.slot('WORD');
+	var babyName = request.slot('NAME');
+	logger.debug('addWordIntent [%s, %s]: %s', request.userId, word);
+	
+	wordController.addWord(request.userId, word, new Date(), babyName)
+		.then(function(responseRetval) {
+			logger.info('addWordIntent [%s, %s]: babyName %s, word %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, word, responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
+			response.shouldEndSession(true);
+			logger.debug("addWordIntent [%s, %s]: Activity successfully added: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
+		})
+		.catch(function(error) {
+			logger.error("addWordIntent [%s, %s]: An error occurred adding word: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
+	return false;
+});
+
+/**
+ * This intent handler gets a summary of the words recorded for a baby
+ * 
+ * @param request 	The request made to the Echo. See https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#request-format
+ * @param response  The spoken Echo response + any cards delivered to the Alexa app.
+ * 					This intent handler generates a spoken response and card with 
+ * 					an acknowledgement that the activity was added.
+ */
+app.intent('getWordIntent', {
+	'slots': {
+		'NAME': 'AMAZON.US_FIRST_NAME'
+	},
+	'utterances': ['{|give me|get me|tell me} {|how many words does} {-|NAME} {|know}']
+}, function(request, response) {
+	var babyName = request.slot('NAME');
+	logger.debug('getWordIntent [%s, %s]: %s', request.userId, babyName);
+	
+	wordController.getWordCount(request.userId, babyName)
+		.then(function(responseRetval) {
+			logger.info('getWordIntent [%s, %s]: babyName %s, Response %s', 
+					request.userId, request.data.request.requestId, babyName, responseRetval.toString());
+			response.say(responseRetval.message).send();	
+			response.card(responseRetval.cardTitle, responseRetval.cardBody);
+			response.shouldEndSession(true);
+			logger.debug("getWordIntent [%s, %s]: Words successfully retrieved: %s", 
+					request.userId, request.data.request.requestId, responseRetval.toString());
+		})
+		.catch(function(error) {
+			logger.error("getWordIntent [%s, %s]: An error occurred getting words: " + error.message + ", " + error.stack, 
+					request.userId, request.data.request.requestId);
+			response.say(error.message).send();
+			response.shouldEndSession(true);
+		});
 	return false;
 });
 

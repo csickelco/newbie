@@ -148,6 +148,14 @@ removeActivityIntent	remove activity for {NAME}
 removeActivityIntent	delete activity for {NAME}
 removeActivityIntent	undo activity for {NAME}
 removeActivityIntent	discard activity for {NAME}
+addWordIntent	add word {WORD}
+addWordIntent	record word {WORD}
+addWordIntent	add word {WORD} for {NAME}
+addWordIntent	record word {WORD} for {NAME}
+getWordIntent	how many words baby knows
+getWordIntent	how many words {NAME} knows
+getWordIntent	how many words does baby know
+getWordIntent	how many words does {NAME} know
 addDiaperIntent	add {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	record {FIRST_DIAPER_TYPE} {SECOND_DIAPER_TYPE} diaper
 addDiaperIntent	add {FIRST_DIAPER_TYPE} diaper
