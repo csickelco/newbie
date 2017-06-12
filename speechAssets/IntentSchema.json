@@ -190,6 +190,28 @@
       ]
     },
     {
+        "intent": "addWordIntent",
+        "slots": [
+          {
+            "name": "WORD",
+            "type": "WORD_TYPE"
+          },
+          {
+            "name": "NAME",
+            "type": "AMAZON.US_FIRST_NAME"
+          }
+        ]
+      },
+      {
+          "intent": "getWordIntent",
+          "slots": [
+            {
+              "name": "NAME",
+              "type": "AMAZON.US_FIRST_NAME"
+            }
+          ]
+        },
+    {
       "intent": "AMAZON.YesIntent",
       "slots": []
     },

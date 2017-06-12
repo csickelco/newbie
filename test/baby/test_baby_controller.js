@@ -74,7 +74,7 @@ describe('BabyController', function() {
 	it('addBaby1()', function() {
 		babyDaoCreateBabyStub.resolves();
 		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
-		var expectedResponseMsg = "Added baby girl jane. She is 1 day old";
+		var expectedResponseMsg = "Added baby girl jane. You can now begin adding her feeds, diapers, activities, sleep, and weight.";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "girl", "jane", birthdate, "eastern", true)
 			.should.eventually.deep.equal(expectedResponse);
@@ -84,7 +84,7 @@ describe('BabyController', function() {
 	it('addBaby2()', function() {
 		babyDaoCreateBabyStub.resolves();
 		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
-		var expectedResponseMsg = "Added baby boy john. He is 1 day old";
+		var expectedResponseMsg = "Added baby boy john. You can now begin adding his feeds, diapers, activities, sleep, and weight.";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "boy", "john", birthdate, "eastern", true)
 			.should.eventually.deep.equal(expectedResponse);
@@ -94,7 +94,7 @@ describe('BabyController', function() {
 	it('addBaby2b()', function() {
 		babyDaoCreateBabyStub.resolves();
 		babyDaoGetBabyCountStub.resolves({count: 0, maxSeq: 0});
-		var expectedResponseMsg = "Added baby boy john.";
+		var expectedResponseMsg = "Added baby boy john. You can now begin adding his feeds, diapers, activities, sleep, and weight.";
 		var expectedResponse = new Response(expectedResponseMsg, "Added Baby", expectedResponseMsg);
 		return babyController.addBaby("MOCK_USER_ID", "boy", "john", null, "eastern", true)
 			.should.eventually.deep.equal(expectedResponse);

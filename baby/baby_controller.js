@@ -30,6 +30,7 @@ var WeightDao = require('../weight/weight_aws_dao');
 var DiaperDao= require('../diaper/diaper_aws_dao');
 var ActivityDao = require('../activity/activity_aws_dao');
 var SleepDao = require('../sleep/sleep_aws_dao');
+var WordDao = require('../word/word_aws_dao');
 var Baby = require('./baby');
 var Response = require('../common/response');
 var Utils = require('../common/utils');
@@ -67,6 +68,7 @@ function BabyController () {
 	this.diaperDao = new DiaperDao();
 	this.activityDao = new ActivityDao();
 	this.sleepDao = new SleepDao();
+	this.wordDao = new WordDao();
 }
 
 /**
@@ -267,6 +269,7 @@ BabyController.prototype.removeBaby = function(userId, name ) {
 				promises.push(self.feedDao.deleteFeedsForBaby(userId, baby.seq));
 				promises.push(self.sleepDao.deleteSleepForBaby(userId, baby.seq));
 				promises.push(self.weightDao.deleteWeightsForBaby(userId, baby.seq));
+				promises.push(self.wordDao.deleteWordsForBaby(userId, baby.seq));
 				return Promise.all(promises);
 			} else {
 				return Promise.reject(new IllegalStateError(
