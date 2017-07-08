@@ -72,6 +72,10 @@ var logger = new (Winston.Logger)({
     ]
   });
 
+require('winston-timer')(logger, {
+    "useColors": false
+});
+
 //Constants
 var HELP_TEXT = "Add 5 ounce bottle. Add wet and dirty diaper. The baby is sleeping. The baby woke up. " +
 		"Add activity reading. Add weight 12 pounds 2 ounces. Add word mama. How many words does baby know? " +
