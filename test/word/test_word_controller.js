@@ -40,7 +40,7 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('WordController', function() {
-	var wordController = new WordController();
+	var wordController = new WordController(new WordDao(), new BabyDao());
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,
@@ -78,9 +78,11 @@ describe('WordController', function() {
 		baby.sex = "girl";
 		baby.userId = "MOCK_USER_ID";
 		baby.name = "jane";
-		wordDaoCreateWordStub.resolves();
+		var createWordResult = {};
+		wordDaoCreateWordStub.resolves(createWordResult);
+		wordDaoGetWordCountStub.resolves(4);
 		babyDaoReadBabyStub.resolves(baby);
-		var expectedResponseMsg = "Added word unit testing for jane";
+		var expectedResponseMsg = "Added word unit testing for jane. She now knows 5 words.";
 		var expectedResponse = new Response(expectedResponseMsg, "Word", expectedResponseMsg);
 		return wordController.addWord("MOCK_USER_ID", "unit testing", new Date())
 			.should.eventually.deep.equal(expectedResponse);
@@ -93,11 +95,70 @@ describe('WordController', function() {
 		baby.sex = "girl";
 		baby.userId = "MOCK_USER_ID";
 		baby.name = "jill";
-		wordDaoCreateWordStub.resolves();
+		var createWordResult = {};
+		wordDaoCreateWordStub.resolves(createWordResult);
 		babyDaoReadBabyByNameStub.resolves(baby);
-		var expectedResponseMsg = "Added word unit testing for jill";
+		wordDaoGetWordCountStub.resolves(4);
+		var expectedResponseMsg = "Added word unit testing for jill. She now knows 5 words.";
 		var expectedResponse = new Response(expectedResponseMsg, "Word", expectedResponseMsg);
 		return wordController.addWord("MOCK_USER_ID", "unit testing", new Date(), "jill")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Happy path test 3
+	it('addWord3()', function() {
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "girl";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "jill";
+		var createWordResult = {};
+		wordDaoCreateWordStub.resolves(createWordResult);
+		babyDaoReadBabyByNameStub.resolves(baby);
+		wordDaoGetWordCountStub.resolves(0);
+		var expectedResponseMsg = "Added word unit testing for jill. This is her first word!";
+		var expectedResponse = new Response(expectedResponseMsg, "Word", expectedResponseMsg);
+		return wordController.addWord("MOCK_USER_ID", "unit testing", new Date(), "jill")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Happy path test 4
+	it('addWord4()', function() {
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "boy";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "john";
+		var createWordResult = {};
+		wordDaoCreateWordStub.resolves(createWordResult);
+		babyDaoReadBabyByNameStub.resolves(baby);
+		wordDaoGetWordCountStub.resolves(0);
+		var expectedResponseMsg = "Added word unit testing for john. This is his first word!";
+		var expectedResponse = new Response(expectedResponseMsg, "Word", expectedResponseMsg);
+		return wordController.addWord("MOCK_USER_ID", "unit testing", new Date(), "john")
+			.should.eventually.deep.equal(expectedResponse);
+	});
+	
+	//Happy path test 5
+	it('addWord5()', function() {
+		var baby = new Baby();
+		baby.birthdate = "2016-06-01T00:00:00.000Z";
+		baby.sex = "boy";
+		baby.userId = "MOCK_USER_ID";
+		baby.name = "john";
+		var createWordResult = {
+			"Attributes" : {
+				"wordKey" : "amzn1.account.1-1",
+				"word" : "unit testing",
+				"dateTime" : "2017-07-16T10:14:43-04:00"
+			}	
+		};
+		wordDaoCreateWordStub.resolves(createWordResult);
+		babyDaoReadBabyByNameStub.resolves(baby);
+		wordDaoGetWordCountStub.resolves(0);
+		var expectedResponseMsg = "The word unit testing was added previously for john.";
+		var expectedResponse = new Response(expectedResponseMsg, "Word", expectedResponseMsg);
+		return wordController.addWord("MOCK_USER_ID", "unit testing", new Date(), "john")
 			.should.eventually.deep.equal(expectedResponse);
 	});
 		

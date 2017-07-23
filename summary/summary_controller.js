@@ -29,15 +29,9 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var FeedDao = require('../feed/feed_aws_dao');
-var BabyDao = require('../baby/baby_aws_dao');
-var WeightDao = require('../weight/weight_aws_dao');
 var Summary = require('./summary');
 var FeedSummary = require('./feed_summary');
 var DiaperSummary = require('./diaper_summary');
-var DiaperDao= require('../diaper/diaper_aws_dao');
-var ActivityDao = require('../activity/activity_aws_dao');
-var SleepDao = require('../sleep/sleep_aws_dao');
 var Utils = require('../common/utils');
 var ValidationUtils = require('../common/validation_utils');
 var IllegalStateError = require('../common/illegal_state_error');
@@ -63,13 +57,13 @@ var logger = new (Winston.Logger)({
  * Represents business logic for feed-related operations.
  * @constructor
  */
-function SummaryController () {
-	this.feedDao = new FeedDao();
-	this.babyDao = new BabyDao();
-	this.weightDao = new WeightDao();
-	this.diaperDao = new DiaperDao();
-	this.activityDao = new ActivityDao();
-	this.sleepDao = new SleepDao();
+function SummaryController (feedDao, babyDao, weightDao, diaperDao, activityDao, sleepDao) {
+	this.feedDao = feedDao;
+	this.babyDao = babyDao;
+	this.weightDao = weightDao;
+	this.diaperDao = diaperDao;
+	this.activityDao = activityDao;
+	this.sleepDao = sleepDao;
 }
 
 /**
@@ -429,7 +423,7 @@ SummaryController.prototype.getDailySummary = function(userId, babyName) {
 			return self.activityDao.getActivitiesForDay(userId, baby.seq, today, baby.timezone);
 		})
 		.then( function(activitiesForDayResult) {
-			logger.debug("getDailySummary: activitiesForDayResult.Items %s", JSON.stringify(activitiesForDayResult));
+			logger.debug("getDailySummary: activitiesForDayResult %s", JSON.stringify(activitiesForDayResult));
 			//todo: refactor this logic so we're not duplicating
 			activitiesForDayResult.Items.forEach(function(item) {
 	            logger.debug("getDailySummary: activity -- ", item.dateTime + ": " + item.activity);

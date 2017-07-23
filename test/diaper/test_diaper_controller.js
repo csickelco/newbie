@@ -40,7 +40,7 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('DiaperController', function() {
-	var diaperController = new DiaperController();
+	var diaperController = new DiaperController(new DiaperDao(), new BabyDao());
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,

@@ -29,21 +29,6 @@ var Utils = require('../common/utils');
 var DaoError = require('../common/dao_error');
 var DaoUtils = require('../common/dao_utils');
 var Winston = require('winston');
-var AWS = require("aws-sdk");
-
-//Check if environment supports native promises, otherwise use Bluebird
-//See https://blogs.aws.amazon.com/javascript/post/Tx3BZ2DC4XARUGG/Support-for-Promises-in-the-SDK
-//for AWS Promise support
-if (typeof Promise === 'undefined') {
-	AWS.config.setPromisesDependency(require('bluebird'));
-}
-
-//Configure DynamoDB access
-AWS.config.update({
-	region: "us-east-1",
-	//endpoint: "http://localhost:4000"
-	endpoint: "https://dynamodb.us-east-1.amazonaws.com"
-});
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -67,12 +52,14 @@ var TABLE_NAME = 'NEWBIE.WORD';
 /**
  * Represents data access operations for words.
  * @constructor
+ * @param {DynamoDb} DynamoDB object used to work with the database. Non-nullable. 
+ * @param {DocClient} DocClient object used to work with objects in the database. Non-nullable. 
+ * @param {DaoUtils} Utilies to perform common operations against the database. Non-nullable.			
  */
-function WordAWSDao() {
-	//DynamoDB access objects
-	this.dynamodb = new AWS.DynamoDB();
-	this.docClient = new AWS.DynamoDB.DocumentClient();
-	this.daoUtils = new DaoUtils(this.dynamodb, this.docClient);
+function WordAWSDao(dynamodb, docClient, daoUtils) {
+	this.dynamodb = dynamodb;
+	this.docClient = docClient;
+	this.daoUtils = daoUtils;
 }
 
 /**
@@ -153,7 +140,8 @@ WordAWSDao.prototype.createWord = function(word) {
 	    	wordKey: word.userId + "-" + word.seq,
 	    	word: word.word,
 	    	dateTime: dateTimeString
-	    }
+	    },
+	    ReturnValues: 'ALL_OLD'
 	};
 	return this.docClient.put(params).promise()
 		.catch(function(error) {

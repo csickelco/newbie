@@ -28,6 +28,12 @@ var BabyController = require('../../baby/baby_controller');
 var BabyDao = require('../../baby/baby_aws_dao');
 var Response = require('../../common/response');
 var BabyDao = require('../../baby/baby_aws_dao');
+var FeedDao = require('../../feed/feed_aws_dao');
+var WeightDao = require('../../weight/weight_aws_dao');
+var DiaperDao = require('../../diaper/diaper_aws_dao');
+var ActivityDao = require('../../activity/activity_aws_dao');
+var SleepDao = require('../../sleep/sleep_aws_dao');
+var WordDao = require('../../word/word_aws_dao');
 var IllegalArgumentError = require('../../common/illegal_argument_error');
 var IllegalStateError = require('../../common/illegal_state_error');
 var ActivityLimitError = require('../../common/activity_limit_error');
@@ -40,7 +46,8 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('BabyController', function() {
-	var babyController = new BabyController();
+	var babyController = new BabyController(new BabyDao(), new FeedDao(), 
+			new WeightDao(), new DiaperDao(), new ActivityDao(), new SleepDao(), new WordDao());
 	var addedDateTime = new Date();
 	
 	/*

@@ -26,23 +26,10 @@ module.change_code = 1;
 
 //Dependencies
 var Winston = require('winston');
-var AWS = require("aws-sdk");
 var DaoError = require("../common/dao_error");
 var SecurityUtils = require('../common/security_utils');
 var clj_fuzzy = require('clj-fuzzy');
 var Utils = require('../common/utils');
-
-//Check if environment supports native promises
-if (typeof Promise === 'undefined') {
-	AWS.config.setPromisesDependency(require('bluebird'));
-}
-
-//Configure DynamoDB access
-AWS.config.update({
-	region: "us-east-1",
-	//endpoint: "http://localhost:4000"
-	endpoint: "https://dynamodb.us-east-1.amazonaws.com"
-});
 
 ////Configure the logger with basic logging template
 var logger = new (Winston.Logger)({
@@ -66,10 +53,9 @@ var TABLE_NAME = 'NEWBIE.BABY';
  * Represents data access operations for babies.
  * @constructor
  */
-function BabyAWSDao() {
-	//DynamoDB access objects
-	this.dynamodb = new AWS.DynamoDB();
-	this.docClient = new AWS.DynamoDB.DocumentClient();
+function BabyAWSDao(dynamodb, docClient) {
+	this.dynamodb = dynamodb;
+	this.docClient = docClient;
 	this.securityUtils = new SecurityUtils();
 }
 

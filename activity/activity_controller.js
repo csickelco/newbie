@@ -25,8 +25,6 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var ActivityDao = require('./activity_aws_dao');
-var BabyDao = require('../baby/baby_aws_dao');
 var Activity = require('./activity');
 var IllegalArgumentError = require('../common/illegal_argument_error');
 var IllegalStateError = require('../common/illegal_state_error');
@@ -61,9 +59,9 @@ var ADD_LIMIT = 40;
  * Represents business logic for activity-related operations.
  * @constructor
  */
-function ActivityController () {
-	this.activityDao = new ActivityDao();
-	this.babyDao = new BabyDao();
+function ActivityController (activityDao, babyDao) {
+	this.activityDao = activityDao;
+	this.babyDao = babyDao;
 }
 
 /**

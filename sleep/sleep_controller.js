@@ -25,8 +25,6 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var SleepDao = require('./sleep_aws_dao');
-var BabyDao = require('../baby/baby_aws_dao');
 var Sleep = require('./sleep');
 var Utils = require('../common/utils');
 var ValidationUtils = require('../common/validation_utils');
@@ -60,9 +58,9 @@ var ADD_LIMIT = 40;
  * Represents business logic for sleep-related operations.
  * @constructor
  */
-function SleepController () {
-	this.sleepDao = new SleepDao();
-	this.babyDao = new BabyDao();
+function SleepController (sleepDao, babyDao) {
+	this.sleepDao = sleepDao;
+	this.babyDao = babyDao;
 }
 
 /**
@@ -148,7 +146,7 @@ SleepController.prototype.startSleep = function(userId, dateTime, baby) {
 				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
 					" sleep entries in any given day"));
 			}
-			return self.sleepDao.createSleep(sleep)
+			return self.sleepDao.createSleep(sleep);
 		})
 		.then( function(result) 
 		{

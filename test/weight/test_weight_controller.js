@@ -41,7 +41,7 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('WeightController', function() {
-	var weightController = new WeightController();
+	var weightController = new WeightController(new WeightDao(), new BabyDao());
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,

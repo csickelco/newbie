@@ -40,7 +40,7 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('SleepController', function() {
-	var sleepController = new SleepController();
+	var sleepController = new SleepController(new SleepDao(), new BabyDao());
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,

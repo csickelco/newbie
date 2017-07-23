@@ -44,17 +44,53 @@ var ActivityController = require('./activity/activity_controller');
 var SleepController = require('./sleep/sleep_controller');
 var WordController = require('./word/word_controller');
 var Utils = require('./common/utils');
+var DaoUtils = require('./common/dao_utils');
+var BabyDao = require('./baby/baby_aws_dao');
+var WordDao = require('./word/word_aws_dao');
+var ActivityDao = require('./activity/activity_aws_dao');
+var DiaperDao = require('./diaper/diaper_aws_dao');
+var FeedDao = require('./feed/feed_aws_dao');
+var SleepDao = require('./sleep/sleep_aws_dao');
+var WeightDao = require('./weight/weight_aws_dao');
+
+//Configure AWS APIs
+//Configure DynamoDB access
+AWS.config.update({
+	region: "us-east-1",
+	//endpoint: "http://localhost:4000"
+	endpoint: "https://dynamodb.us-east-1.amazonaws.com"
+});
+
+//Check if environment supports native promises, otherwise use Bluebird
+//See https://blogs.aws.amazon.com/javascript/post/Tx3BZ2DC4XARUGG/Support-for-Promises-in-the-SDK
+//for AWS Promise support
+if (typeof Promise === 'undefined') {
+	AWS.config.setPromisesDependency(require('bluebird'));
+}
 
 //Properties
 var app = new Alexa.app('newbie');
-var babyController = new BabyController();
-var weightController = new WeightController();
-var feedController = new FeedController();
-var summaryController = new SummaryController();
-var diaperController = new DiaperController();
-var activityController = new ActivityController();
-var sleepController = new SleepController();
-var wordController = new WordController();
+
+var dynamodb = new AWS.DynamoDB();
+var docClient = new AWS.DynamoDB.DocumentClient();
+var daoUtils = new DaoUtils(dynamodb, docClient);
+
+var activityDao = new ActivityDao(dynamodb, docClient, daoUtils);
+var wordDao = new WordDao(dynamodb, docClient, daoUtils);
+var babyDao = new BabyDao(dynamodb, docClient);
+var diaperDao = new DiaperDao(dynamodb, docClient, daoUtils);
+var feedDao = new FeedDao(dynamodb, docClient, daoUtils);
+var sleepDao = new SleepDao(dynamodb, docClient, daoUtils);
+var weightDao = new WeightDao(dynamodb, docClient, daoUtils);
+
+var babyController = new BabyController(babyDao, feedDao, weightDao, diaperDao, activityDao, sleepDao, wordDao);
+var weightController = new WeightController(weightDao, babyDao);
+var feedController = new FeedController(feedDao, babyDao);
+var summaryController = new SummaryController(feedDao, babyDao, weightDao, diaperDao, activityDao, sleepDao);
+var diaperController = new DiaperController(diaperDao, babyDao);
+var activityController = new ActivityController(activityDao, babyDao);
+var sleepController = new SleepController(sleepDao, babyDao);
+var wordController = new WordController(wordDao, babyDao);
 
 //Configure the logger with basic logging template
 var logger = new (Winston.Logger)({

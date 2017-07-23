@@ -44,7 +44,10 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('SummaryController', function() {
-	var summaryController = new SummaryController();
+	
+	var summaryController = new SummaryController( 
+			new FeedDao(), new BabyDao(), new WeightDao(), 
+			new DiaperDao(), new ActivityDao(), new SleepDao());
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,
@@ -57,6 +60,7 @@ describe('SummaryController', function() {
 	var weightDaoGetWeightStub;
 	var feedDaoGetFeedsStub;
 	var babyDaoReadBabyStub;
+	var activityDaoGetActivitiesForDayStub;
 	
 	beforeEach(function() {	
 		diaperDaoGetDiapersStub = sinon.stub(summaryController.diaperDao, 'getDiapers');
@@ -64,6 +68,7 @@ describe('SummaryController', function() {
 		weightDaoGetWeightStub = sinon.stub(summaryController.weightDao, 'getWeight');
 		feedDaoGetFeedsStub = sinon.stub(summaryController.feedDao, 'getFeeds');
 		babyDaoReadBabyStub = sinon.stub(summaryController.babyDao, 'readBaby');
+		activityDaoGetActivitiesForDayStub = sinon.stub(summaryController.activityDao, 'getActivitiesForDay');
 	});
 	
 	afterEach(function() {
@@ -72,6 +77,7 @@ describe('SummaryController', function() {
 		summaryController.weightDao.getWeight.restore();
 		summaryController.feedDao.getFeeds.restore();
 		summaryController.babyDao.readBaby.restore();
+		summaryController.activityDao.getActivitiesForDay.restore();
 	});
 	
 	//Weekly summary tests...
@@ -224,6 +230,12 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
+		
 		var expectedResponseMsg = "jane is now 12 weeks old and weighs 12 pounds, 8 ounces. On average, she ate " +
 			"2 times for a total of 11 ounces and had 2 wet and 1 dirty diaper per day. Each day, she generally slept about 4 hours";
 		var expectedCardBody = "Age: 12 weeks\nWeight: 12 pounds, 8 ounces\nAverage number of feedings per day: 2\n" +
@@ -357,6 +369,12 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
+		
 		var expectedResponseMsg = "jane is now 12 weeks old and weighs 12 pounds, 8 ounces. On average, she ate " +
 			"2 times and had 2 wet and 1 dirty diaper per day. Each day, she generally slept about 4 hours";
 		var expectedCardBody = "Age: 12 weeks\nWeight: 12 pounds, 8 ounces\nAverage number of feedings per day: 2\n" +
@@ -485,6 +503,12 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
+		
 		var expectedResponseMsg = "jane weighs 12 pounds, 8 ounces. On average, she ate " +
 			"2 times and had 2 wet and 1 dirty diaper per day. Each day, she generally slept about 4 hours";
 		var expectedCardBody = "Weight: 12 pounds, 8 ounces\nAverage number of feedings per day: 2\n" +
@@ -601,6 +625,12 @@ describe('SummaryController', function() {
 			};
 		sleepDaoGetSleepStub.resolves(sleepItems);
 		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
+		
 		//Stub weight
 		weightDaoGetWeightStub.resolves();
 		
@@ -711,6 +741,12 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
+		
 		var expectedResponseMsg = "Today, jane is 12 weeks old and weighs 12 pounds, 8 ounces. She ate " +
 			"2 times for a total of 11 ounces and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
 		var expectedCardBody = "Age: 12 weeks\nWeight: 12 pounds, 8 ounces\nNumber of feedings: 2\n" +
@@ -794,6 +830,12 @@ describe('SummaryController', function() {
 				]
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
+		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
 		
 		var expectedResponseMsg = "Today, jane is 12 weeks old and weighs 12 pounds, 8 ounces. She ate " +
 			"2 times and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
@@ -880,6 +922,12 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
+		
 		var expectedResponseMsg = "Today, jane is 12 weeks old and weighs 12 pounds, 8 ounces. She ate " +
 			"2 times, including 1 feed totaling 5 ounces, and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
 		var expectedCardBody = "Age: 12 weeks\nWeight: 12 pounds, 8 ounces\nNumber of feedings: 2\n" +
@@ -962,6 +1010,12 @@ describe('SummaryController', function() {
 			};
 		weightDaoGetWeightStub.resolves(weightItems);
 		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
+		
 		var expectedResponseMsg = "Today, jane weighs 12 pounds, 8 ounces. She ate " +
 			"2 times for a total of 11 ounces and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";
 		var expectedCardBody = "Weight: 12 pounds, 8 ounces\nNumber of feedings: 2\n" +
@@ -1034,6 +1088,12 @@ describe('SummaryController', function() {
 		
 		//Stub weight
 		weightDaoGetWeightStub.resolves();
+		
+		//Stub activities
+		var activityItems = {
+				"Items" : []
+		};
+		activityDaoGetActivitiesForDayStub.resolves(activityItems);
 		
 		var expectedResponseMsg = "Today, jane ate " +
 			"2 times for a total of 11 ounces and had 2 wet diapers and 1 dirty diaper. She slept 4 hours. ";

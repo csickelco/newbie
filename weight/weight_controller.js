@@ -25,8 +25,6 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var WeightDao = require('./weight_aws_dao');
-var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
 var Weight = require('./weight');
 var WeightPercentileDao = require('./weight_percentile_dao');
@@ -53,7 +51,7 @@ var logger = new (Winston.Logger)({
 
 //Constants
 /**
- * The maximum number of sleep entries that can be added in any given day
+ * The maximum number of weight entries that can be added in any given day
  */
 var ADD_LIMIT = 5;
 
@@ -81,9 +79,9 @@ function stringifyNumber(n) {
  * Represents business logic for weight-related operations.
  * @constructor
  */
-function WeightController () {
-	this.weightDao = new WeightDao();
-	this.babyDao = new BabyDao();
+function WeightController (weightDao, babyDao) {
+	this.weightDao = weightDao;
+	this.babyDao = babyDao;
 	this.weightPercentileDao = new WeightPercentileDao();
 }
 
