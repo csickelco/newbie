@@ -24,13 +24,6 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var BabyDao = require('./baby_aws_dao');
-var FeedDao = require('../feed/feed_aws_dao');
-var WeightDao = require('../weight/weight_aws_dao');
-var DiaperDao= require('../diaper/diaper_aws_dao');
-var ActivityDao = require('../activity/activity_aws_dao');
-var SleepDao = require('../sleep/sleep_aws_dao');
-var WordDao = require('../word/word_aws_dao');
 var Baby = require('./baby');
 var Response = require('../common/response');
 var Utils = require('../common/utils');
@@ -61,14 +54,14 @@ var ADD_LIMIT = 20;
  * Represents business logic for baby-related operations.
  * @constructor
  */
-function BabyController () {
-	this.babyDao = new BabyDao();
-	this.feedDao = new FeedDao();
-	this.weightDao = new WeightDao();
-	this.diaperDao = new DiaperDao();
-	this.activityDao = new ActivityDao();
-	this.sleepDao = new SleepDao();
-	this.wordDao = new WordDao();
+function BabyController (babyDao, feedDao, weightDao, diaperDao, activityDao, sleepDao, wordDao) {
+	this.babyDao = babyDao;
+	this.feedDao = feedDao;
+	this.weightDao = weightDao;
+	this.diaperDao = diaperDao;
+	this.activityDao = activityDao;
+	this.sleepDao = sleepDao;
+	this.wordDao = wordDao;
 }
 
 /**

@@ -25,8 +25,6 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var DiaperDao = require('./diaper_aws_dao');
-var BabyDao = require('../baby/baby_aws_dao');
 var Diaper = require('./diaper');
 var Utils = require('../common/utils');
 var ValidationUtils = require('../common/validation_utils');
@@ -61,9 +59,9 @@ var ADD_LIMIT = 40;
  * Represents business logic for diaper-related operations.
  * @constructor
  */
-function DiaperController () {
-	this.diaperDao = new DiaperDao();
-	this.babyDao = new BabyDao();
+function DiaperController (diaperDao, babyDao) {
+	this.diaperDao = diaperDao;
+	this.babyDao = babyDao;
 }
 
 /**

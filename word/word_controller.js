@@ -25,8 +25,6 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var WordDao = require('./word_aws_dao');
-var BabyDao = require('../baby/baby_aws_dao');
 var Word = require('./word');
 var IllegalArgumentError = require('../common/illegal_argument_error');
 var IllegalStateError = require('../common/illegal_state_error');
@@ -61,9 +59,9 @@ var ADD_LIMIT = 1000;
  * Represents business logic for word-related operations.
  * @constructor
  */
-function WordController () {
-	this.wordDao = new WordDao();
-	this.babyDao = new BabyDao();
+function WordController (wordDao, babyDao) {
+	this.wordDao = wordDao;
+	this.babyDao = babyDao;
 }
 
 /**
@@ -100,11 +98,14 @@ WordController.prototype.addWord = function(userId, word, dateTime, baby) {
 	logger.debug("addWord: Adding word for %s, date: %s, word: %s, baby: %s", 
 			userId, dateTime, word, baby);
 	
-	var template = _.template("Added word ${word} for ${babyName}");
+	var template = _.template("Added word ${word} for ${babyName}. ${pronoun} now knows ${wordCount} words.");
+	var firstWordTemplate = _.template("Added word ${word} for ${babyName}. This is ${pronoun} first word!");
+	var alreadyAddedTemplate = _.template("The word ${word} was added previously for ${babyName}.");
 	var loadedBaby;
 	var wordObj = new Word();
 	var self = this;
 	var babyName;
+	var totalWordCount = 0;
 	
 	//First, validate our required arguments
 	return ValidationUtils.validateRequired("userId", userId)
@@ -148,7 +149,7 @@ WordController.prototype.addWord = function(userId, word, dateTime, baby) {
 		.then( function(wordCountResult) 
 		{
 			logger.debug("addWord: Word count: %d", wordCountResult);
-			var totalWordCount = wordCountResult + 1; //All words for the day plus the one we're trying to add
+			totalWordCount = wordCountResult + 1; //All words for the day plus the one we're trying to add
 			
 			if( totalWordCount > ADD_LIMIT ) {
 				return Promise.reject(new ActivityLimitError("You cannot add more than " + ADD_LIMIT + 
@@ -160,12 +161,33 @@ WordController.prototype.addWord = function(userId, word, dateTime, baby) {
 		})
 		.then( function(createWordResult)
 		{
+			logger.debug("addWord: createWordResult %s", JSON.stringify(createWordResult));
 			//Finally, build the response confirming the add
-			var responseMsg = template(
-			{
-				word: word,
-				babyName: loadedBaby.name
-			});
+			var responseMsg;
+			
+			if( createWordResult && createWordResult.Attributes) {
+				//If the word was recorded already, it is returned by the dao
+				responseMsg = alreadyAddedTemplate(
+						{
+							word: word,
+							babyName: loadedBaby.name
+						});
+			} else if( totalWordCount === 1 ) {
+				responseMsg = firstWordTemplate(
+						{
+							word: word,
+							babyName: loadedBaby.name,
+							pronoun : Utils.hisHer(loadedBaby.sex)
+						});
+			} else {
+				responseMsg = template(
+					{
+						word: word,
+						babyName: loadedBaby.name,
+						pronoun : Utils.heShe(loadedBaby.sex, true),
+						wordCount : totalWordCount
+					});
+			}
 			logger.debug("addWord: Response %s", responseMsg);
 			return new Response(responseMsg, "Word", responseMsg);
 		});
@@ -206,7 +228,7 @@ WordController.prototype.getWordCount = function(userId, baby) {
 			}
 		})
 		.then( function(readBabyResult) {
-			//Then, get the most recent word entry from the datastore provided the baby exists
+			//Then, get the most recent word count from the datastore provided the baby exists
 			if(readBabyResult) {
 				loadedBaby = readBabyResult;
 			} else {

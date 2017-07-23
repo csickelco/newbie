@@ -40,7 +40,7 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('FeedController', function() {
-	var feedController = new FeedController();
+	var feedController = new FeedController(new FeedDao(), new BabyDao());
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,

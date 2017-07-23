@@ -40,7 +40,7 @@ chai.use(chaiAsPromised);
 chai.should();
 
 describe('ActivityController', function() {
-	var activityController = new ActivityController();
+	var activityController = new ActivityController(new ActivityDao(), new BabyDao());
 	
 	/*
 	 * We want to stub out the pieces of code that make writing the tests difficult,

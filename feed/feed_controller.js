@@ -25,8 +25,6 @@ module.change_code = 1;
 
 //Dependencies
 var _ = require('lodash');
-var FeedDao = require('./feed_aws_dao');
-var BabyDao = require('../baby/baby_aws_dao');
 var Response = require('../common/response');
 var Feed = require('./feed');
 var Utils = require('../common/utils');
@@ -61,9 +59,9 @@ var ADD_LIMIT = 40;
  * Represents business logic for feed-related operations.
  * @constructor
  */
-function FeedController () {
-	this.feedDao = new FeedDao();
-	this.babyDao = new BabyDao();
+function FeedController (feedDao, babyDao) {
+	this.feedDao = feedDao;
+	this.babyDao = babyDao;
 }
 
 /**
