@@ -158,8 +158,8 @@ function processTimezone(timezone, daylightSavingsObserved) {
  */
 BabyController.prototype.addBaby = function(userId, sex, name, birthdate, timezone, daylightSavingsObserved, addedDateTime) {
 	logger.debug("addBaby: Adding baby for %s, sex: %s, name: %s, birthdate: %s", userId, sex, name, birthdate);
-	var template = _.template('Added baby ${sex} ${name}. You can now begin adding ${pronoun} feeds, diapers, activities, sleep, and weight.');
-	var templateNoName = _.template('Added baby ${sex}. You can now begin adding ${pronoun} feeds, diapers, activities, sleep, and weight.');
+	var template = _.template('Added baby ${sex} ${name}. You can now begin adding ${pronoun} feeds, diapers, activities, sleep, weight, and words.');
+	var templateNoName = _.template('Added baby ${sex}. You can now begin adding ${pronoun} feeds, diapers, activities, sleep, weight, and words.');
 	
 	var self = this;
 	return ValidationUtils.validateRequired("userId", userId)
