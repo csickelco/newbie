@@ -269,13 +269,15 @@ BabyController.prototype.removeBaby = function(userId, name ) {
 						"Cannot remove baby " + name + ". No data exists for this baby" ));
 			}
 		})
-		.then( function(deleteActivitiesResult) {
+		.then( function(deleteAssociatedRecordsResult) {
+			logger.info("removeBaby: Removed associated records for baby userId %s, seq %s", userId, baby.seq);
+
 			//Finally, once all baby's data has been deleted, delete the baby record itself
 			return self.babyDao.deleteBaby(userId, baby.seq);
 		})
 		.then( function(result) 
 		{
-			logger.debug("removeBaby: Successfully removed baby %s", JSON.stringify(result));
+			logger.info("removeBaby: Successfully removed baby userId %s, seq %s", userId, baby.seq);
 			var responseMsg = template(
 			{
 				name: name
