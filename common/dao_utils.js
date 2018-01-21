@@ -115,6 +115,8 @@ DaoUtils.prototype.deleteRecordsForBaby = function(tableName, keyName, sortKeyNa
 	            		fullDeleteRequest += item.date;
 	            	} else if( sortKeyName === "sleepDateTime" ) {
 	            		fullDeleteRequest += item.sleepDateTime;
+	            	} else if( sortKeyName === "word" ) {
+	            		fullDeleteRequest += item.word;
 	            	} else {
 	            		throw "sortKeyName '" + sortKeyName + "' unknown";
 	            	}

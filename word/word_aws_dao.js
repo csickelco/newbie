@@ -193,7 +193,7 @@ WordAWSDao.prototype.getWordCount = function(userId, seq) {
  * 			or ResourceNotFoundException.
  */
 WordAWSDao.prototype.deleteWordsForBaby = function(userId, seq) {
-	return this.daoUtils.deleteRecordsForBaby(TABLE_NAME, "wordKey", "dateTime", userId, seq);
+	return this.daoUtils.deleteRecordsForBaby(TABLE_NAME, "wordKey", "word", userId, seq);
 };
 
 module.exports = WordAWSDao;

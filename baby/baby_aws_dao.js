@@ -327,7 +327,7 @@ BabyAWSDao.prototype.getBabyCount = function(userId) {
  * 						or ResourceNotFoundException.   
  */
 BabyAWSDao.prototype.deleteBaby = function(userId, seq) {
-	logger.debug("deleteActivitiesForBaby: Starting delete baby for %s %d", userId, seq );
+	logger.debug("deleteBaby: Starting delete baby for %s %d", userId, seq );
 	var params = {
 	    TableName: TABLE_NAME,
 	    Key:{
