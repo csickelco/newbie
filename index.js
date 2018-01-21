@@ -165,7 +165,7 @@ app.pre = function(request, response, type) {
 app.launch(function(req, res) {
 	var userId = req.data.session.user.userId;
 	logger.start_log('launch', 'info', ' ', ' [' + userId + ', ' + req.data.request.requestId + ']: Starting');
-	var prompt = 'You can ask Newbie Log version 1.1 to track information about your baby. To begin, say Add baby, ' +
+	var prompt = 'You can ask Newbie Log to track information about your baby. To begin, say Add baby, ' +
 		"or, say ''Help'' to find out what else you can do.";
 	logger.stop_log('launch', 'info');
     res.say(prompt).shouldEndSession(false);
